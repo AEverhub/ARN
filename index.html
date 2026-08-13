@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測驗系統-網頁版(Web ST) -V3-Beta</title>
+
+    <!-- MathJax 公式渲染套件 -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']], processEscapes: true },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <!-- html2pdf.js 套件 (用於產生與下載 PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root { 
+            --primary: #1a252f; 
+            --secondary: #2c3e50; 
+            --accent: #2980b9;
+            --success: #27ae60; 
+            --error: #c0392b; 
+            --bg: #0f172a; /* 深藍色背景 */
+            --card-bg: #ffffff;
+            --text-main: #333333;
+        }
+        body { 
+            font-family: "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif; 
+            background: var(--bg); 
+            color: #f8fafc;
+            margin: 0; 
+            padding: 20px; 
+            user-select: none; 
+            box-sizing: border-box;
+        }
+        .container { 
+            max-width: 850px; 
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            color: var(--text-main);
+            padding: 35px; 
+            border-radius: 8px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); 
+            box-sizing: border-box;
+        }
+        h2, h3 { color: var(--primary); margin-top: 0; font-weight: 700; }
+        .text-center { text-align: center; }
+        
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { font-size: 0.9em; font-weight: bold; color: #475569; display: block; margin-bottom: 5px; }
+        .code-input { 
+            width: 100%; 
+            padding: 12px; 
+            font-size: 1em; 
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1; 
+            border-radius: 4px; 
+            margin-bottom: 12px; 
+            background: #f8fafc;
+        }
+        
+        .main-btn { 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 1.05em; 
+            cursor: pointer; 
+            color: white; 
+            font-weight: bold; 
+            transition: background 0.2s; 
+            margin-top: 10px; 
+        }
+        .btn-secondary { background: #64748b; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219653; }
+        .btn-accent { background: var(--accent); }
+        .btn-accent:hover { background: #1f6391; }
+        .hidden { display: none !important; }
+
+        /* 當前會員狀態顯示列 */
+        .status-box {
+            background: #f1f5f9;
+            border-left: 4px solid var(--accent);
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            color: #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .switch-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* 按鈕組響應式佈局 */
+        .action-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .action-btn-group .main-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        /* 條款區樣式 */
+        .terms-box {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 180px;
+            overflow-y: scroll;
+            text-align: left;
+            font-size: 0.9em;
+            color: #475569;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .checkbox-group { text-align: left; margin-bottom: 20px; font-size: 0.95em; color: #334155; }
+
+        /* 考題卡片樣式 */
+        .question-card { 
+            text-align: left; 
+            padding: 20px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 6px; 
+            margin-bottom: 25px; 
+            background: #ffffff; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .question-title { font-size: 1.1em; font-weight: 600; color: var(--primary); margin-bottom: 15px; }
+        .opt-btn { 
+            width: 100%; 
+            padding: 12px 15px; 
+            margin: 8px 0; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 4px; 
+            background: #fff; 
+            text-align: left; 
+            cursor: pointer; 
+            font-size: 0.95em;
+            transition: all 0.15s;
+        }
+        .opt-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+        .opt-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* 解析與計時器 */
+        .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
+        #timer-box { 
+            font-size: 1em; 
+            color: var(--error); 
+            font-weight: bold; 
+            background: #fef2f2; 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            border: 1px solid #fee2e2; 
+        }
+
+        /* 導航按鈕 */
+        .nav-flex { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
+        .nav-btn { flex: 1; padding: 10px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; border-radius: 4px; }
+        .nav-btn:hover { background: #f1f5f9; }
+
+        /* 黑底評量報告區域 (PDF 生成專用) */
+        .result-container-dark {
+            position: relative;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            text-align: left;
+            line-height: 1.8;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* 表格 (Table) 專用樣式 */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: #090d16;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+        .report-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #1e293b;
+            font-size: 0.95em;
+        }
+        .report-table tr:last-child td {
+            border-bottom: none;
+        }
+        .tb-label {
+            width: 35%;
+            color: #94a3b8;
+            font-weight: 600;
+            background: #111827;
+        }
+        .tb-val {
+            width: 65%;
+            color: #f8fafc;
+        }
+
+        /* PDF 錯題清單專用深色卡片樣式 */
+        .pdf-wrong-card {
+            background: #0d1527;
+            border: 1px solid #1e293b;
+            border-left: 4px solid #ef4444;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        /* 強制分頁與獨立「成績證明章」頁面樣式 */
+        .pdf-page-break {
+            page-break-before: always;
+            break-before: page;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px dashed #334155;
+        }
+        .stamp-page-header {
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ef4444;
+            letter-spacing: 2px;
+        }
+
+        /* 印章 CSS 樣式區域 */
+        .stamp-container-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px 0;
+        }
+        .official-stamp {
+            border: 4px solid #ff3b30;
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #ff3b30;
+            padding: 12px 18px;
+            text-align: center;
+            font-family: "KaiTi", "DFKai-SB", "BiauKai", serif;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 0 6px rgba(255, 59, 48, 0.4);
+            display: inline-block;
+            transform: rotate(-2deg);
+            min-width: 200px;
+        }
+        .stamp-title { font-size: 0.95em; letter-spacing: 1px; }
+        .stamp-date { font-size: 0.85em; margin: 4px 0; border-top: 1px solid #ff3b30; border-bottom: 1px solid #ff3b30; padding: 2px 0; }
+        .stamp-body { font-size: 1.2em; font-weight: 900; letter-spacing: 2px; }
+
+        /* 文字色彩等級 */
+        .res-blue { color: #3b82f6; font-weight: bold; }
+        .res-orange { color: #f97316; font-weight: bold; }
+        .res-green { color: #22c55e; font-weight: bold; }
+        .res-red { color: #ef4444; font-weight: bold; }
+        .res-yellow { color: #eab308; font-weight: bold; }
+        .res-black-pass { color: #ffffff; font-weight: bold; }
+
+        /* 彈出視窗 Modal 樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .modal-card {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .stamp-checkbox-list {
+            text-align: left;
+            background: #0f172a;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+        .stamp-checkbox-list label {
+            display: block;
+            font-size: 0.9em;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .stamp-checkbox-list label:last-child { margin-bottom: 0; }
+
+        /* 手機端 RWD 適應優化 */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 18px 15px; }
+            .result-container-dark { padding: 18px 12px; }
+            .report-table td { padding: 10px 8px; font-size: 0.88em; }
+            .tb-label { width: 40%; }
+            .tb-val { width: 60%; }
+            .action-btn-group { flex-direction: column; gap: 8px; }
+            .action-btn-group .main-btn { width: 100%; }
+            .stamp-container-wrapper { justify-content: center; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false">
+
+<div class="container">
+
+    <!-- 全局頂部會員登入狀態列 -->
+    <div id="account-status-bar" class="status-box">
+        <div>當前狀態：<span id="current-user-display" style="font-weight: bold; color: var(--error);">未登入（請先註冊或登入）</span></div>
+        <button id="btn-global-logout" class="hidden" style="background: transparent; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 4px; cursor: pointer;" onclick="handleLogout()">登出</button>
+    </div>
+
+    <!-- 0. 帳號註冊畫面 -->
+    <div id="auth-register-screen">
+        <h2 class="text-center">帳號註冊</h2>
+        <div class="input-group">
+            <label for="reg-id">使用者 ID / 帳號</label>
+            <input type="text" id="reg-id" class="code-input" placeholder="請設定帳號 ID">
+
+            <label for="reg-email">電子郵件信箱 (Email)</label>
+            <input type="email" id="reg-email" class="code-input" placeholder="example@domain.com">
+
+            <label for="reg-pass">密碼</label>
+            <input type="password" id="reg-pass" class="code-input" placeholder="請設定密碼">
+
+            <label for="reg-pass-confirm">確認密碼</label>
+            <input type="password" id="reg-pass-confirm" class="code-input" placeholder="再次輸入密碼">
+        </div>
+
+        <button class="main-btn btn-success" onclick="handleRegister()">完成註冊並登入</button>
+        <div class="switch-link" onclick="toggleAuthMode('login')">已有帳號？前往登入</div>
+    </div>
+
+    <!-- 0. 帳號登入畫面 -->
+    <div id="auth-login-screen" class="hidden">
+        <h2 class="text-center">帳號登入</h2>
+        <div class="input-group">
+            <label for="login-id">使用者 ID 或 Email</label>
+            <input type="text" id="login-id" class="code-input" placeholder="輸入帳號 ID 或 Email">
+
+            <label for="login-pass">密碼</label>
+            <input type="password" id="login-pass" class="code-input" placeholder="輸入密碼">
+        </div>
+
+        <button class="main-btn btn-accent" onclick="handleLogin()">登入系統</button>
+        <div class="switch-link" onclick="toggleAuthMode('register')">還沒有帳號？前往註冊</div>
+    </div>
+
+    <!-- 1. 測驗準備/驗證頁面 (已登入後顯示) -->
+    <div id="login-screen" class="hidden">
+        <h2 class="text-center">線上模擬評量系統</h2>
+        <div class="input-group">
+            <label for="user-name">考生真實姓名 (用於報告與憑證卡片)</label>
+            <input type="text" id="user-name" class="code-input" placeholder="請輸入姓名">
+
+            <label for="quiz-code">測驗代碼</label>
+            <input type="text" id="quiz-code" class="code-input" placeholder="請輸入測驗代碼 (例如: test01)">
+            
+            <div id="password-area" class="hidden">
+                <label for="quiz-pass">題庫驗證密碼</label>
+                <input type="password" id="quiz-pass" class="code-input" placeholder="請輸入題庫驗證密碼">
+            </div>
+
+            <h3>使用者服務條款與免責聲明</h3>
+            <div class="terms-box">
+                <p><strong>第一條：學術用途與免責聲明</strong><br>
+                本系統所提供之測驗內容、學術題目及解析僅供學術交流與個人自我評量用途。系統開發方與學術內容提供者已盡力確保內容之正確性，惟不保證所有資訊皆毫無疏漏。若因題目錯誤、系統延遲、評分偏差或其他不可抗力因素導致使用者之正式考試成績、權益 or 決策產生偏差，本系統及開發方概不負任何法律責任與賠償義務。</p>
+                <p><strong>第二條：勘誤回報義務</strong><br>
+                使用者於測驗過程中，如發現任何題目敘述錯誤、選項爭議、公式渲染異常或解析謬誤，有義務立即紀錄該題資訊並聯絡系統開發人員進行回報，以利系統持續維護。使用者不得利用已知錯誤進行惡意刷分或散佈不實言論。</p>
+                <p><strong>第三條：IP 位址存取與紀錄授權</strong><br>
+                為維護系統公平性、安全驗證及防範惡意作弊或攻擊行為，使用者同意並授權本系統於測驗期間自動存取、讀取並紀錄使用者之網際網路協定位址（IP 位址）、裝置資訊及平台載具數據。該資訊僅用於測驗報告生成與防弊核驗，不作其他商業用途。</p>
+            </div>
+
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="agree-terms"> 我已詳細閱讀並同意上述「學術免責聲明」、「勘誤回報義務」與「IP存取授權」之規範
+                </label>
+            </div>
+
+            <div id="status-msg" style="color:var(--accent); font-size: 0.85em; margin: 10px 0; text-align: left;">等待讀取伺服器題庫檔案...</div>
+        </div>
+        <button id="start-btn" class="main-btn" onclick="checkAndStart()" style="background:#cbd5e1; color:#64748b;" disabled>進入測驗</button>
+    </div>
+
+    <!-- 2. 測驗進行畫面 -->
+    <div id="quiz-ui" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #f1f5f9;">
+            <span id="quiz-header" style="font-weight:bold; color:var(--primary); font-size:1.1em;">載入中...</span>
+            <div id="timer-box">剩餘時間 <span id="time-left">00:00</span></div>
+        </div>
+
+        <div id="quiz-container"></div>
+
+        <div class="nav-flex">
+            <button class="nav-btn" onclick="navigateQuestion(-1)">上一題</button>
+            <button class="nav-btn" onclick="navigateQuestion(1)">下一題</button>
+        </div>
+
+        <button class="main-btn" style="background:var(--primary); margin-top: 25px;" onclick="confirmSubmit()">提交作答</button>
+    </div>
+
+    <!-- 3. 結果與報告畫面 -->
+    <div id="result-screen" class="hidden">
+        <div class="result-container-dark" id="report-card">
+            <h2 style="text-align: center; color: #ffffff; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">線上評量結果報告</h2>
+
+            <table class="report-table">
+                <tr>
+                    <td class="tb-label">科目名稱</td>
+                    <td class="tb-val" id="res-subject">--</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">測驗次數</td>
+                    <td class="tb-val">第 <span id="res-test-count" class="res-blue">1</span> 次測驗</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">測驗得分</td>
+                    <td class="tb-val"><span id="res-score" style="font-size:1.2em; font-weight:bold;">0</span> 分</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">答對 / 答錯題數</td>
+                    <td class="tb-val">
+                        對：<span id="res-correct" class="res-blue">0</span> 題 / 
+                        錯：<span id="res-orange" class="res-orange">0</span> 題
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tb-label">未作答題數</td>
+                    <td class="tb-val" id="res-unanswered">0 題</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">測驗結果判定</td>
+                    <td class="tb-val" id="res-pass-label">--</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">測試者帳號 ID / 姓名</td>
+                    <td class="tb-val"><span id="res-account-id" style="color: var(--accent); font-weight: bold;">--</span> (<span id="res-username">--</span>)</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">綁定 Email</td>
+                    <td class="tb-val" id="res-account-email">--</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">測試時間 (GTM+8)</td>
+                    <td class="tb-val">
+                        開始：<span id="res-start-time">--</span> | 結束：<span id="res-end-time">--</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tb-label">檢測到作弊行為</td>
+                    <td class="tb-val" id="res-cheated">否</td>
+                </tr>
+                <tr id="empty-paper-row" class="hidden">
+                    <td class="tb-label">異常警告</td>
+                    <td class="tb-val" style="color:#ef4444; font-weight:bold;">檢測到惡意繳交空白試卷</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">作答總耗時</td>
+                    <td class="tb-val" id="res-duration">--</td>
+                </tr>
+                <tr>
+                    <td class="tb-label">作答者 IP / 載具</td>
+                    <td class="tb-val">
+                        <span id="res-ip" class="res-blue">--</span> (<span id="res-platform">--</span>)
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tb-label">平均答題速度</td>
+                    <td class="tb-val">每題約 <span id="res-avg-speed">0</span> 秒</td>
+                </tr>
+                <tr id="addon-code-row" class="hidden">
+                    <td class="tb-label">附加憑證代碼</td>
+                    <td class="tb-val" id="res-addon-code" style="color:#a855f7; font-weight:bold;">--</td>
+                </tr>
+            </table>
+
+            <!-- PDF 專用錯題列表容器 -->
+            <div id="pdf-wrong-list" class="hidden"></div>
+
+            <!-- 獨立單頁：成績證明章 -->
+            <div id="stamp-page-section" class="pdf-page-break hidden">
+                <div class="stamp-page-header">成績證明章</div>
+                <div id="stamps-area" class="stamp-container-wrapper"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; color: #64748b; font-size: 0.85em;">
+                &copy;2026 著作權所有 仿冒必究
+            </div>
+        </div>
+
+        <!-- 底部按鈕群 -->
+        <div class="action-btn-group">
+            <button class="main-btn btn-success" onclick="openPdfModal()">下載結果 PDF</button>
+            <button id="retry-failed-btn" class="main-btn hidden" style="background:var(--accent);" onclick="startWrongQuestionsQuiz()">僅重測錯題</button>
+            <button class="main-btn btn-secondary" onclick="backToQuizPrep()">返回測驗設定</button>
+        </div>
+
+        <div id="review-area" style="margin-top:30px; border-top:2px solid #e2e8f0; padding-top:20px;"></div>
+    </div>
+</div>
+
+<!-- 彈出視窗 Modal -->
+<div id="pdf-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <!-- 階段一：選擇 PDF 格式 -->
+        <div id="pdf-step-1">
+            <h3 style="color:#ffffff; margin-bottom:15px;">請選擇 PDF 匯出格式</h3>
+            <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">您希望下載的 PDF 是否包含錯題細節與答案解析？</p>
+            <button class="main-btn btn-accent" onclick="selectPdfFormat(false)">📄 僅評量結果 (簡要版)</button>
+            <button class="main-btn btn-success" id="btn-pdf-with-wrong" onclick="selectPdfFormat(true)">📚 評量結果 + 錯題解析</button>
+            <button class="main-btn btn-secondary" style="margin-top:10px;" onclick="closePdfModal()">取消</button>
+        </div>
+
+        <!-- 階段二：詢問是否加入附加元件 -->
+        <div id="pdf-step-2" class="hidden">
+            <h3 style="color:#ffffff; margin-bottom:15px;">附加元件驗證</h3>
+            <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">請問是否需要在此 PDF 加入「附加元件代碼/電子印章」？</p>
+            <div style="display:flex; gap:10px;">
+                <button class="main-btn btn-success" onclick="showAddonInput(true)">是</button>
+                <button class="main-btn btn-secondary" onclick="showAddonInput(false)">否 (直接下載)</button>
+            </div>
+        </div>
+
+        <!-- 階段三：輸入附加元件代碼與選擇印章 -->
+        <div id="pdf-step-3" class="hidden">
+            <h3 style="color:#ffffff; margin-bottom:12px;">輸入附加元件與選擇印章</h3>
+            <p style="font-size:0.85em; color:#94a3b8; margin-bottom:12px;">請輸入代碼或勾選需附加之電子印章（可複選）：</p>
+
+            <input type="text" id="addon-code-input" class="code-input" placeholder="請輸入附加元件代碼 (選填)" style="text-align:center; font-weight:bold;">
+
+            <!-- 印章勾選清單 -->
+            <div class="stamp-checkbox-list">
+                <label>
+                    <input type="checkbox" class="stamp-option" value="valid" onchange="validateStampOption(this)"> 
+                    1. 測驗成績真實有效章
+                </label>
+                <label>
+                    <input type="checkbox" class="stamp-option" value="pass" onchange="validateStampOption(this)"> 
+                    2. 成績及格證明章 (≥60分)
+                </label>
+                <label>
+                    <input type="checkbox" class="stamp-option" value="excellent" onchange="validateStampOption(this)"> 
+                    3. 成績優良證明章 (≥80分)
+                </label>
+            </div>
+
+            <button class="main-btn btn-accent" onclick="confirmAddonAndDownload()">確定並下載 PDF</button>
+            <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closePdfModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ---------------- 前端帳號資料庫與會員機制 ---------------- */
+    const registeredUsers = [];
+    let currentUser = null;
+
+    function toggleAuthMode(mode) {
+        if (mode === 'login') {
+            document.getElementById('auth-register-screen').classList.add('hidden');
+            document.getElementById('auth-login-screen').classList.remove('hidden');
+        } else {
+            document.getElementById('auth-login-screen').classList.add('hidden');
+            document.getElementById('auth-register-screen').classList.remove('hidden');
+        }
+    }
+
+    function validateEmail(email) {
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailPattern.test(email);
+    }
+
+    function handleRegister() {
+        const userId = document.getElementById('reg-id').value.trim();
+        const userEmail = document.getElementById('reg-email').value.trim().toLowerCase();
+        const userPass = document.getElementById('reg-pass').value.trim();
+        const userPassConfirm = document.getElementById('reg-pass-confirm').value.trim();
+
+        if (!userId || !userEmail || !userPass || !userPassConfirm) {
+            alert("請填寫所有註冊欄位！");
+            return;
+        }
+
+        if (!validateEmail(userEmail)) {
+            alert("請輸入有效的電子郵件信箱格式 (例如：user@example.com)！");
+            return;
+        }
+
+        if (userPass !== userPassConfirm) {
+            alert("兩次輸入的密碼不一致！");
+            return;
+        }
+
+        const emailExists = registeredUsers.some(user => user.email === userEmail);
+        if (emailExists) {
+            alert("該電子郵件信箱已被註冊，請更換 Email 或直接登入！");
+            return;
+        }
+
+        const idExists = registeredUsers.some(user => user.id === userId);
+        if (idExists) {
+            alert("該使用者 ID 已被使用，請更換其他 ID！");
+            return;
+        }
+
+        const newUser = { id: userId, email: userEmail, password: userPass };
+        registeredUsers.push(newUser);
+        alert("註冊成功！系統將為您自動登入。");
+
+        document.getElementById('reg-id').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-pass').value = '';
+        document.getElementById('reg-pass-confirm').value = '';
+
+        setCurrentUser(newUser);
+    }
+
+    function handleLogin() {
+        const loginInput = document.getElementById('login-id').value.trim().toLowerCase();
+        const loginPass = document.getElementById('login-pass').value.trim();
+
+        if (!loginInput || !loginPass) {
+            alert("請輸入帳號/Email 與密碼！");
+            return;
+        }
+
+        const targetUser = registeredUsers.find(
+            user => (user.id.toLowerCase() === loginInput || user.email === loginInput) && user.password === loginPass
+        );
+
+        if (targetUser) {
+            alert("登入成功！");
+            document.getElementById('login-id').value = '';
+            document.getElementById('login-pass').value = '';
+            setCurrentUser(targetUser);
+        } else {
+            alert("帳號、Email 或密碼錯誤，請重新確認！");
+        }
+    }
+
+    function setCurrentUser(user) {
+        currentUser = user;
+
+        // 更新頂部狀態列
+        const displayElem = document.getElementById('current-user-display');
+        displayElem.innerText = `${currentUser.id} (${currentUser.email})`;
+        displayElem.style.color = "var(--success)";
+        document.getElementById('btn-global-logout').classList.remove('hidden');
+
+        // 自動填入考生姓名預設值 (若尚未填寫)
+        if (!document.getElementById('user-name').value) {
+            document.getElementById('user-name').value = currentUser.id;
+        }
+
+        // 隱藏驗證介面，顯示測驗準備頁
+        document.getElementById('auth-register-screen').classList.add('hidden');
+        document.getElementById('auth-login-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    function handleLogout() {
+        currentUser = null;
+
+        const displayElem = document.getElementById('current-user-display');
+        displayElem.innerText = "未登入（請先註冊或登入）";
+        displayElem.style.color = "var(--error)";
+        document.getElementById('btn-global-logout').classList.add('hidden');
+
+        // 隱藏所有測驗畫面，返回註冊頁
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('auth-login-screen').classList.add('hidden');
+        document.getElementById('auth-register-screen').classList.remove('hidden');
+
+        alert("已成功登出！");
+    }
+
+    function backToQuizPrep() {
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    /* ---------------- 測驗核心變數 ---------------- */
+    let quizActive = false;
+    let currentQuestions = [], userAnswers = {}, timerInterval, totalSeconds = 0;
+    let currentActiveIndex = 0;
+    let isWrongQuestionsMode = false;
+    let originalWrongQuestions = [];
+
+    // 防作弊 / 離開畫面紀錄次數與成績分數暫存
+    let warningCount = 0;
+    let calculatedScore = 0;
+
+    // PDF 匯出暫存狀態
+    let selectedPdfIncludeWrong = false;
+
+    // 統計時間與使用者 IP 紀錄
+    let startTimeObj, endTimeObj;
+    let userIP = "未知IP";
+
+    // 預先取得 IP 位址
+    fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => { userIP = data.ip; })
+        .catch(() => { userIP = "127.0.0.1"; });
+
+    function getPlatform() {
+        const ua = navigator.userAgent;
+        const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+        const isTablet = /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle)/i.test(ua) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isTablet) return "平板";
+        if (isMobile) return "手機";
+        return "電腦";
+    }
+
+    /* ---------------- 印章權限檢查邏輯 ---------------- */
+    function validateStampOption(chk) {
+        if (!chk.checked) return;
+
+        const val = chk.value;
+        const answeredCount = Object.keys(userAnswers).length;
+
+        if (val === 'valid') {
+            if (warningCount > 0 || answeredCount === 0) {
+                alert("【無法勾選】檢測到測驗過程中存在作弊行為或惡意交白卷，無法開立「測驗成績真實有效章」！");
+                chk.checked = false;
+            }
+        } else if (val === 'pass') {
+            if (calculatedScore < 60 || warningCount > 0) {
+                alert("【無法勾選】成績未達及格標準 (60分) 或成績無效，無法開立「成績及格證明章」！");
+                chk.checked = false;
+            }
+        } else if (val === 'excellent') {
+            if (calculatedScore < 80 || warningCount > 0) {
+                alert("【無法勾選】成績未達優良標準 (80分) 或成績無效，無法開立「成績優良證明章」！");
+                chk.checked = false;
+            }
+        }
+    }
+
+    /* ---------------- PDF 多階段詢問與下載 ---------------- */
+    function openPdfModal() {
+        const pdfModal = document.getElementById('pdf-modal');
+        const btnWithWrong = document.getElementById('btn-pdf-with-wrong');
+
+        document.getElementById('pdf-step-1').classList.remove('hidden');
+        document.getElementById('pdf-step-2').classList.add('hidden');
+        document.getElementById('pdf-step-3').classList.add('hidden');
+        document.getElementById('addon-code-input').value = '';
+
+        const checkboxes = document.querySelectorAll('.stamp-option');
+        checkboxes.forEach(chk => chk.checked = false);
+
+        if (originalWrongQuestions.length === 0) {
+            btnWithWrong.disabled = true;
+            btnWithWrong.style.opacity = "0.5";
+            btnWithWrong.innerText = "📚 評量結果 + 錯題解析 (無錯題)";
+        } else {
+            btnWithWrong.disabled = false;
+            btnWithWrong.style.opacity = "1";
+            btnWithWrong.innerText = "📚 評量結果 + 錯題解析";
+        }
+
+        pdfModal.classList.remove('hidden');
+    }
+
+    function closePdfModal() {
+        document.getElementById('pdf-modal').classList.add('hidden');
+    }
+
+    function selectPdfFormat(includeWrong) {
+        selectedPdfIncludeWrong = includeWrong;
+        document.getElementById('pdf-step-1').classList.add('hidden');
+        document.getElementById('pdf-step-2').classList.remove('hidden');
+    }
+
+    function showAddonInput(wantAddon) {
+        if (wantAddon) {
+            document.getElementById('pdf-step-2').classList.add('hidden');
+            document.getElementById('pdf-step-3').classList.remove('hidden');
+        } else {
+            processPDFDownload(selectedPdfIncludeWrong, null, []);
+        }
+    }
+
+    function confirmAddonAndDownload() {
+        const code = document.getElementById('addon-code-input').value.trim();
+        const selectedStamps = [];
+        document.querySelectorAll('.stamp-option:checked').forEach(chk => {
+            selectedStamps.push(chk.value);
+        });
+
+        if (!code && selectedStamps.length === 0) {
+            return alert("請輸入附加元件代碼或至少勾選一項印章！");
+        }
+
+        processPDFDownload(selectedPdfIncludeWrong, code, selectedStamps);
+    }
+
+    function getRocDateString() {
+        const d = new Date();
+        const year = d.getFullYear() - 1911;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `民國${year}年${month}月${day}日`;
+    }
+
+    function processPDFDownload(includeWrong, addonCode, selectedStamps) {
+        closePdfModal();
+
+        const element = document.getElementById('report-card');
+        const pdfWrongList = document.getElementById('pdf-wrong-list');
+        const stampPageSection = document.getElementById('stamp-page-section');
+        const addonRow = document.getElementById('addon-code-row');
+        const addonVal = document.getElementById('res-addon-code');
+        const stampsArea = document.getElementById('stamps-area');
+        const username = document.getElementById('user-name').value.trim() || '考生';
+        const subject = window.currentQuiz ? window.currentQuiz.name : '測驗報告';
+        const answeredCount = Object.keys(userAnswers).length;
+
+        if (addonCode) {
+            addonVal.innerText = addonCode;
+            addonRow.classList.remove('hidden');
+        } else {
+            addonRow.classList.add('hidden');
+        }
+
+        let stampsHtml = '';
+        const rocDate = getRocDateString();
+
+        if (warningCount > 0 || answeredCount === 0) {
+            stampsHtml += `
+                <div class="official-stamp">
+                    <div class="stamp-title">多功能線上測驗網</div>
+                    <div class="stamp-date">${rocDate}</div>
+                    <div class="stamp-body">因作答或成績異常取消此次成績</div>
+                </div>
+            `;
+        } else {
+            if (selectedStamps.includes('valid')) {
+                stampsHtml += `
+                    <div class="official-stamp">
+                        <div class="stamp-title">多功能線上測驗網</div>
+                        <div class="stamp-date">${rocDate}</div>
+                        <div class="stamp-body">成績真實有效</div>
+                    </div>
+                `;
+            }
+            if (selectedStamps.includes('pass')) {
+                stampsHtml += `
+                    <div class="official-stamp">
+                        <div class="stamp-title">多功能線上測驗網</div>
+                        <div class="stamp-date">${rocDate}</div>
+                        <div class="stamp-body">成績及格證明</div>
+                    </div>
+                `;
+            }
+            if (selectedStamps.includes('excellent')) {
+                stampsHtml += `
+                    <div class="official-stamp">
+                        <div class="stamp-title">多功能線上測驗網</div>
+                        <div class="stamp-date">${rocDate}</div>
+                        <div class="stamp-body">成績優良證明</div>
+                    </div>
+                `;
+            }
+        }
+
+        if (stampsHtml !== '') {
+            stampsArea.innerHTML = stampsHtml;
+            stampPageSection.classList.remove('hidden');
+        } else {
+            stampPageSection.classList.add('hidden');
+        }
+
+        if (includeWrong && originalWrongQuestions.length > 0) {
+            let html = '<div style="margin-top:25px; border-top:1px solid #334155; padding-top:15px;"><h3 style="color:#ef4444; margin-bottom:15px;">錯題解析與參考答案</h3>';
+
+            originalWrongQuestions.forEach((item) => {
+                const correctContent = item.qObj.o.find(str => str.trim().startsWith(`(${item.qObj.a})`));
+                const userAnsText = item.userAns ? `(${item.userAns})` : '未填答';
+
+                html += `
+                    <div class="pdf-wrong-card">
+                        <div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${item.qObj.q}</div>
+                        <div style="color:#cbd5e1; margin-bottom:4px;">選項：${item.qObj.o.join(' | ')}</div>
+                        <div>
+                            你的答案：<span style="color:#ef4444; font-weight:bold;">${userAnsText}</span> | 
+                            正確答案：<span style="color:#22c55e; font-weight:bold;">${correctContent}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            pdfWrongList.innerHTML = html;
+            pdfWrongList.classList.remove('hidden');
+        } else {
+            pdfWrongList.innerHTML = '';
+            pdfWrongList.classList.add('hidden');
+        }
+
+        element.scrollIntoView();
+
+        const opt = {
+            margin:       [8, 8, 8, 8],
+            filename:     `${username}_${subject}_${includeWrong ? '完整' : '簡要'}測驗結果.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                backgroundColor: '#000000', 
+                logging: false,
+                scrollY: 0,
+                scrollX: 0,
+                useCORS: true
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            pdfWrongList.classList.add('hidden');
+            addonRow.classList.add('hidden');
+            stampPageSection.classList.add('hidden');
+        });
+    }
+
+    /* ---------------- 題庫載入與條款 ---------------- */
+    document.getElementById('quiz-code').addEventListener('input', (e) => {
+        const code = e.target.value.trim();
+        if(code) {
+            const old = document.getElementById('q-script'); if(old) old.remove();
+            const s = document.createElement('script');
+            s.id = 'q-script'; s.src = `${code}.js`; 
+            s.onload = () => {
+                if(window.currentQuiz) {
+                    document.getElementById('status-msg').innerText = `已成功讀取題庫：${window.currentQuiz.name}`;
+                    if(window.currentQuiz.password) document.getElementById('password-area').classList.remove('hidden');
+                    checkUnlockStatus();
+                }
+            };
+            document.head.appendChild(s);
+        }
+    });
+
+    document.getElementById('agree-terms').addEventListener('change', checkUnlockStatus);
+
+    function checkUnlockStatus() {
+        const agreed = document.getElementById('agree-terms').checked;
+        const loaded = !!window.currentQuiz;
+        const btn = document.getElementById('start-btn');
+        if(agreed && loaded) {
+            btn.disabled = false;
+            btn.style.background = "var(--accent)";
+            btn.style.color = "#ffffff";
+        } else {
+            btn.disabled = true;
+            btn.style.background = "#cbd5e1";
+            btn.style.color = "#64748b";
+        }
+    }
+
+    function requestFullScreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen().catch(() => {});
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen().catch(() => {});
+        }
+    }
+
+    function exitFullScreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen().catch(() => {});
+        }
+    }
+
+    function checkAndStart() {
+        if(!currentUser) return alert("請先登入帳號後再進行測驗！");
+        if(!document.getElementById('user-name').value.trim()) return alert("請填寫考生姓名");
+        if(!document.getElementById('agree-terms').checked) return alert("請先同意使用者條款");
+        if(window.currentQuiz.password && document.getElementById('quiz-pass').value !== window.currentQuiz.password) {
+            return alert("密碼有誤！");
+        }
+
+        requestFullScreen();
+        isWrongQuestionsMode = false;
+        beginQuiz(JSON.parse(JSON.stringify(window.currentQuiz.data)).sort(() => Math.random() - 0.5));
+    }
+
+    function beginQuiz(questionsDataset) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.remove('hidden');
+
+        const quiz = window.currentQuiz;
+        document.getElementById('quiz-header').innerText = isWrongQuestionsMode ? `${quiz.name} (錯題重測)` : quiz.name;
+
+        currentQuestions = questionsDataset;
+        userAnswers = {};
+        currentActiveIndex = 0;
+        warningCount = 0;
+        startTimeObj = new Date();
+
+        totalSeconds = (quiz.time || 20) * 60;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            totalSeconds--;
+            const mins = Math.floor(totalSeconds / 60), secs = totalSeconds % 60;
+            document.getElementById('time-left').innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
+            if (totalSeconds <= 0) evalQuiz();
+        }, 1000);
+
+        quizActive = true;
+        renderQuiz();
+    }
+
+    /* ---------------- 防作弊偵測 ---------------- */
+    function handleViolation() {
+        if (!quizActive) return;
+        warningCount++;
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && quizActive) handleViolation();
+    });
+
+    window.addEventListener("blur", () => {
+        if (quizActive) handleViolation();
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+        if (!document.fullscreenElement && quizActive) handleViolation();
+    });
+
+    /* ---------------- 測驗渲染與導航 ---------------- */
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+
+        currentQuestions.forEach((q, i) => {
+            const card = document.createElement('div'); 
+            card.className = `question-card ${i === currentActiveIndex ? '' : 'hidden'}`;
+            card.id = `q-card-${i}`;
+            card.innerHTML = `<div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題<br>${q.q}</div><div id="opts-${i}"></div>`;
+            container.appendChild(card);
+
+            q.o.forEach(opt => {
+                const b = document.createElement('button'); 
+                b.className = 'opt-btn'; 
+                b.innerText = opt;
+
+                const optLetter = opt.match(/\(([A-D])\)/)[1];
+                if(userAnswers[i] === optLetter) b.classList.add('selected');
+
+                b.onclick = () => {
+                    userAnswers[i] = optLetter;
+                    Array.from(b.parentElement.children).forEach(x => x.classList.remove('selected'));
+                    b.classList.add('selected');
+
+                    setTimeout(() => {
+                        if (currentActiveIndex < currentQuestions.length - 1) {
+                            navigateQuestion(1);
+                        }
+                    }, 300);
+                };
+                document.getElementById(`opts-${i}`).appendChild(b);
+            });
+        });
+        if (window.MathJax) MathJax.typesetPromise([container]);
+    }
+
+    function navigateQuestion(direction) {
+        const newIndex = currentActiveIndex + direction;
+        if(newIndex >= 0 && newIndex < currentQuestions.length) {
+            document.getElementById(`q-card-${currentActiveIndex}`).classList.add('hidden');
+            currentActiveIndex = newIndex;
+            document.getElementById(`q-card-${currentActiveIndex}`).classList.remove('hidden');
+        }
+    }
+
+    function confirmSubmit() { 
+        const answeredCount = Object.keys(userAnswers).length;
+        if(answeredCount < currentQuestions.length) {
+            if(!confirm(`尚有 ${currentQuestions.length - answeredCount} 題未作答，確定要提早提交？`)) return;
+        } else {
+            if(!confirm("確定提交作答評量？")) return;
+        }
+        evalQuiz(); 
+    }
+
+    /* ---------------- 成績結算與評量報告 ---------------- */
+    function evalQuiz() {
+        quizActive = false;
+        clearInterval(timerInterval);
+        endTimeObj = new Date();
+
+        exitFullScreen();
+
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+
+        let correctCount = 0;
+        let reviewHTML = '<h3 style="color:#ffffff; margin-top:20px;">詳細解析評估 (正確答案已標註)</h3>';
+        originalWrongQuestions = [];
+
+        currentQuestions.forEach((q, i) => {
+            const correctContent = q.o.find(str => str.trim().startsWith(`(${q.a})`));
+            const isRight = userAnswers[i] === q.a;
+            if(isRight) {
+                correctCount++;
+            } else {
+                originalWrongQuestions.push({
+                    index: i,
+                    qObj: q,
+                    userAns: userAnswers[i] || ''
+                });
+            }
+
+            reviewHTML += `
+                <div class="review-card" style="border-left: 4px solid ${isRight ? 'var(--success)' : 'var(--error)'}">
+                    <p><b>題目 ${i+1}: ${q.q}</b></p>
+                    <p>您的作答：${userAnswers[i] || '未填答'} | 
+                    <span style="color:var(--success); font-weight:bold;">正確答案：${correctContent}</span></p>
+                </div>`;
+        });
+
+        const totalQ = currentQuestions.length;
+        const answeredCount = Object.keys(userAnswers).length;
+        const unansweredCount = totalQ - answeredCount;
+        const wrongCount = totalQ - correctCount - unansweredCount;
+
+        calculatedScore = Math.round(correctCount * (100 / totalQ));
+
+        let testCountKey = `test_count_${currentUser ? currentUser.id : 'guest'}_${window.currentQuiz.name}`;
+        let localCount = (parseInt(localStorage.getItem(testCountKey)) || 0) + 1;
+        localStorage.setItem(testCountKey, localCount);
+
+        const formatTime = (date) => date.toTimeString().substring(0, 5);
+
+        const durationSec = Math.max(1, Math.floor((endTimeObj - startTimeObj) / 1000));
+        const hours = String(Math.floor(durationSec / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((durationSec % 3600) / 60)).padStart(2, '0');
+        const secs = String(durationSec % 60).padStart(2, '0');
+        const avgSpeed = (durationSec / totalQ).toFixed(1);
+
+        document.getElementById('res-subject').innerText = window.currentQuiz.name;
+        document.getElementById('res-test-count').innerText = localCount;
+        document.getElementById('res-score').innerText = calculatedScore;
+        document.getElementById('res-correct').innerText = correctCount;
+        document.getElementById('res-orange').innerText = wrongCount;
+
+        const unAnsElem = document.getElementById('res-unanswered');
+        unAnsElem.innerText = `${unansweredCount} 題`;
+        unAnsElem.className = unansweredCount === 0 ? "tb-val res-green" : "tb-val res-red";
+
+        // 成績判定邏輯
+        const passLabel = document.getElementById('res-pass-label');
+        if (warningCount > 0) {
+            passLabel.innerText = "因作弊不記錄成績";
+            passLabel.className = "tb-val res-red";
+        } else if (calculatedScore >= 60) {
+            passLabel.innerText = "及格 論";
+            passLabel.className = "tb-val res-black-pass";
+        } else {
+            passLabel.innerText = "不及格 論";
+            passLabel.className = "tb-val res-red";
+        }
+
+        // 綁定會員帳號資料與考號
+        document.getElementById('res-account-id').innerText = currentUser ? currentUser.id : '--';
+        document.getElementById('res-account-email').innerText = currentUser ? currentUser.email : '--';
+        document.getElementById('res-username').innerText = document.getElementById('user-name').value || '--';
+
+        document.getElementById('res-start-time').innerText = formatTime(startTimeObj);
+        document.getElementById('res-end-time').innerText = formatTime(endTimeObj);
+
+        // 作弊檢測判定
+        const cheatElem = document.getElementById('res-cheated');
+        if (warningCount > 0) {
+            cheatElem.innerText = `檢測到離開畫面 ${warningCount} 次`;
+            cheatElem.className = "tb-val res-red";
+        } else {
+            cheatElem.innerText = "否";
+            cheatElem.className = "tb-val res-yellow";
+        }
+
+        // 惡意交白卷警告列
+        const emptyRow = document.getElementById('empty-paper-row');
+        if (answeredCount === 0) {
+            emptyRow.classList.remove('hidden');
+        } else {
+            emptyRow.classList.add('hidden');
+        }
+
+        document.getElementById('res-duration').innerText = `${hours}時${mins}分${secs}秒`;
+        document.getElementById('res-ip').innerText = userIP;
+        document.getElementById('res-platform').innerText = getPlatform();
+        document.getElementById('res-avg-speed').innerText = avgSpeed;
+
+        document.getElementById('review-area').innerHTML = reviewHTML;
+
+        const retryBtn = document.getElementById('retry-failed-btn');
+        if(originalWrongQuestions.length > 0) {
+            retryBtn.classList.remove('hidden');
+        } else {
+            retryBtn.classList.add('hidden');
+        }
+
+        if (window.MathJax) MathJax.typesetPromise([document.getElementById('review-area')]);
+    }
+
+    function startWrongQuestionsQuiz() {
+        if(originalWrongQuestions.length === 0) return;
+
+        requestFullScreen();
+        isWrongQuestionsMode = true;
+        const wrongDataset = originalWrongQuestions.map(item => item.qObj).sort(() => Math.random() - 0.5);
+        beginQuiz(wrongDataset);
+    }
+</script>
+</body>
+</html>
