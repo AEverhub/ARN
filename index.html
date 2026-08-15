@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>行動端考試系統 - 完整旗艦版</title>
+  <title>題測系統</title>
   <style>
     :root {
       --primary: #3b82f6;
@@ -16,22 +16,23 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--dark); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* 頂部與導覽 */
+    /* 頂部列 */
     .top-bar { background: #fff; height: 50px; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: bold; }
     #main-content { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: 70px; }
     .content-section { display: none; }
     .content-section.active { display: block; }
+    
+    /* 底部導覽列 */
     #bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
     #bottom-nav button { background: none; border: none; color: #64748b; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; flex: 1; }
     #bottom-nav button.active { color: var(--primary); font-weight: bold; }
 
-    /* 標籤與卡片 */
+    /* 元件 */
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: white; font-weight: bold; display: inline-block; }
     .bg-admin { background-color: var(--danger); }
     .bg-user { background-color: #64748b; }
     .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
     
-    /* 表單與觸控按鈕 */
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
     input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #fff; }
@@ -47,18 +48,21 @@
     th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: left; }
     th { background: #f1f5f9; }
 
-    /* 彈窗 */
+    /* 彈窗與考場 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 999; padding: 20px; }
     .modal { background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
 
-    /* 全螢幕考場 */
     #exam-viewport { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 1000; display: none; flex-direction: column; }
     #cheat-bar { background-color: var(--danger); color: white; padding: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; display: none; }
   </style>
+
+  <!-- 載入外部題庫 JS 檔案 (檔名即為代碼) -->
+  <script src="banks/MATH01.js"></script>
+  <script src="banks/ENG01.js"></script>
 </head>
 <body>
 
-  <!-- Auth 登入/註冊 彈窗 -->
+  <!-- 登入/註冊彈窗 -->
   <div id="auth-modal" class="modal-overlay">
     <div class="modal">
       <h2 id="auth-title" style="margin-bottom: 15px;">系統登入</h2>
@@ -72,7 +76,7 @@
     </div>
   </div>
 
-  <!-- 考試提醒彈窗 -->
+  <!-- 提醒/自動跳轉彈窗 -->
   <div id="notice-modal" class="modal-overlay" style="display: none;">
     <div class="modal">
       <h3 id="notice-title" style="color: var(--primary); margin-bottom: 10px;">系統通知</h3>
@@ -81,21 +85,21 @@
     </div>
   </div>
 
-  <!-- 頂部狀態欄 -->
+  <!-- 頂部列 -->
   <div class="top-bar">
     <div id="user-display">未登入</div>
     <button style="background:none; border:none; color:var(--danger); font-size:0.85rem;" onclick="logout()">登出</button>
   </div>
 
-  <!-- 主內容區 -->
+  <!-- 主要畫面區 -->
   <div id="main-content">
 
-    <!-- 1. 首頁/題庫與考試 -->
+    <!-- 1. 考場首頁與公開題庫 -->
     <div id="tab-home" class="content-section active">
       <div class="card">
-        <h3>🌐 公開公開題庫大廳 (免輸入代碼)</h3>
-        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">點擊即可直接進入自主練習測驗：</p>
-        <div id="public-banks-list">無公開題庫</div>
+        <h3>🌐 公開題庫大廳 (免輸入代碼)</h3>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">點擊直接開始練習：</p>
+        <div id="public-banks-list">載入題庫中...</div>
       </div>
 
       <div class="card">
@@ -103,7 +107,7 @@
         <div class="form-group" style="margin-top: 8px;">
           <input type="text" id="practice-code" placeholder="請輸入題庫代碼 (例: ENG01)">
         </div>
-        <button class="btn" onclick="startPracticeExamByInput()">代碼測驗</button>
+        <button class="btn" onclick="startPracticeExamByInput()">進入測驗</button>
       </div>
 
       <div class="card">
@@ -112,15 +116,15 @@
       </div>
     </div>
 
-    <!-- 2. 排行榜 (開放所有人查詢，管理員可修改) -->
+    <!-- 2. 排行榜 (所有人可看，管理員可改) -->
     <div id="tab-ranking" class="content-section">
       <div class="card">
         <h3>🏆 官方/練習排行榜</h3>
         <div class="form-group" style="margin-top: 10px;">
           <input type="text" id="rank-code" placeholder="題庫代碼 (例: MATH01)" style="margin-bottom: 8px;">
           <select id="rank-type">
-            <option value="official">官方考試榜 (含出席與作弊狀態)</option>
-            <option value="practice">自主練習榜 (不含錯題重測)</option>
+            <option value="official">官方舉辦考試 (含到場與作弊狀態)</option>
+            <option value="practice">自主練習排行榜 (不計錯題重測)</option>
           </select>
         </div>
         <button class="btn" onclick="renderRanking()">查詢排行榜</button>
@@ -128,17 +132,17 @@
       <div class="card table-responsive">
         <table>
           <thead>
-            <tr><th>名次</th><th>姓名</th><th>成績</th><th>狀態/備註</th><th id="th-admin-op" style="display:none;">管理操作</th></tr>
+            <tr><th>名次</th><th>姓名</th><th>成績</th><th>狀態/備註</th><th id="th-admin-op" style="display:none;">管理員操作</th></tr>
           </thead>
           <tbody id="rank-table-body"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- 3. 管理員後台 -->
+    <!-- 3. 管理員功能 -->
     <div id="tab-admin" class="content-section">
       <div class="card">
-        <h3>📚 題庫管理與公開設定</h3>
+        <h3>📚 已載入的外部 JS 題庫清單</h3>
         <div id="admin-banks-setting"></div>
       </div>
 
@@ -150,7 +154,7 @@
           <label>指定考生</label>
           <select id="sched-users" multiple style="height: 80px;"></select>
         </div>
-        <button class="btn" onclick="createSchedule()">建立官方考試</button>
+        <button class="btn" onclick="createSchedule()">發布官方考試</button>
       </div>
     </div>
 
@@ -163,32 +167,25 @@
     <button id="admin-nav-btn" onclick="switchTab('tab-admin', this)" style="display: none;"><span>⚙️</span>管理</button>
   </nav>
 
-  <!-- 4. 全螢幕考場介面 -->
+  <!-- 4. 全螢幕考場 -->
   <div id="exam-viewport">
-    <div id="cheat-bar">⚠️ 已判定為作弊，成績不予紀錄</div>
+    <div id="cheat-bar">已判定為作弊，成績不予紀錄</div>
     <div style="padding: 15px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
       <span id="exam-title" style="font-weight: bold;">考試中</span>
-      <span id="exam-tag" class="badge bg-user">一般測驗</span>
+      <span id="exam-tag" class="badge bg-user">練習模式</span>
     </div>
     
     <div id="exam-body" style="padding: 20px; flex: 1; overflow-y: auto;">
       <!-- 題目區塊 -->
-      <div id="question-container">
-        <h4 id="question-text">題目：1 + 1 = ?</h4>
-        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-          <label><input type="radio" name="opt" value="A"> A) 1</label>
-          <label><input type="radio" name="opt" value="B"> B) 2</label>
-          <label><input type="radio" name="opt" value="C"> C) 3</label>
-        </div>
-      </div>
+      <div id="question-container"></div>
 
-      <!-- 結算/錯題重測區塊 (平時隱藏) -->
+      <!-- 結算/錯題重測區塊 -->
       <div id="result-container" style="display: none; text-align: center; padding-top: 30px;">
         <h2 id="result-score" style="color: var(--primary);">得分：0</h2>
         <p id="result-desc" style="margin: 15px 0; color: #64748b;"></p>
         
         <div id="retry-section" style="margin-top: 20px; display: none;">
-          <p style="font-size: 0.85rem; color: var(--danger); margin-bottom: 8px;">⚠️ 錯題重測成績將標記為練習，不納入排行榜計算。</p>
+          <p style="font-size: 0.85rem; color: var(--danger); margin-bottom: 8px;">⚠️ 錯題重測成績標記為練習，不納入排行榜計算。</p>
           <button class="btn btn-warning" onclick="startRetryExam()">🔁 錯題重測</button>
         </div>
         <button class="btn" style="margin-top: 12px;" onclick="closeExamViewport()">返回首頁</button>
@@ -201,7 +198,7 @@
   </div>
 
   <script>
-    // --- 資料庫初始化 ---
+    // 初始化 Mock 帳號資料
     function initDB() {
       if (!localStorage.getItem('sys_users')) {
         const users = {
@@ -209,14 +206,6 @@
           "user1": { username: "user1", password: "123", realName: "王小明", isAdmin: false, status: "active" }
         };
         localStorage.setItem('sys_users', JSON.stringify(users));
-      }
-      // 預設題庫資料庫 (含公開狀態)
-      if (!localStorage.getItem('sys_banks')) {
-        const banks = {
-          "MATH01": { code: "MATH01", name: "基礎數學測驗", isPublic: true },
-          "ENG01": { code: "ENG01", name: "進階英文題庫", isPublic: false }
-        };
-        localStorage.setItem('sys_banks', JSON.stringify(banks));
       }
       if (!localStorage.getItem('sys_schedules')) localStorage.setItem('sys_schedules', JSON.stringify([]));
       if (!localStorage.getItem('sys_records')) localStorage.setItem('sys_records', JSON.stringify([]));
@@ -229,8 +218,11 @@
     let currentActiveExam = null;
     let cheatCount = 0;
     let isMarkedCheat = false;
+    let currentQuestions = [];
+    let currentAnswers = {};
+    let wrongQuestions = [];
 
-    // --- 帳號認證 ---
+    // 帳號認證
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
       document.getElementById('auth-title').innerText = isRegisterMode ? "帳號註冊" : "系統登入";
@@ -284,9 +276,9 @@
       btn.classList.add('active');
     }
 
-    // --- 公開題庫大廳區塊 ---
+    // 渲染由外部 JS 自動註冊的公開題庫
     function renderPublicBanks() {
-      const banks = JSON.parse(localStorage.getItem('sys_banks'));
+      const banks = window.QUIZ_BANKS || {};
       const container = document.getElementById('public-banks-list');
       container.innerHTML = '';
 
@@ -297,28 +289,42 @@
         container.innerHTML += `
           <div class="bank-item">
             <div>
-              <strong>${b.name}</strong>
+              <strong>${b.title}</strong>
               <div style="font-size:0.75rem; color:#64748b;">代碼: ${b.code}</div>
             </div>
-            <button class="btn btn-sm btn-success" onclick="launchExamViewport('${b.code}', false, false)">開始測驗</button>
+            <button class="btn btn-sm btn-success" onclick="launchExamViewport('${b.code}', false, false)">進入考試</button>
           </div>
         `;
       });
     }
 
     function startPracticeExamByInput() {
-      const code = document.getElementById('practice-code').value.trim();
+      const code = document.getElementById('practice-code').value.trim().toUpperCase();
       if (!code) return alert('請輸入代碼');
       launchExamViewport(code, false, false);
     }
 
-    // --- 進入考場與防作弊 ---
+    // 啟動考場與動態題目渲染
     function launchExamViewport(bankCode, isOfficial, isRetry) {
+      const banks = window.QUIZ_BANKS || {};
+      const bank = banks[bankCode];
+
+      if (!bank) {
+        alert(`找不到題庫代碼【${bankCode}】！請確認 banks/${bankCode}.js 檔案已成功載入。`);
+        return;
+      }
+
       currentActiveExam = { bankCode, isOfficial, isRetry };
       cheatCount = 0;
       isMarkedCheat = false;
+      currentAnswers = {};
 
-      // 介面歸位
+      if (isRetry) {
+        currentQuestions = [...wrongQuestions];
+      } else {
+        currentQuestions = bank.questions;
+      }
+
       document.getElementById('cheat-bar').style.display = 'none';
       document.getElementById('question-container').style.display = 'block';
       document.getElementById('result-container').style.display = 'none';
@@ -329,12 +335,42 @@
       else if (isRetry) { tag.innerText = "錯題重測 (不計分)"; tag.className = "badge bg-user"; }
       else { tag.innerText = "自主練習"; tag.className = "badge bg-user"; }
 
-      document.getElementById('exam-title').innerText = `【${bankCode}】`;
+      document.getElementById('exam-title').innerText = `【${bank.title} (${bankCode})】`;
+      
+      renderQuestions();
       document.getElementById('exam-viewport').style.display = 'flex';
-
       window.addEventListener('blur', handlePageBlur);
     }
 
+    function renderQuestions() {
+      const container = document.getElementById('question-container');
+      container.innerHTML = '';
+
+      currentQuestions.forEach((q, idx) => {
+        let optionsHtml = q.options.map(opt => {
+          const optVal = opt.charAt(0);
+          return `
+            <label style="display:block; margin: 8px 0; font-size:0.95rem;">
+              <input type="radio" name="q_${idx}" value="${optVal}" onchange="recordAnswer(${idx}, '${optVal}')">
+              ${opt}
+            </label>
+          `;
+        }).join('');
+
+        container.innerHTML += `
+          <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+            <h4 style="margin-bottom: 10px;">第 ${idx + 1} 題：${q.question}</h4>
+            ${optionsHtml}
+          </div>
+        `;
+      });
+    }
+
+    function recordAnswer(qIndex, value) {
+      currentAnswers[qIndex] = value;
+    }
+
+    // 防作弊監控
     function handlePageBlur() {
       if (!currentActiveExam) return;
       cheatCount++;
@@ -348,12 +384,23 @@
 
     function submitExam() {
       window.removeEventListener('blur', handlePageBlur);
-      
-      // 模擬答題狀況 (模擬選錯)
-      const isCorrect = document.querySelector('input[name="opt"]:checked')?.value === "B";
-      const score = (isMarkedCheat) ? 0 : (isCorrect ? 100 : 0);
 
-      // 只有非「錯題重測」才寫入資料庫計分
+      let correctCount = 0;
+      wrongQuestions = [];
+
+      currentQuestions.forEach((q, idx) => {
+        const userAns = currentAnswers[idx];
+        if (userAns === q.answer) {
+          correctCount++;
+        } else {
+          wrongQuestions.push(q);
+        }
+      });
+
+      const calculatedScore = Math.round((correctCount / currentQuestions.length) * 100);
+      const finalScore = isMarkedCheat ? 0 : calculatedScore;
+
+      // 錯題重測不計入成績榜
       if (!currentActiveExam.isRetry) {
         const records = JSON.parse(localStorage.getItem('sys_records'));
         records.push({
@@ -362,24 +409,22 @@
           realName: currentUser.realName,
           bankCode: currentActiveExam.bankCode,
           isOfficial: currentActiveExam.isOfficial,
-          score: score,
+          score: finalScore,
           isCheat: isMarkedCheat,
           time: new Date().toLocaleString()
         });
         localStorage.setItem('sys_records', JSON.stringify(records));
       }
 
-      // 展現考後結算畫面
       document.getElementById('question-container').style.display = 'none';
       document.getElementById('exam-footer').style.display = 'none';
       document.getElementById('result-container').style.display = 'block';
 
-      document.getElementById('result-score').innerText = isMarkedCheat ? "成績不予紀錄 (作弊)" : `得分：${score} 分`;
-      document.getElementById('result-desc').innerText = isCorrect ? "恭喜你！題目全部答對。" : "本場測驗有答錯的題目。";
+      document.getElementById('result-score').innerText = isMarkedCheat ? "成績不予紀錄 (作弊)" : `得分：${finalScore} 分`;
+      document.getElementById('result-desc').innerText = `答對 ${correctCount} / ${currentQuestions.length} 題。`;
 
-      // 錯題重測控制：官方考試不開放重測
       const retrySec = document.getElementById('retry-section');
-      if (!isCorrect && !currentActiveExam.isOfficial) {
+      if (wrongQuestions.length > 0 && !currentActiveExam.isOfficial) {
         retrySec.style.display = 'block';
       } else {
         retrySec.style.display = 'none';
@@ -395,9 +440,9 @@
       currentActiveExam = null;
     }
 
-    // --- 排行榜 (管理員編輯) ---
+    // 排行榜 (管理員權限編輯)
     function renderRanking() {
-      const code = document.getElementById('rank-code').value.trim();
+      const code = document.getElementById('rank-code').value.trim().toUpperCase();
       const type = document.getElementById('rank-type').value;
       if (!code) return alert('請輸入題庫代碼');
 
@@ -406,8 +451,7 @@
       tbody.innerHTML = '';
 
       if (type === 'practice') {
-        const filtered = records.filter(r => !r.isOfficial && r.bankCode.toLowerCase() === code.toLowerCase())
-                               .sort((a,b) => b.score - a.score);
+        const filtered = records.filter(r => !r.isOfficial && r.bankCode === code).sort((a,b) => b.score - a.score);
         filtered.forEach((r, idx) => {
           tbody.innerHTML += `
             <tr>
@@ -420,15 +464,14 @@
           `;
         });
       } else {
-        // 官方考試榜
-        const scheds = JSON.parse(localStorage.getItem('sys_schedules')).filter(s => s.bankCode.toLowerCase() === code.toLowerCase());
+        const scheds = JSON.parse(localStorage.getItem('sys_schedules')).filter(s => s.bankCode === code);
         let targets = [];
         scheds.forEach(s => targets.push(...s.targetUsers));
         targets = [...new Set(targets)];
 
         const users = JSON.parse(localStorage.getItem('sys_users'));
         targets.forEach((u, idx) => {
-          const rec = records.find(r => r.isOfficial && r.bankCode.toLowerCase() === code.toLowerCase() && r.username === u);
+          const rec = records.find(r => r.isOfficial && r.bankCode === code && r.username === u);
           let statusText = "<span style='color:red;'>未到場</span>";
           let scoreText = "-";
           let recId = rec ? rec.id : null;
@@ -464,18 +507,16 @@
       const newScore = prompt("【管理員權限】請輸入新的分數：", target.score);
       if (newScore !== null) {
         target.score = parseInt(newScore) || 0;
-        const toggleCheat = confirm("是否判定為作弊？\n[確定] 設為作弊\n[取消] 設為正常");
-        target.isCheat = toggleCheat;
+        target.isCheat = confirm("是否判定為作弊？\n[確定] 設為作弊\n[取消] 設為正常");
         localStorage.setItem('sys_records', JSON.stringify(records));
-        alert("成績修改完成！");
+        alert("修改成功！");
         renderRanking();
       }
     }
 
-    // --- 管理員後台控制 ---
+    // 後台管理資料載入
     function loadAdminData() {
-      // 題庫公開設定控制
-      const banks = JSON.parse(localStorage.getItem('sys_banks'));
+      const banks = window.QUIZ_BANKS || {};
       const container = document.getElementById('admin-banks-setting');
       container.innerHTML = '';
 
@@ -483,16 +524,16 @@
         container.innerHTML += `
           <div class="bank-item">
             <div>
-              <strong>${b.name} (${b.code})</strong>
+              <strong>${b.title} (${b.code})</strong>
+              <div style="font-size:0.75rem; color:#64748b;">狀態: ${b.isPublic ? '公開' : '私人/不公開'} | 共 ${b.questions.length} 題</div>
             </div>
             <button class="btn btn-sm ${b.isPublic ? 'btn-danger' : 'btn-success'}" onclick="toggleBankPublic('${b.code}')">
-              ${b.isPublic ? '設為不公開' : '設為公開'}
+              ${b.isPublic ? '設為隱藏' : '設為公開'}
             </button>
           </div>
         `;
       });
 
-      // 用戶選單設定
       const users = JSON.parse(localStorage.getItem('sys_users'));
       const select = document.getElementById('sched-users');
       select.innerHTML = '';
@@ -502,10 +543,8 @@
     }
 
     function toggleBankPublic(code) {
-      const banks = JSON.parse(localStorage.getItem('sys_banks'));
-      if (banks[code]) {
-        banks[code].isPublic = !banks[code].isPublic;
-        localStorage.setItem('sys_banks', JSON.stringify(banks));
+      if (window.QUIZ_BANKS && window.QUIZ_BANKS[code]) {
+        window.QUIZ_BANKS[code].isPublic = !window.QUIZ_BANKS[code].isPublic;
         loadAdminData();
         renderPublicBanks();
       }
@@ -513,7 +552,7 @@
 
     function createSchedule() {
       const time = document.getElementById('sched-time').value;
-      const bank = document.getElementById('sched-bank').value.trim();
+      const bank = document.getElementById('sched-bank').value.trim().toUpperCase();
       const select = document.getElementById('sched-users');
       const selectedUsers = Array.from(select.selectedOptions).map(o => o.value);
 
@@ -525,7 +564,7 @@
 
       const popups = JSON.parse(localStorage.getItem('sys_popups'));
       selectedUsers.forEach(u => {
-        popups.push({ id: 'pop_pre_' + Date.now() + '_' + u, targetUser: u, title: "【官方考試通知】", content: `您已被安排參加考試 (${bank})，時間：${time.replace('T', ' ')}。`, confirmed: false });
+        popups.push({ id: 'pop_pre_' + Date.now() + '_' + u, targetUser: u, title: "【官方考試預約】", content: `您已被安排參加考試 (${bank})，時間：${time.replace('T', ' ')}。`, confirmed: false });
       });
       localStorage.setItem('sys_popups', JSON.stringify(popups));
 
@@ -540,7 +579,7 @@
       if (myScheds.length === 0) { div.innerHTML = "目前無排定的官方考試"; return; }
       div.innerHTML = myScheds.map(s => `
         <div style="border-bottom:1px solid #eee; padding:8px 0;">
-          <div><b>題庫：${s.bankCode}</b></div>
+          <div><b>題庫代碼：${s.bankCode}</b></div>
           <div style="font-size:0.8rem; color:#64748b;">時間：${s.time.replace('T', ' ')}</div>
           <button class="btn btn-sm btn-warning" style="margin-top:4px;" onclick="triggerStartNotice('${s.bankCode}')">時間已到 (測試跳轉考試)</button>
         </div>
