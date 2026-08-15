@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V3-Beta</title>
+    <title>測驗系統-網頁版(Web ST) -V3-Beta (Firebase版)</title>
 
     <!-- MathJax 公式渲染套件 -->
     <script>
@@ -24,7 +24,7 @@
             --accent: #2980b9;
             --success: #27ae60; 
             --error: #c0392b; 
-            --bg: #0f172a; /* 深藍色背景 */
+            --bg: #0f172a;
             --card-bg: #ffffff;
             --text-main: #333333;
         }
@@ -49,7 +49,7 @@
         }
         h2, h3 { color: var(--primary); margin-top: 0; font-weight: 700; }
         .text-center { text-align: center; }
-        
+
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { font-size: 0.9em; font-weight: bold; color: #475569; display: block; margin-bottom: 5px; }
         .code-input { 
@@ -62,7 +62,7 @@
             margin-bottom: 12px; 
             background: #f8fafc;
         }
-        
+
         .main-btn { 
             width: 100%; 
             padding: 14px; 
@@ -75,6 +75,7 @@
             transition: background 0.2s; 
             margin-top: 10px; 
         }
+        .main-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-secondary { background: #64748b; }
         .btn-secondary:hover { background: #475569; }
         .btn-success { background: #27ae60; }
@@ -83,7 +84,6 @@
         .btn-accent:hover { background: #1f6391; }
         .hidden { display: none !important; }
 
-        /* 當前會員狀態顯示列 */
         .status-box {
             background: #f1f5f9;
             border-left: 4px solid var(--accent);
@@ -105,7 +105,6 @@
             text-decoration: underline;
         }
 
-        /* 按鈕組響應式佈局 */
         .action-btn-group {
             display: flex;
             gap: 10px;
@@ -116,7 +115,6 @@
             margin-top: 0;
         }
 
-        /* 條款區樣式 */
         .terms-box {
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
@@ -132,7 +130,6 @@
         }
         .checkbox-group { text-align: left; margin-bottom: 20px; font-size: 0.95em; color: #334155; }
 
-        /* 考題卡片樣式 */
         .question-card { 
             text-align: left; 
             padding: 20px; 
@@ -158,7 +155,6 @@
         .opt-btn:hover { background: #f8fafc; border-color: #94a3b8; }
         .opt-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
 
-        /* 解析與計時器 */
         .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
         #timer-box { 
             font-size: 1em; 
@@ -170,12 +166,10 @@
             border: 1px solid #fee2e2; 
         }
 
-        /* 導航按鈕 */
         .nav-flex { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
         .nav-btn { flex: 1; padding: 10px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; border-radius: 4px; }
         .nav-btn:hover { background: #f1f5f9; }
 
-        /* 黑底評量報告區域 (PDF 生成專用) */
         .result-container-dark {
             position: relative;
             background-color: #000000;
@@ -189,7 +183,6 @@
             overflow: hidden;
         }
 
-        /* 表格 (Table) 專用樣式 */
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -218,7 +211,6 @@
             color: #f8fafc;
         }
 
-        /* PDF 錯題清單專用深色卡片樣式 */
         .pdf-wrong-card {
             background: #0d1527;
             border: 1px solid #1e293b;
@@ -231,7 +223,6 @@
             color: #e2e8f0;
         }
 
-        /* 強制分頁與獨立「成績證明章」頁面樣式 */
         .pdf-page-break {
             page-break-before: always;
             break-before: page;
@@ -250,7 +241,6 @@
             letter-spacing: 2px;
         }
 
-        /* 印章 CSS 樣式區域 */
         .stamp-container-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -278,7 +268,6 @@
         .stamp-date { font-size: 0.85em; margin: 4px 0; border-top: 1px solid #ff3b30; border-bottom: 1px solid #ff3b30; padding: 2px 0; }
         .stamp-body { font-size: 1.2em; font-weight: 900; letter-spacing: 2px; }
 
-        /* 文字色彩等級 */
         .res-blue { color: #3b82f6; font-weight: bold; }
         .res-orange { color: #f97316; font-weight: bold; }
         .res-green { color: #22c55e; font-weight: bold; }
@@ -286,7 +275,6 @@
         .res-yellow { color: #eab308; font-weight: bold; }
         .res-black-pass { color: #ffffff; font-weight: bold; }
 
-        /* 彈出視窗 Modal 樣式 */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -323,7 +311,6 @@
         }
         .stamp-checkbox-list label:last-child { margin-bottom: 0; }
 
-        /* 手機端 RWD 適應優化 */
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 18px 15px; }
@@ -343,28 +330,28 @@
 
     <!-- 全局頂部會員登入狀態列 -->
     <div id="account-status-bar" class="status-box">
-        <div>當前狀態：<span id="current-user-display" style="font-weight: bold; color: var(--error);">未登入（請先註冊或登入）</span></div>
+        <div>當前狀態：<span id="current-user-display" style="font-weight: bold; color: var(--error);">尚未連線 Firebase...</span></div>
         <button id="btn-global-logout" class="hidden" style="background: transparent; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 4px; cursor: pointer;" onclick="handleLogout()">登出</button>
     </div>
 
     <!-- 0. 帳號註冊畫面 -->
-    <div id="auth-register-screen">
+    <div id="auth-register-screen" class="hidden">
         <h2 class="text-center">帳號註冊</h2>
         <div class="input-group">
             <label for="reg-id">使用者 ID / 帳號</label>
-            <input type="text" id="reg-id" class="code-input" placeholder="請設定帳號 ID">
+            <input type="text" id="reg-id" class="code-input" placeholder="請設定帳號 ID(僅供顯示，登入建議用 Email)">
 
             <label for="reg-email">電子郵件信箱 (Email)</label>
             <input type="email" id="reg-email" class="code-input" placeholder="example@domain.com">
 
             <label for="reg-pass">密碼</label>
-            <input type="password" id="reg-pass" class="code-input" placeholder="請設定密碼">
+            <input type="password" id="reg-pass" class="code-input" placeholder="請設定密碼(至少6碼)">
 
             <label for="reg-pass-confirm">確認密碼</label>
             <input type="password" id="reg-pass-confirm" class="code-input" placeholder="再次輸入密碼">
         </div>
 
-        <button class="main-btn btn-success" onclick="handleRegister()">完成註冊並登入</button>
+        <button id="reg-submit-btn" class="main-btn btn-success" onclick="handleRegister()">完成註冊並登入</button>
         <div class="switch-link" onclick="toggleAuthMode('login')">已有帳號？前往登入</div>
     </div>
 
@@ -379,7 +366,7 @@
             <input type="password" id="login-pass" class="code-input" placeholder="輸入密碼">
         </div>
 
-        <button class="main-btn btn-accent" onclick="handleLogin()">登入系統</button>
+        <button id="login-submit-btn" class="main-btn btn-accent" onclick="handleLogin()">登入系統</button>
         <div class="switch-link" onclick="toggleAuthMode('register')">還沒有帳號？前往註冊</div>
     </div>
 
@@ -392,7 +379,7 @@
 
             <label for="quiz-code">測驗代碼</label>
             <input type="text" id="quiz-code" class="code-input" placeholder="請輸入測驗代碼 (例如: test01)">
-            
+
             <div id="password-area" class="hidden">
                 <label for="quiz-pass">題庫驗證密碼</label>
                 <input type="password" id="quiz-pass" class="code-input" placeholder="請輸入題庫驗證密碼">
@@ -511,10 +498,8 @@
                 </tr>
             </table>
 
-            <!-- PDF 專用錯題列表容器 -->
             <div id="pdf-wrong-list" class="hidden"></div>
 
-            <!-- 獨立單頁：成績證明章 -->
             <div id="stamp-page-section" class="pdf-page-break hidden">
                 <div class="stamp-page-header">成績證明章</div>
                 <div id="stamps-area" class="stamp-container-wrapper"></div>
@@ -525,7 +510,6 @@
             </div>
         </div>
 
-        <!-- 底部按鈕群 -->
         <div class="action-btn-group">
             <button class="main-btn btn-success" onclick="openPdfModal()">下載結果 PDF</button>
             <button id="retry-failed-btn" class="main-btn hidden" style="background:var(--accent);" onclick="startWrongQuestionsQuiz()">僅重測錯題</button>
@@ -539,7 +523,6 @@
 <!-- 彈出視窗 Modal -->
 <div id="pdf-modal" class="modal-overlay hidden">
     <div class="modal-card">
-        <!-- 階段一：選擇 PDF 格式 -->
         <div id="pdf-step-1">
             <h3 style="color:#ffffff; margin-bottom:15px;">請選擇 PDF 匯出格式</h3>
             <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">您希望下載的 PDF 是否包含錯題細節與答案解析？</p>
@@ -548,7 +531,6 @@
             <button class="main-btn btn-secondary" style="margin-top:10px;" onclick="closePdfModal()">取消</button>
         </div>
 
-        <!-- 階段二：詢問是否加入附加元件 -->
         <div id="pdf-step-2" class="hidden">
             <h3 style="color:#ffffff; margin-bottom:15px;">附加元件驗證</h3>
             <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">請問是否需要在此 PDF 加入「附加元件代碼/電子印章」？</p>
@@ -558,14 +540,12 @@
             </div>
         </div>
 
-        <!-- 階段三：輸入附加元件代碼與選擇印章 -->
         <div id="pdf-step-3" class="hidden">
             <h3 style="color:#ffffff; margin-bottom:12px;">輸入附加元件與選擇印章</h3>
             <p style="font-size:0.85em; color:#94a3b8; margin-bottom:12px;">請輸入代碼或勾選需附加之電子印章（可複選）：</p>
 
             <input type="text" id="addon-code-input" class="code-input" placeholder="請輸入附加元件代碼 (選填)" style="text-align:center; font-weight:bold;">
 
-            <!-- 印章勾選清單 -->
             <div class="stamp-checkbox-list">
                 <label>
                     <input type="checkbox" class="stamp-option" value="valid" onchange="validateStampOption(this)"> 
@@ -587,10 +567,63 @@
     </div>
 </div>
 
+<!-- ======================================================= -->
+<!--  Firebase 設定區塊：這是你自己的 Firebase 專案設定值        -->
+<!--  若要換成別的 Firebase 專案，只需替換下面 firebaseConfig  -->
+<!-- ======================================================= -->
+<script type="module">
+    import { initializeApp } 
+        from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { 
+        getFirestore, doc, setDoc, getDoc, addDoc, collection, 
+        query, where, getDocs, serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
+        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
+        projectId: "rms-quiz-system-dbserver",
+        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
+        messagingSenderId: "769519554299",
+        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
+        measurementId: "G-939JE1X57X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 把 Firebase 相關物件與函式掛到 window，讓下方的一般 <script> 能呼叫
+    window.fbAuth = auth;
+    window.fbDb = db;
+    window.fbCreateUser = createUserWithEmailAndPassword;
+    window.fbSignIn = signInWithEmailAndPassword;
+    window.fbSignOut = signOut;
+    window.fbOnAuthStateChanged = onAuthStateChanged;
+    window.fbDoc = doc;
+    window.fbSetDoc = setDoc;
+    window.fbGetDoc = getDoc;
+    window.fbAddDoc = addDoc;
+    window.fbCollection = collection;
+    window.fbQuery = query;
+    window.fbWhere = where;
+    window.fbGetDocs = getDocs;
+    window.fbServerTimestamp = serverTimestamp;
+
+    // 監聽登入狀態變化，自動切換畫面
+    onAuthStateChanged(auth, (user) => {
+        if (window.onFirebaseAuthReady) window.onFirebaseAuthReady(user);
+    });
+</script>
+
 <script>
-    /* ---------------- 前端帳號資料庫與會員機制 ---------------- */
-    const registeredUsers = [];
-    let currentUser = null;
+    /* ---------------- Firebase 帳號系統 ---------------- */
+    let currentUser = null;       // { uid, email, displayId }
+    let authScreensReady = false;
 
     function toggleAuthMode(mode) {
         if (mode === 'login') {
@@ -607,7 +640,29 @@
         return emailPattern.test(email);
     }
 
-    function handleRegister() {
+    function firebaseErrorToChinese(err) {
+        const code = err && err.code ? err.code : '';
+        const map = {
+            'auth/email-already-in-use': '該電子郵件信箱已被註冊，請更換 Email 或直接登入！',
+            'auth/invalid-email': '請輸入有效的電子郵件信箱格式！',
+            'auth/weak-password': '密碼強度不足，請至少設定 6 碼！',
+            'auth/user-not-found': '找不到此帳號，請確認 ID / Email 是否正確！',
+            'auth/wrong-password': '密碼錯誤，請重新確認！',
+            'auth/invalid-credential': '帳號、Email 或密碼錯誤，請重新確認！',
+            'auth/too-many-requests': '嘗試次數過多，請稍後再試！',
+            'auth/network-request-failed': '網路連線異常，請確認網路後再試一次！'
+        };
+        return map[code] || ('發生錯誤：' + (err && err.message ? err.message : '未知錯誤'));
+    }
+
+    function setButtonLoading(btnId, loading, normalText) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = loading;
+        btn.innerText = loading ? '處理中...' : normalText;
+    }
+
+    async function handleRegister() {
         const userId = document.getElementById('reg-id').value.trim();
         const userEmail = document.getElementById('reg-email').value.trim().toLowerCase();
         const userPass = document.getElementById('reg-pass').value.trim();
@@ -617,43 +672,56 @@
             alert("請填寫所有註冊欄位！");
             return;
         }
-
         if (!validateEmail(userEmail)) {
             alert("請輸入有效的電子郵件信箱格式 (例如：user@example.com)！");
             return;
         }
-
         if (userPass !== userPassConfirm) {
             alert("兩次輸入的密碼不一致！");
             return;
         }
-
-        const emailExists = registeredUsers.some(user => user.email === userEmail);
-        if (emailExists) {
-            alert("該電子郵件信箱已被註冊，請更換 Email 或直接登入！");
+        if (userPass.length < 6) {
+            alert("密碼至少需要 6 碼！");
             return;
         }
 
-        const idExists = registeredUsers.some(user => user.id === userId);
-        if (idExists) {
-            alert("該使用者 ID 已被使用，請更換其他 ID！");
-            return;
+        setButtonLoading('reg-submit-btn', true);
+        try {
+            // 檢查自訂 ID 是否已被使用
+            const idQuery = window.fbQuery(
+                window.fbCollection(window.fbDb, "users"),
+                window.fbWhere("id", "==", userId)
+            );
+            const idSnap = await window.fbGetDocs(idQuery);
+            if (!idSnap.empty) {
+                alert("該使用者 ID 已被使用，請更換其他 ID！");
+                setButtonLoading('reg-submit-btn', false, '完成註冊並登入');
+                return;
+            }
+
+            const cred = await window.fbCreateUser(window.fbAuth, userEmail, userPass);
+
+            // 把自訂 ID 對應存進 Firestore（users collection，以 uid 為文件 ID）
+            await window.fbSetDoc(window.fbDoc(window.fbDb, "users", cred.user.uid), {
+                id: userId,
+                email: userEmail,
+                createdAt: window.fbServerTimestamp()
+            });
+
+            alert("註冊成功！系統將為您自動登入。");
+            document.getElementById('reg-id').value = '';
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-pass').value = '';
+            document.getElementById('reg-pass-confirm').value = '';
+        } catch (err) {
+            alert(firebaseErrorToChinese(err));
+        } finally {
+            setButtonLoading('reg-submit-btn', false, '完成註冊並登入');
         }
-
-        const newUser = { id: userId, email: userEmail, password: userPass };
-        registeredUsers.push(newUser);
-        alert("註冊成功！系統將為您自動登入。");
-
-        document.getElementById('reg-id').value = '';
-        document.getElementById('reg-email').value = '';
-        document.getElementById('reg-pass').value = '';
-        document.getElementById('reg-pass-confirm').value = '';
-
-        setCurrentUser(newUser);
     }
 
-    function handleLogin() {
-        const loginInput = document.getElementById('login-id').value.trim().toLowerCase();
+    async function handleLogin() {
+        const loginInput = document.getElementById('login-id').value.trim();
         const loginPass = document.getElementById('login-pass').value.trim();
 
         if (!loginInput || !loginPass) {
@@ -661,57 +729,84 @@
             return;
         }
 
-        const targetUser = registeredUsers.find(
-            user => (user.id.toLowerCase() === loginInput || user.email === loginInput) && user.password === loginPass
-        );
+        setButtonLoading('login-submit-btn', true);
+        try {
+            let emailToUse = loginInput.toLowerCase();
 
-        if (targetUser) {
-            alert("登入成功！");
+            // 如果輸入的不是 Email 格式，先去 Firestore 查詢對應的 Email
+            if (!validateEmail(emailToUse)) {
+                const idQuery = window.fbQuery(
+                    window.fbCollection(window.fbDb, "users"),
+                    window.fbWhere("id", "==", loginInput)
+                );
+                const idSnap = await window.fbGetDocs(idQuery);
+                if (idSnap.empty) {
+                    alert("帳號、Email 或密碼錯誤，請重新確認！");
+                    setButtonLoading('login-submit-btn', false, '登入系統');
+                    return;
+                }
+                emailToUse = idSnap.docs[0].data().email;
+            }
+
+            await window.fbSignIn(window.fbAuth, emailToUse, loginPass);
             document.getElementById('login-id').value = '';
             document.getElementById('login-pass').value = '';
-            setCurrentUser(targetUser);
+        } catch (err) {
+            alert(firebaseErrorToChinese(err));
+        } finally {
+            setButtonLoading('login-submit-btn', false, '登入系統');
+        }
+    }
+
+    async function handleLogout() {
+        try {
+            await window.fbSignOut(window.fbAuth);
+        } catch (err) {
+            alert(firebaseErrorToChinese(err));
+        }
+    }
+
+    // Firebase 登入狀態變化時觸發（由 module script 呼叫）
+    window.onFirebaseAuthReady = async function(user) {
+        const displayElem = document.getElementById('current-user-display');
+        const logoutBtn = document.getElementById('btn-global-logout');
+
+        if (user) {
+            // 取得自訂 ID
+            let displayId = user.email;
+            try {
+                const userDocSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "users", user.uid));
+                if (userDocSnap.exists()) displayId = userDocSnap.data().id;
+            } catch (e) { /* 忽略，退回用 email 顯示 */ }
+
+            currentUser = { uid: user.uid, email: user.email, displayId: displayId };
+
+            displayElem.innerText = `${currentUser.displayId} (${currentUser.email})`;
+            displayElem.style.color = "var(--success)";
+            logoutBtn.classList.remove('hidden');
+
+            if (!document.getElementById('user-name').value) {
+                document.getElementById('user-name').value = currentUser.displayId;
+            }
+
+            document.getElementById('auth-register-screen').classList.add('hidden');
+            document.getElementById('auth-login-screen').classList.add('hidden');
+            document.getElementById('quiz-ui').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
         } else {
-            alert("帳號、Email 或密碼錯誤，請重新確認！");
+            currentUser = null;
+            displayElem.innerText = "未登入（請先註冊或登入）";
+            displayElem.style.color = "var(--error)";
+            logoutBtn.classList.add('hidden');
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('quiz-ui').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('auth-login-screen').classList.add('hidden');
+            document.getElementById('auth-register-screen').classList.remove('hidden');
         }
-    }
-
-    function setCurrentUser(user) {
-        currentUser = user;
-
-        // 更新頂部狀態列
-        const displayElem = document.getElementById('current-user-display');
-        displayElem.innerText = `${currentUser.id} (${currentUser.email})`;
-        displayElem.style.color = "var(--success)";
-        document.getElementById('btn-global-logout').classList.remove('hidden');
-
-        // 自動填入考生姓名預設值 (若尚未填寫)
-        if (!document.getElementById('user-name').value) {
-            document.getElementById('user-name').value = currentUser.id;
-        }
-
-        // 隱藏驗證介面，顯示測驗準備頁
-        document.getElementById('auth-register-screen').classList.add('hidden');
-        document.getElementById('auth-login-screen').classList.add('hidden');
-        document.getElementById('login-screen').classList.remove('hidden');
-    }
-
-    function handleLogout() {
-        currentUser = null;
-
-        const displayElem = document.getElementById('current-user-display');
-        displayElem.innerText = "未登入（請先註冊或登入）";
-        displayElem.style.color = "var(--error)";
-        document.getElementById('btn-global-logout').classList.add('hidden');
-
-        // 隱藏所有測驗畫面，返回註冊頁
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('quiz-ui').classList.add('hidden');
-        document.getElementById('result-screen').classList.add('hidden');
-        document.getElementById('auth-login-screen').classList.add('hidden');
-        document.getElementById('auth-register-screen').classList.remove('hidden');
-
-        alert("已成功登出！");
-    }
+    };
 
     function backToQuizPrep() {
         document.getElementById('result-screen').classList.add('hidden');
@@ -725,18 +820,14 @@
     let isWrongQuestionsMode = false;
     let originalWrongQuestions = [];
 
-    // 防作弊 / 離開畫面紀錄次數與成績分數暫存
     let warningCount = 0;
     let calculatedScore = 0;
 
-    // PDF 匯出暫存狀態
     let selectedPdfIncludeWrong = false;
 
-    // 統計時間與使用者 IP 紀錄
     let startTimeObj, endTimeObj;
     let userIP = "未知IP";
 
-    // 預先取得 IP 位址
     fetch('https://api.ipify.org?format=json')
         .then(res => res.json())
         .then(data => { userIP = data.ip; })
@@ -794,11 +885,11 @@
         if (originalWrongQuestions.length === 0) {
             btnWithWrong.disabled = true;
             btnWithWrong.style.opacity = "0.5";
-            btnWithWrong.innerText = "📚 評量結果 + 錯題解析 (無錯題)";
+            btnWithWrong.innerText = "評量結果 + 錯題解析 (無錯題)";
         } else {
             btnWithWrong.disabled = false;
             btnWithWrong.style.opacity = "1";
-            btnWithWrong.innerText = "📚 評量結果 + 錯題解析";
+            btnWithWrong.innerText = " 評量結果 + 錯題解析";
         }
 
         pdfModal.classList.remove('hidden');
@@ -1132,7 +1223,7 @@
     }
 
     /* ---------------- 成績結算與評量報告 ---------------- */
-    function evalQuiz() {
+    async function evalQuiz() {
         quizActive = false;
         clearInterval(timerInterval);
         endTimeObj = new Date();
@@ -1174,10 +1265,6 @@
 
         calculatedScore = Math.round(correctCount * (100 / totalQ));
 
-        let testCountKey = `test_count_${currentUser ? currentUser.id : 'guest'}_${window.currentQuiz.name}`;
-        let localCount = (parseInt(localStorage.getItem(testCountKey)) || 0) + 1;
-        localStorage.setItem(testCountKey, localCount);
-
         const formatTime = (date) => date.toTimeString().substring(0, 5);
 
         const durationSec = Math.max(1, Math.floor((endTimeObj - startTimeObj) / 1000));
@@ -1185,6 +1272,22 @@
         const mins = String(Math.floor((durationSec % 3600) / 60)).padStart(2, '0');
         const secs = String(durationSec % 60).padStart(2, '0');
         const avgSpeed = (durationSec / totalQ).toFixed(1);
+
+        // ---- 查詢 Firestore 取得該使用者對此科目的歷史測驗次數 ----
+        let localCount = 1;
+        try {
+            if (currentUser) {
+                const historyQuery = window.fbQuery(
+                    window.fbCollection(window.fbDb, "quiz_results"),
+                    window.fbWhere("uid", "==", currentUser.uid),
+                    window.fbWhere("quizName", "==", window.currentQuiz.name)
+                );
+                const historySnap = await window.fbGetDocs(historyQuery);
+                localCount = historySnap.size + 1;
+            }
+        } catch (e) {
+            console.error("讀取測驗次數失敗", e);
+        }
 
         document.getElementById('res-subject').innerText = window.currentQuiz.name;
         document.getElementById('res-test-count').innerText = localCount;
@@ -1196,28 +1299,29 @@
         unAnsElem.innerText = `${unansweredCount} 題`;
         unAnsElem.className = unansweredCount === 0 ? "tb-val res-green" : "tb-val res-red";
 
-        // 成績判定邏輯
         const passLabel = document.getElementById('res-pass-label');
+        let passResultText = "不及格";
         if (warningCount > 0) {
             passLabel.innerText = "因作弊不記錄成績";
             passLabel.className = "tb-val res-red";
+            passResultText = "因作弊不記錄成績";
         } else if (calculatedScore >= 60) {
             passLabel.innerText = "及格 論";
             passLabel.className = "tb-val res-black-pass";
+            passResultText = "及格";
         } else {
             passLabel.innerText = "不及格 論";
             passLabel.className = "tb-val res-red";
+            passResultText = "不及格";
         }
 
-        // 綁定會員帳號資料與考號
-        document.getElementById('res-account-id').innerText = currentUser ? currentUser.id : '--';
+        document.getElementById('res-account-id').innerText = currentUser ? currentUser.displayId : '--';
         document.getElementById('res-account-email').innerText = currentUser ? currentUser.email : '--';
         document.getElementById('res-username').innerText = document.getElementById('user-name').value || '--';
 
         document.getElementById('res-start-time').innerText = formatTime(startTimeObj);
         document.getElementById('res-end-time').innerText = formatTime(endTimeObj);
 
-        // 作弊檢測判定
         const cheatElem = document.getElementById('res-cheated');
         if (warningCount > 0) {
             cheatElem.innerText = `檢測到離開畫面 ${warningCount} 次`;
@@ -1227,7 +1331,6 @@
             cheatElem.className = "tb-val res-yellow";
         }
 
-        // 惡意交白卷警告列
         const emptyRow = document.getElementById('empty-paper-row');
         if (answeredCount === 0) {
             emptyRow.classList.remove('hidden');
@@ -1250,6 +1353,34 @@
         }
 
         if (window.MathJax) MathJax.typesetPromise([document.getElementById('review-area')]);
+
+        // ---- 把這次測驗結果寫入 Firestore ----
+        try {
+            if (currentUser) {
+                await window.fbAddDoc(window.fbCollection(window.fbDb, "quiz_results"), {
+                    uid: currentUser.uid,
+                    displayId: currentUser.displayId,
+                    email: currentUser.email,
+                    username: document.getElementById('user-name').value || '',
+                    quizName: window.currentQuiz.name,
+                    score: calculatedScore,
+                    correctCount, wrongCount, unansweredCount,
+                    totalQuestions: totalQ,
+                    passResult: passResultText,
+                    warningCount: warningCount,
+                    durationSec: durationSec,
+                    avgSpeedSec: parseFloat(avgSpeed),
+                    ip: userIP,
+                    platform: getPlatform(),
+                    startTime: startTimeObj.toISOString(),
+                    endTime: endTimeObj.toISOString(),
+                    isWrongQuestionsMode: isWrongQuestionsMode,
+                    createdAt: window.fbServerTimestamp()
+                });
+            }
+        } catch (e) {
+            console.error("寫入 Firestore 失敗", e);
+        }
     }
 
     function startWrongQuestionsQuiz() {
