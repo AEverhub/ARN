@@ -2,659 +2,597 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>線上題測系統Web_st_V13.0.6</title>
-  <!-- jsPDF 用於生成 PDF 成績單 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>行動端考試系統 - 完整旗艦版</title>
   <style>
     :root {
-      --primary: #4a90e2;
-      --bg: #f4f7f6;
-      --danger: #e74c3c;
-      --success: #2ecc71;
+      --primary: #3b82f6;
+      --bg: #f8fafc;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --dark: #1e293b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: var(--bg); display: flex; height: 100vh; overflow: hidden; }
-    
-    /* 側邊欄 */
-    #sidebar { width: 250px; background: #2c3e50; color: #fff; display: flex; flex-direction: column; }
-    #sidebar .header { padding: 20px; font-size: 1.2rem; font-weight: bold; background: #1a252f; text-align: center; }
-    #sidebar nav a { display: block; color: #ecf0f1; padding: 15px 20px; text-decoration: none; border-bottom: 1px solid #34495e; cursor: pointer; }
-    #sidebar nav a:hover, #sidebar nav a.active { background: #34495e; }
-    
-    /* 主內容區 */
-    #main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
-    .top-bar { background: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .content-section { padding: 20px; display: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--dark); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* 頂部與導覽 */
+    .top-bar { background: #fff; height: 50px; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: bold; }
+    #main-content { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: 70px; }
+    .content-section { display: none; }
     .content-section.active { display: block; }
-    
-    /* 標籤樣式 */
-    .admin-badge { background-color: var(--danger); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
-    .user-badge { background-color: #7f8c8d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; }
-    
-    /* 表單與卡片 */
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-    button { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-    button.danger { background: var(--danger); }
-    
-    /* 表格 */
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    table th, table td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-    table th { background-color: #f8f9fa; }
+    #bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    #bottom-nav button { background: none; border: none; color: #64748b; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; flex: 1; }
+    #bottom-nav button.active { color: var(--primary); font-weight: bold; }
 
-    /* 通訊大廳 (LINE 風格) */
-    .chat-container { display: flex; flex-direction: column; height: 500px; background: #9bbbd4; border-radius: 8px; overflow: hidden; }
-    .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .chat-bubble { max-width: 70%; padding: 10px 14px; border-radius: 15px; background: white; align-self: flex-start; word-break: break-all; }
-    .chat-bubble.me { align-self: flex-end; background: #5cbe60; color: white; }
-    .chat-sender { font-size: 0.75rem; margin-bottom: 3px; color: #555; }
-    .chat-input-area { display: flex; padding: 10px; background: #eee; }
-    .chat-input-area input { flex: 1; margin-right: 10px; }
+    /* 標籤與卡片 */
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: white; font-weight: bold; display: inline-block; }
+    .bg-admin { background-color: var(--danger); }
+    .bg-user { background-color: #64748b; }
+    .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
+    
+    /* 表單與觸控按鈕 */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #fff; }
+    button.btn { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+    button.btn-sm { padding: 5px 8px; font-size: 0.8rem; width: auto; }
+    button.btn-danger { background: var(--danger); }
+    button.btn-warning { background: var(--warning); }
+    button.btn-success { background: var(--success); }
 
-    /* 強制彈窗模態框 */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-    .modal { background: white; padding: 25px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; }
+    .bank-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; }
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 320px; }
+    th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #f1f5f9; }
+
+    /* 彈窗 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 999; padding: 20px; }
+    .modal { background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
+
+    /* 全螢幕考場 */
+    #exam-viewport { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 1000; display: none; flex-direction: column; }
+    #cheat-bar { background-color: var(--danger); color: white; padding: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; display: none; }
   </style>
 </head>
 <body>
 
-  <!-- Auth 登入/註冊 模態框 -->
+  <!-- Auth 登入/註冊 彈窗 -->
   <div id="auth-modal" class="modal-overlay">
     <div class="modal">
-      <h2 id="auth-title">系統登入</h2>
-      <div id="auth-form" style="margin-top: 15px;">
-        <div class="form-group" id="group-realname" style="display:none;">
-          <input type="text" id="auth-realname" placeholder="真實姓名 (註冊後無法自行修改)">
-        </div>
-        <div class="form-group">
-          <input type="text" id="auth-username" placeholder="帳號">
-        </div>
-        <div class="form-group">
-          <input type="password" id="auth-password" placeholder="密碼">
-        </div>
-        <button id="auth-submit-btn" onclick="handleAuthSubmit()">登入</button>
-        <p style="margin-top: 15px; font-size: 0.9rem;">
-          <a href="#" id="auth-toggle" onclick="toggleAuthMode()">沒有帳號？立即註冊</a>
-        </p>
+      <h2 id="auth-title" style="margin-bottom: 15px;">系統登入</h2>
+      <div class="form-group" id="group-realname" style="display:none;">
+        <input type="text" id="auth-realname" placeholder="真實姓名">
       </div>
+      <div class="form-group"><input type="text" id="auth-username" placeholder="帳號"></div>
+      <div class="form-group"><input type="password" id="auth-password" placeholder="密碼"></div>
+      <button class="btn" onclick="handleAuthSubmit()">登入</button>
+      <p style="margin-top: 12px; font-size: 0.85rem;"><a href="#" onclick="toggleAuthMode()">沒有帳號？點此註冊</a></p>
     </div>
   </div>
 
-  <!-- 強制通告彈窗 (用戶端點擊確認後才會消失) -->
+  <!-- 考試提醒彈窗 -->
   <div id="notice-modal" class="modal-overlay" style="display: none;">
     <div class="modal">
-      <h3 id="notice-title" style="color: var(--danger); margin-bottom: 10px;">站內通知</h3>
-      <p id="notice-content" style="margin-bottom: 20px; font-size: 1rem;"></p>
-      <button onclick="confirmNotice()">我已閱讀並確認</button>
+      <h3 id="notice-title" style="color: var(--primary); margin-bottom: 10px;">系統通知</h3>
+      <p id="notice-content" style="margin-bottom: 18px; font-size: 0.95rem;"></p>
+      <button class="btn" onclick="confirmNotice()">確認並繼續</button>
     </div>
   </div>
 
-  <!-- 主系統介面 -->
-  <div id="sidebar">
-    <div class="header">考試管理平台</div>
-    <nav>
-      <a onclick="showTab('dashboard')" class="active">首頁概覽</a>
-      <a onclick="showTab('mail')">站內郵件 <span id="mail-unread-count" style="color:yellow;"></span></a>
-      <a onclick="showTab('chat')">通訊大廳</a>
-      <a onclick="showTab('ranking')">排行榜查詢</a>
-      <!-- 管理員專用選單 -->
-      <a onclick="showTab('admin-users')" class="admin-only" style="display:none; color:#f39c12;">[管] 用戶與成績管理</a>
-      <a onclick="showTab('admin-schedule')" class="admin-only" style="display:none; color:#f39c12;">[管] 考試日程與發布</a>
-      <a onclick="showTab('admin-notices')" class="admin-only" style="display:none; color:#f39c12;">[管] 彈窗與通知監控</a>
-    </nav>
+  <!-- 頂部狀態欄 -->
+  <div class="top-bar">
+    <div id="user-display">未登入</div>
+    <button style="background:none; border:none; color:var(--danger); font-size:0.85rem;" onclick="logout()">登出</button>
   </div>
 
+  <!-- 主內容區 -->
   <div id="main-content">
-    <div class="top-bar">
-      <div>目前登入：<span id="user-display-name"></span></div>
-      <button class="danger" onclick="logout()">登出</button>
+
+    <!-- 1. 首頁/題庫與考試 -->
+    <div id="tab-home" class="content-section active">
+      <div class="card">
+        <h3>🌐 公開公開題庫大廳 (免輸入代碼)</h3>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">點擊即可直接進入自主練習測驗：</p>
+        <div id="public-banks-list">無公開題庫</div>
+      </div>
+
+      <div class="card">
+        <h3>🔑 輸入私人代碼練習</h3>
+        <div class="form-group" style="margin-top: 8px;">
+          <input type="text" id="practice-code" placeholder="請輸入題庫代碼 (例: ENG01)">
+        </div>
+        <button class="btn" onclick="startPracticeExamByInput()">代碼測驗</button>
+      </div>
+
+      <div class="card">
+        <h3>📅 官方排定考試</h3>
+        <div id="my-schedules-list" style="margin-top: 8px; font-size: 0.9rem;">無排定考試</div>
+      </div>
     </div>
 
-    <!-- 1. 首頁概覽 -->
-    <div id="dashboard" class="content-section active">
+    <!-- 2. 排行榜 (開放所有人查詢，管理員可修改) -->
+    <div id="tab-ranking" class="content-section">
       <div class="card">
-        <h2>歡迎回來</h2>
-        <p style="margin-top: 10px;" id="user-info-detail"></p>
+        <h3>🏆 官方/練習排行榜</h3>
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="text" id="rank-code" placeholder="題庫代碼 (例: MATH01)" style="margin-bottom: 8px;">
+          <select id="rank-type">
+            <option value="official">官方考試榜 (含出席與作弊狀態)</option>
+            <option value="practice">自主練習榜 (不含錯題重測)</option>
+          </select>
+        </div>
+        <button class="btn" onclick="renderRanking()">查詢排行榜</button>
       </div>
-      <div class="card">
-        <h3>我的考試歷史紀錄</h3>
+      <div class="card table-responsive">
         <table>
           <thead>
-            <tr><th>考試名稱</th><th>題庫代碼</th><th>得分</th><th>日期</th><th>操作</th></tr>
+            <tr><th>名次</th><th>姓名</th><th>成績</th><th>狀態/備註</th><th id="th-admin-op" style="display:none;">管理操作</th></tr>
           </thead>
-          <tbody id="my-history-list"></tbody>
+          <tbody id="rank-table-body"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- 2. 站內郵件 -->
-    <div id="mail" class="content-section">
+    <!-- 3. 管理員後台 -->
+    <div id="tab-admin" class="content-section">
       <div class="card">
-        <h2>站內郵件箱</h2>
-        <table>
-          <thead>
-            <tr><th>發件人</th><th>主題</th><th>內容</th><th>時間</th></tr>
-          </thead>
-          <tbody id="mail-list"></tbody>
-        </table>
+        <h3>📚 題庫管理與公開設定</h3>
+        <div id="admin-banks-setting"></div>
+      </div>
+
+      <div class="card">
+        <h3>📅 建立官方考試日程</h3>
+        <div class="form-group"><label>時間</label><input type="datetime-local" id="sched-time"></div>
+        <div class="form-group"><label>題庫代碼</label><input type="text" id="sched-bank" placeholder="MATH01"></div>
+        <div class="form-group">
+          <label>指定考生</label>
+          <select id="sched-users" multiple style="height: 80px;"></select>
+        </div>
+        <button class="btn" onclick="createSchedule()">建立官方考試</button>
       </div>
     </div>
 
-    <!-- 3. 站內通訊大廳 (LINE 風格) -->
-    <div id="chat" class="content-section">
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h2>站內通訊大廳</h2>
-          <label><input type="checkbox" id="chat-notify-toggle" checked> 開啟新訊息通知</label>
+  </div>
+
+  <!-- 底部導覽列 -->
+  <nav id="bottom-nav">
+    <button onclick="switchTab('tab-home', this)" class="active"><span>🏠</span>考場</button>
+    <button onclick="switchTab('tab-ranking', this)"><span>🏆</span>排行榜</button>
+    <button id="admin-nav-btn" onclick="switchTab('tab-admin', this)" style="display: none;"><span>⚙️</span>管理</button>
+  </nav>
+
+  <!-- 4. 全螢幕考場介面 -->
+  <div id="exam-viewport">
+    <div id="cheat-bar">⚠️ 已判定為作弊，成績不予紀錄</div>
+    <div style="padding: 15px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+      <span id="exam-title" style="font-weight: bold;">考試中</span>
+      <span id="exam-tag" class="badge bg-user">一般測驗</span>
+    </div>
+    
+    <div id="exam-body" style="padding: 20px; flex: 1; overflow-y: auto;">
+      <!-- 題目區塊 -->
+      <div id="question-container">
+        <h4 id="question-text">題目：1 + 1 = ?</h4>
+        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+          <label><input type="radio" name="opt" value="A"> A) 1</label>
+          <label><input type="radio" name="opt" value="B"> B) 2</label>
+          <label><input type="radio" name="opt" value="C"> C) 3</label>
         </div>
-        <div class="chat-container">
-          <div class="chat-messages" id="chat-messages"></div>
-          <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-            <button onclick="sendChatMessage()">發送</button>
-          </div>
+      </div>
+
+      <!-- 結算/錯題重測區塊 (平時隱藏) -->
+      <div id="result-container" style="display: none; text-align: center; padding-top: 30px;">
+        <h2 id="result-score" style="color: var(--primary);">得分：0</h2>
+        <p id="result-desc" style="margin: 15px 0; color: #64748b;"></p>
+        
+        <div id="retry-section" style="margin-top: 20px; display: none;">
+          <p style="font-size: 0.85rem; color: var(--danger); margin-bottom: 8px;">⚠️ 錯題重測成績將標記為練習，不納入排行榜計算。</p>
+          <button class="btn btn-warning" onclick="startRetryExam()">🔁 錯題重測</button>
         </div>
+        <button class="btn" style="margin-top: 12px;" onclick="closeExamViewport()">返回首頁</button>
       </div>
     </div>
 
-    <!-- 4. 排行榜查詢 -->
-    <div id="ranking" class="content-section">
-      <div class="card">
-        <h2>題庫排行榜 (Top 20)</h2>
-        <div class="form-group" style="display: flex; gap: 10px; margin-top: 15px;">
-          <input type="text" id="rank-bank-code" placeholder="輸入題庫代碼 (例: MATH01)">
-          <button onclick="searchRanking()">查詢</button>
-        </div>
-        <table>
-          <thead>
-            <tr><th>名次</th><th>真實姓名</th><th>帳號</th><th>最高分數</th><th>完成時間</th></tr>
-          </thead>
-          <tbody id="ranking-list"></tbody>
-        </table>
-      </div>
+    <div id="exam-footer" style="padding: 15px; border-top: 1px solid #e2e8f0;">
+      <button class="btn" onclick="submitExam()">手動交卷</button>
     </div>
-
-    <!-- 5. [管理員] 用戶與成績管理 -->
-    <div id="admin-users" class="content-section">
-      <div class="card">
-        <h2>用戶與考試資料修改 (管理員專屬)</h2>
-        <table>
-          <thead>
-            <tr><th>帳號</th><th>真實姓名</th><th>剩餘考試次數</th><th>狀態</th><th>操作</th></tr>
-          </thead>
-          <tbody id="admin-user-list"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 6. [管理員] 創建考試日程 -->
-    <div id="admin-schedule" class="content-section">
-      <div class="card">
-        <h2>創建考試日程</h2>
-        <div class="form-group">
-          <label>考試日期與時間 (年月日 + 時間)</label>
-          <input type="datetime-local" id="sched-time">
-        </div>
-        <div class="form-group">
-          <label>題庫代碼</label>
-          <input type="text" id="sched-bank" placeholder="例如: ENG-2026">
-        </div>
-        <div class="form-group">
-          <label>指定可參加考生 (可複選)</label>
-          <select id="sched-users" multiple style="height: 120px;"></select>
-        </div>
-        <button onclick="createSchedule()">建立日程並發送自動通知</button>
-      </div>
-    </div>
-
-    <!-- 7. [管理員] 郵件/彈窗發布與點擊追蹤 -->
-    <div id="admin-notices" class="content-section">
-      <div class="card">
-        <h2>發送站內郵件與強制彈窗</h2>
-        <div class="form-group">
-          <label>接收目標</label>
-          <select id="notice-target-user"></select>
-        </div>
-        <div class="form-group">
-          <label>通知標題/主題</label>
-          <input type="text" id="notice-title-input">
-        </div>
-        <div class="form-group">
-          <label>通知內容</label>
-          <textarea id="notice-content-input" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-          <label><input type="checkbox" id="notice-is-popup" checked> 同時發送強制確認彈窗</label>
-        </div>
-        <button onclick="sendAdminNotice()">發送通知</button>
-      </div>
-
-      <div class="card">
-        <h2>彈窗確認狀態監控</h2>
-        <table>
-          <thead>
-            <tr><th>目標用戶</th><th>標題</th><th>發送時間</th><th>點擊確認狀態</th><th>確認時間</th></tr>
-          </thead>
-          <tbody id="admin-notice-tracker"></tbody>
-        </table>
-      </div>
-    </div>
-
   </div>
 
   <script>
-    // --- 初始化 Mock 資料庫 ---
-    function initDatabase() {
+    // --- 資料庫初始化 ---
+    function initDB() {
       if (!localStorage.getItem('sys_users')) {
-        // 寫死管理員與預設測試用戶
         const users = {
-          "Admin": { username: "Admin", password: "Paul0420#", realName: "系統管理員", isAdmin: true, status: "active", examQuota: 999 },
-          "user1": { username: "user1", password: "123", realName: "張小明", isAdmin: false, status: "active", examQuota: 3 }
+          "Admin": { username: "Admin", password: "Paul0420#", realName: "管理員", isAdmin: true, status: "active" },
+          "user1": { username: "user1", password: "123", realName: "王小明", isAdmin: false, status: "active" }
         };
         localStorage.setItem('sys_users', JSON.stringify(users));
       }
-      if (!localStorage.getItem('sys_exam_records')) {
-        const records = [
-          { id: 'rec1', username: 'user1', bankCode: 'MATH01', score: 95, date: '2026-08-15 10:30' }
-        ];
-        localStorage.setItem('sys_exam_records', JSON.stringify(records));
+      // 預設題庫資料庫 (含公開狀態)
+      if (!localStorage.getItem('sys_banks')) {
+        const banks = {
+          "MATH01": { code: "MATH01", name: "基礎數學測驗", isPublic: true },
+          "ENG01": { code: "ENG01", name: "進階英文題庫", isPublic: false }
+        };
+        localStorage.setItem('sys_banks', JSON.stringify(banks));
       }
-      if (!localStorage.getItem('sys_mails')) localStorage.setItem('sys_mails', JSON.stringify([]));
+      if (!localStorage.getItem('sys_schedules')) localStorage.setItem('sys_schedules', JSON.stringify([]));
+      if (!localStorage.getItem('sys_records')) localStorage.setItem('sys_records', JSON.stringify([]));
       if (!localStorage.getItem('sys_popups')) localStorage.setItem('sys_popups', JSON.stringify([]));
-      if (!localStorage.getItem('sys_chats')) localStorage.setItem('sys_chats', JSON.stringify([]));
     }
-    initDatabase();
+    initDB();
 
-    // 全局變數
     let currentUser = null;
-    let isAuthRegisterMode = false;
+    let isRegisterMode = false;
+    let currentActiveExam = null;
+    let cheatCount = 0;
+    let isMarkedCheat = false;
 
-    // --- 認證與註冊機制 ---
+    // --- 帳號認證 ---
     function toggleAuthMode() {
-      isAuthRegisterMode = !isAuthRegisterMode;
-      document.getElementById('auth-title').innerText = isAuthRegisterMode ? "帳號註冊" : "系統登入";
-      document.getElementById('group-realname').style.display = isAuthRegisterMode ? "block" : "none";
-      document.getElementById('auth-submit-btn').innerText = isAuthRegisterMode ? "註冊" : "登入";
-      document.getElementById('auth-toggle').innerText = isAuthRegisterMode ? "已有帳號？立即登入" : "沒有帳號？立即註冊";
+      isRegisterMode = !isRegisterMode;
+      document.getElementById('auth-title').innerText = isRegisterMode ? "帳號註冊" : "系統登入";
+      document.getElementById('group-realname').style.display = isRegisterMode ? "block" : "none";
     }
 
     function handleAuthSubmit() {
       const u = document.getElementById('auth-username').value.trim();
       const p = document.getElementById('auth-password').value.trim();
       const realName = document.getElementById('auth-realname').value.trim();
-
-      if (!u || !p) { alert('請填寫帳號與密碼'); return; }
+      if (!u || !p) return alert('請填寫完整資訊');
 
       const users = JSON.parse(localStorage.getItem('sys_users'));
-
-      if (isAuthRegisterMode) {
-        if (!realName) { alert('註冊時必須填寫真實姓名！'); return; }
-        
-        // 檢查裝置註冊記錄 (限制單一裝置)
-        const hasRegistered = localStorage.getItem('device_registered');
-        if (hasRegistered) {
-          const verifyCode = prompt("本裝置已註冊過帳號！若要繼續註冊，請輸入驗證碼：");
-          if (verifyCode !== "990420//") {
-            alert("驗證碼錯誤，無法完成註冊！");
-            return;
-          }
-        }
-
-        if (users[u]) { alert('帳號已存在'); return; }
-
-        users[u] = {
-          username: u,
-          password: p,
-          realName: realName,
-          isAdmin: (u === "Admin" && p === "Paul0420#"),
-          status: "active",
-          examQuota: 3
-        };
+      if (isRegisterMode) {
+        if (!realName) return alert('請輸入真實姓名');
+        if (users[u]) return alert('帳號已存在');
+        users[u] = { username: u, password: p, realName, isAdmin: (u === "Admin" && p === "Paul0420#"), status: "active" };
         localStorage.setItem('sys_users', JSON.stringify(users));
-        localStorage.setItem('device_registered', 'true');
-        alert('註冊成功，請登入！');
+        alert('註冊成功！');
         toggleAuthMode();
       } else {
-        // 登入邏輯 (寫死 Admin 檢驗)
         if (users[u] && users[u].password === p) {
-          if (users[u].status === "disabled") {
-            alert("該帳號已被管理員停用！");
-            return;
-          }
           currentUser = users[u];
           document.getElementById('auth-modal').style.display = 'none';
-          setupUserInterface();
-          checkPendingPopups();
-        } else {
-          alert('帳號或密碼錯誤！');
-        }
+          setupApp();
+        } else alert('帳號或密碼錯誤');
       }
     }
 
-    function logout() {
-      currentUser = null;
-      location.reload();
-    }
+    function logout() { location.reload(); }
 
-    // --- 介面渲染與切換 ---
-    function setupUserInterface() {
-      const nameDisplay = document.getElementById('user-display-name');
+    function setupApp() {
+      document.getElementById('user-display').innerHTML = currentUser.isAdmin 
+        ? `<span class="badge bg-admin">管理員</span> ${currentUser.realName}`
+        : `<span class="badge bg-user">考生</span> ${currentUser.realName}`;
+
       if (currentUser.isAdmin) {
-        nameDisplay.innerHTML = `<span class="admin-badge">管理員</span> ${currentUser.username} (${currentUser.realName})`;
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-      } else {
-        nameDisplay.innerHTML = `<span class="user-badge">一般用戶</span> ${currentUser.username}`;
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        document.getElementById('admin-nav-btn').style.display = 'flex';
+        document.getElementById('th-admin-op').style.display = 'table-cell';
+        loadAdminData();
       }
-
-      document.getElementById('user-info-detail').innerText = `真實姓名：${currentUser.realName} | 可用考試次數：${currentUser.examQuota}`;
-      
-      loadMyHistory();
-      loadMails();
-      loadChats();
-      if (currentUser.isAdmin) {
-        loadAdminUsers();
-        loadAdminNoticesTracker();
-        populateUserDropdowns();
-      }
+      renderPublicBanks();
+      renderHomeSchedules();
+      checkPopups();
     }
 
-    function showTab(tabId) {
-      document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('#sidebar nav a').forEach(el => el.classList.remove('active'));
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.content-section').forEach(e => e.classList.remove('active'));
+      document.querySelectorAll('#bottom-nav button').forEach(e => e.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
     }
 
-    // --- 站內彈窗與通知 ---
-    function checkPendingPopups() {
-      if (!currentUser) return;
+    // --- 公開題庫大廳區塊 ---
+    function renderPublicBanks() {
+      const banks = JSON.parse(localStorage.getItem('sys_banks'));
+      const container = document.getElementById('public-banks-list');
+      container.innerHTML = '';
+
+      const publicList = Object.values(banks).filter(b => b.isPublic);
+      if (publicList.length === 0) { container.innerHTML = '<span style="font-size:0.85rem; color:#64748b;">目前無公開題庫</span>'; return; }
+
+      publicList.forEach(b => {
+        container.innerHTML += `
+          <div class="bank-item">
+            <div>
+              <strong>${b.name}</strong>
+              <div style="font-size:0.75rem; color:#64748b;">代碼: ${b.code}</div>
+            </div>
+            <button class="btn btn-sm btn-success" onclick="launchExamViewport('${b.code}', false, false)">開始測驗</button>
+          </div>
+        `;
+      });
+    }
+
+    function startPracticeExamByInput() {
+      const code = document.getElementById('practice-code').value.trim();
+      if (!code) return alert('請輸入代碼');
+      launchExamViewport(code, false, false);
+    }
+
+    // --- 進入考場與防作弊 ---
+    function launchExamViewport(bankCode, isOfficial, isRetry) {
+      currentActiveExam = { bankCode, isOfficial, isRetry };
+      cheatCount = 0;
+      isMarkedCheat = false;
+
+      // 介面歸位
+      document.getElementById('cheat-bar').style.display = 'none';
+      document.getElementById('question-container').style.display = 'block';
+      document.getElementById('result-container').style.display = 'none';
+      document.getElementById('exam-footer').style.display = 'block';
+      
+      const tag = document.getElementById('exam-tag');
+      if (isOfficial) { tag.innerText = "官方考試"; tag.className = "badge bg-admin"; }
+      else if (isRetry) { tag.innerText = "錯題重測 (不計分)"; tag.className = "badge bg-user"; }
+      else { tag.innerText = "自主練習"; tag.className = "badge bg-user"; }
+
+      document.getElementById('exam-title').innerText = `【${bankCode}】`;
+      document.getElementById('exam-viewport').style.display = 'flex';
+
+      window.addEventListener('blur', handlePageBlur);
+    }
+
+    function handlePageBlur() {
+      if (!currentActiveExam) return;
+      cheatCount++;
+      if (cheatCount < 3) {
+        alert(`【警告】你已離開畫面 ${cheatCount} 次！到達 3 次系統將判定為作弊，成績不予紀錄。`);
+      } else {
+        isMarkedCheat = true;
+        document.getElementById('cheat-bar').style.display = 'block';
+      }
+    }
+
+    function submitExam() {
+      window.removeEventListener('blur', handlePageBlur);
+      
+      // 模擬答題狀況 (模擬選錯)
+      const isCorrect = document.querySelector('input[name="opt"]:checked')?.value === "B";
+      const score = (isMarkedCheat) ? 0 : (isCorrect ? 100 : 0);
+
+      // 只有非「錯題重測」才寫入資料庫計分
+      if (!currentActiveExam.isRetry) {
+        const records = JSON.parse(localStorage.getItem('sys_records'));
+        records.push({
+          id: 'rec_' + Date.now(),
+          username: currentUser.username,
+          realName: currentUser.realName,
+          bankCode: currentActiveExam.bankCode,
+          isOfficial: currentActiveExam.isOfficial,
+          score: score,
+          isCheat: isMarkedCheat,
+          time: new Date().toLocaleString()
+        });
+        localStorage.setItem('sys_records', JSON.stringify(records));
+      }
+
+      // 展現考後結算畫面
+      document.getElementById('question-container').style.display = 'none';
+      document.getElementById('exam-footer').style.display = 'none';
+      document.getElementById('result-container').style.display = 'block';
+
+      document.getElementById('result-score').innerText = isMarkedCheat ? "成績不予紀錄 (作弊)" : `得分：${score} 分`;
+      document.getElementById('result-desc').innerText = isCorrect ? "恭喜你！題目全部答對。" : "本場測驗有答錯的題目。";
+
+      // 錯題重測控制：官方考試不開放重測
+      const retrySec = document.getElementById('retry-section');
+      if (!isCorrect && !currentActiveExam.isOfficial) {
+        retrySec.style.display = 'block';
+      } else {
+        retrySec.style.display = 'none';
+      }
+    }
+
+    function startRetryExam() {
+      launchExamViewport(currentActiveExam.bankCode, false, true);
+    }
+
+    function closeExamViewport() {
+      document.getElementById('exam-viewport').style.display = 'none';
+      currentActiveExam = null;
+    }
+
+    // --- 排行榜 (管理員編輯) ---
+    function renderRanking() {
+      const code = document.getElementById('rank-code').value.trim();
+      const type = document.getElementById('rank-type').value;
+      if (!code) return alert('請輸入題庫代碼');
+
+      const records = JSON.parse(localStorage.getItem('sys_records'));
+      const tbody = document.getElementById('rank-table-body');
+      tbody.innerHTML = '';
+
+      if (type === 'practice') {
+        const filtered = records.filter(r => !r.isOfficial && r.bankCode.toLowerCase() === code.toLowerCase())
+                               .sort((a,b) => b.score - a.score);
+        filtered.forEach((r, idx) => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${idx+1}</td>
+              <td>${r.realName}</td>
+              <td>${r.score}</td>
+              <td>${r.isCheat ? '<span style="color:red;">作弊</span>' : '正常測驗'}</td>
+              ${currentUser.isAdmin ? `<td><button class="btn btn-sm btn-warning" onclick="editRecord('${r.id}')">修改</button></td>` : ''}
+            </tr>
+          `;
+        });
+      } else {
+        // 官方考試榜
+        const scheds = JSON.parse(localStorage.getItem('sys_schedules')).filter(s => s.bankCode.toLowerCase() === code.toLowerCase());
+        let targets = [];
+        scheds.forEach(s => targets.push(...s.targetUsers));
+        targets = [...new Set(targets)];
+
+        const users = JSON.parse(localStorage.getItem('sys_users'));
+        targets.forEach((u, idx) => {
+          const rec = records.find(r => r.isOfficial && r.bankCode.toLowerCase() === code.toLowerCase() && r.username === u);
+          let statusText = "<span style='color:red;'>未到場</span>";
+          let scoreText = "-";
+          let recId = rec ? rec.id : null;
+
+          if (rec) {
+            if (rec.isCheat) {
+              statusText = "<span style='color:red; font-weight:bold;'>作弊 (不列名次)</span>";
+              scoreText = "0";
+            } else {
+              statusText = "<span style='color:green;'>已出席</span>";
+              scoreText = rec.score;
+            }
+          }
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${idx+1}</td>
+              <td>${users[u]?.realName || u}</td>
+              <td>${scoreText}</td>
+              <td>${statusText}</td>
+              ${currentUser.isAdmin ? `<td>${recId ? `<button class="btn btn-sm btn-warning" onclick="editRecord('${recId}')">修改</button>` : '無紀錄'}</td>` : ''}
+            </tr>
+          `;
+        });
+      }
+    }
+
+    function editRecord(recId) {
+      const records = JSON.parse(localStorage.getItem('sys_records'));
+      const target = records.find(r => r.id === recId);
+      if (!target) return;
+
+      const newScore = prompt("【管理員權限】請輸入新的分數：", target.score);
+      if (newScore !== null) {
+        target.score = parseInt(newScore) || 0;
+        const toggleCheat = confirm("是否判定為作弊？\n[確定] 設為作弊\n[取消] 設為正常");
+        target.isCheat = toggleCheat;
+        localStorage.setItem('sys_records', JSON.stringify(records));
+        alert("成績修改完成！");
+        renderRanking();
+      }
+    }
+
+    // --- 管理員後台控制 ---
+    function loadAdminData() {
+      // 題庫公開設定控制
+      const banks = JSON.parse(localStorage.getItem('sys_banks'));
+      const container = document.getElementById('admin-banks-setting');
+      container.innerHTML = '';
+
+      Object.values(banks).forEach(b => {
+        container.innerHTML += `
+          <div class="bank-item">
+            <div>
+              <strong>${b.name} (${b.code})</strong>
+            </div>
+            <button class="btn btn-sm ${b.isPublic ? 'btn-danger' : 'btn-success'}" onclick="toggleBankPublic('${b.code}')">
+              ${b.isPublic ? '設為不公開' : '設為公開'}
+            </button>
+          </div>
+        `;
+      });
+
+      // 用戶選單設定
+      const users = JSON.parse(localStorage.getItem('sys_users'));
+      const select = document.getElementById('sched-users');
+      select.innerHTML = '';
+      Object.values(users).forEach(u => {
+        if (!u.isAdmin) select.innerHTML += `<option value="${u.username}">${u.realName} (${u.username})</option>`;
+      });
+    }
+
+    function toggleBankPublic(code) {
+      const banks = JSON.parse(localStorage.getItem('sys_banks'));
+      if (banks[code]) {
+        banks[code].isPublic = !banks[code].isPublic;
+        localStorage.setItem('sys_banks', JSON.stringify(banks));
+        loadAdminData();
+        renderPublicBanks();
+      }
+    }
+
+    function createSchedule() {
+      const time = document.getElementById('sched-time').value;
+      const bank = document.getElementById('sched-bank').value.trim();
+      const select = document.getElementById('sched-users');
+      const selectedUsers = Array.from(select.selectedOptions).map(o => o.value);
+
+      if (!time || !bank || selectedUsers.length === 0) return alert('請填寫完整資訊');
+
+      const scheds = JSON.parse(localStorage.getItem('sys_schedules'));
+      scheds.push({ time, bankCode: bank, targetUsers: selectedUsers });
+      localStorage.setItem('sys_schedules', JSON.stringify(scheds));
+
       const popups = JSON.parse(localStorage.getItem('sys_popups'));
-      // 尋找發給當前用戶且尚未點擊確認的彈窗
+      selectedUsers.forEach(u => {
+        popups.push({ id: 'pop_pre_' + Date.now() + '_' + u, targetUser: u, title: "【官方考試通知】", content: `您已被安排參加考試 (${bank})，時間：${time.replace('T', ' ')}。`, confirmed: false });
+      });
+      localStorage.setItem('sys_popups', JSON.stringify(popups));
+
+      alert('官方考試已發布！');
+    }
+
+    function renderHomeSchedules() {
+      const scheds = JSON.parse(localStorage.getItem('sys_schedules'));
+      const myScheds = scheds.filter(s => s.targetUsers.includes(currentUser.username));
+      const div = document.getElementById('my-schedules-list');
+
+      if (myScheds.length === 0) { div.innerHTML = "目前無排定的官方考試"; return; }
+      div.innerHTML = myScheds.map(s => `
+        <div style="border-bottom:1px solid #eee; padding:8px 0;">
+          <div><b>題庫：${s.bankCode}</b></div>
+          <div style="font-size:0.8rem; color:#64748b;">時間：${s.time.replace('T', ' ')}</div>
+          <button class="btn btn-sm btn-warning" style="margin-top:4px;" onclick="triggerStartNotice('${s.bankCode}')">時間已到 (測試跳轉考試)</button>
+        </div>
+      `).join('');
+    }
+
+    function triggerStartNotice(bankCode) {
+      const popups = JSON.parse(localStorage.getItem('sys_popups'));
+      popups.push({
+        id: 'pop_' + Date.now(),
+        targetUser: currentUser.username,
+        title: "【官方考試開始】",
+        content: `官方考試 (${bankCode}) 時間已到！點擊確認後將自動跳轉進入考場。`,
+        bankCode: bankCode,
+        type: 'start_exam',
+        confirmed: false
+      });
+      localStorage.setItem('sys_popups', JSON.stringify(popups));
+      checkPopups();
+    }
+
+    function checkPopups() {
+      const popups = JSON.parse(localStorage.getItem('sys_popups'));
       const pending = popups.find(p => p.targetUser === currentUser.username && !p.confirmed);
+
       if (pending) {
         document.getElementById('notice-title').innerText = pending.title;
         document.getElementById('notice-content').innerText = pending.content;
         document.getElementById('notice-modal').dataset.popupId = pending.id;
+        document.getElementById('notice-modal').dataset.examBank = pending.bankCode || '';
+        document.getElementById('notice-modal').dataset.type = pending.type || 'notice';
         document.getElementById('notice-modal').style.display = 'flex';
       }
     }
 
     function confirmNotice() {
       const popupId = document.getElementById('notice-modal').dataset.popupId;
+      const bankCode = document.getElementById('notice-modal').dataset.examBank;
+      const type = document.getElementById('notice-modal').dataset.type;
+
       const popups = JSON.parse(localStorage.getItem('sys_popups'));
       const target = popups.find(p => p.id === popupId);
       if (target) {
         target.confirmed = true;
-        target.confirmTime = new Date().toLocaleString();
         localStorage.setItem('sys_popups', JSON.stringify(popups));
       }
+
       document.getElementById('notice-modal').style.display = 'none';
-      // 繼續檢查是否還有其他未確認彈窗
-      checkPendingPopups();
-    }
 
-    // --- 管理員專用功能 ---
-    function populateUserDropdowns() {
-      const users = JSON.parse(localStorage.getItem('sys_users'));
-      const schedSelect = document.getElementById('sched-users');
-      const targetSelect = document.getElementById('notice-target-user');
-      
-      schedSelect.innerHTML = '';
-      targetSelect.innerHTML = '';
-
-      Object.values(users).forEach(u => {
-        if (!u.isAdmin) {
-          schedSelect.innerHTML += `<option value="${u.username}">${u.realName} (${u.username})</option>`;
-          targetSelect.innerHTML += `<option value="${u.username}">${u.realName} (${u.username})</option>`;
-        }
-      });
-    }
-
-    function loadAdminUsers() {
-      const users = JSON.parse(localStorage.getItem('sys_users'));
-      const tbody = document.getElementById('admin-user-list');
-      tbody.innerHTML = '';
-
-      Object.values(users).forEach(u => {
-        if (u.isAdmin) return;
-        tbody.innerHTML += `
-          <tr>
-            <td>${u.username}</td>
-            <td><input type="text" id="edit-realname-${u.username}" value="${u.realName}"></td>
-            <td><input type="number" id="edit-quota-${u.username}" value="${u.examQuota}" style="width: 70px;"></td>
-            <td>${u.status === 'active' ? '<span style="color:green">正常</span>' : '<span style="color:red">已停用</span>'}</td>
-            <td>
-              <button onclick="updateUserData('${u.username}')">儲存修改</button>
-              <button class="danger" onclick="toggleUserStatus('${u.username}')">${u.status === 'active' ? '停用' : '啟用'}</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    function updateUserData(username) {
-      const users = JSON.parse(localStorage.getItem('sys_users'));
-      const newName = document.getElementById(`edit-realname-${username}`).value;
-      const newQuota = parseInt(document.getElementById(`edit-quota-${username}`).value);
-
-      users[username].realName = newName;
-      users[username].examQuota = newQuota;
-      localStorage.setItem('sys_users', JSON.stringify(users));
-      alert(`已更新 ${username} 的基本資料`);
-      loadAdminUsers();
-    }
-
-    function toggleUserStatus(username) {
-      const users = JSON.parse(localStorage.getItem('sys_users'));
-      users[username].status = users[username].status === 'active' ? 'disabled' : 'active';
-      localStorage.setItem('sys_users', JSON.stringify(users));
-      loadAdminUsers();
-    }
-
-    // 管理員發送通知
-    function sendAdminNotice() {
-      const target = document.getElementById('notice-target-user').value;
-      const title = document.getElementById('notice-title-input').value;
-      const content = document.getElementById('notice-content-input').value;
-      const isPopup = document.getElementById('notice-is-popup').checked;
-
-      if (!title || !content) { alert('請填寫完整內容'); return; }
-
-      // 1. 發送站內郵件
-      const mails = JSON.parse(localStorage.getItem('sys_mails'));
-      mails.push({ sender: '系統管理員', targetUser: target, title, content, time: new Date().toLocaleString() });
-      localStorage.setItem('sys_mails', JSON.stringify(mails));
-
-      // 2. 如果勾選彈窗
-      if (isPopup) {
-        const popups = JSON.parse(localStorage.getItem('sys_popups'));
-        popups.push({
-          id: 'pop_' + Date.now(),
-          targetUser: target,
-          title,
-          content,
-          time: new Date().toLocaleString(),
-          confirmed: false,
-          confirmTime: '-'
-        });
-        localStorage.setItem('sys_popups', JSON.stringify(popups));
+      if (type === 'start_exam') {
+        launchExamViewport(bankCode, true, false);
       }
-
-      alert('發送成功！');
-      loadAdminNoticesTracker();
-    }
-
-    function loadAdminNoticesTracker() {
-      const popups = JSON.parse(localStorage.getItem('sys_popups'));
-      const tbody = document.getElementById('admin-notice-tracker');
-      tbody.innerHTML = '';
-      popups.forEach(p => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${p.targetUser}</td>
-            <td>${p.title}</td>
-            <td>${p.time}</td>
-            <td>${p.confirmed ? '<span style="color:green">已確認</span>' : '<span style="color:red">未確認</span>'}</td>
-            <td>${p.confirmTime}</td>
-          </tr>
-        `;
-      });
-    }
-
-    // 創建考試日程
-    function createSchedule() {
-      const time = document.getElementById('sched-time').value;
-      const bank = document.getElementById('sched-bank').value;
-      const select = document.getElementById('sched-users');
-      const selectedUsers = Array.from(select.selectedOptions).map(opt => opt.value);
-
-      if (!time || !bank || selectedUsers.length === 0) {
-        alert('請填寫完整日程資訊！'); return;
-      }
-
-      const title = `【考試日程通知】${bank}`;
-      const content = `您已被安排參加考試！時間：${time.replace('T', ' ')}，題庫代碼：${bank}。請準時參加。`;
-
-      const mails = JSON.parse(localStorage.getItem('sys_mails'));
-      const popups = JSON.parse(localStorage.getItem('sys_popups'));
-
-      selectedUsers.forEach(u => {
-        mails.push({ sender: '系統管理員', targetUser: u, title, content, time: new Date().toLocaleString() });
-        popups.push({
-          id: 'pop_' + Date.now() + '_' + u,
-          targetUser: u,
-          title,
-          content,
-          time: new Date().toLocaleString(),
-          confirmed: false,
-          confirmTime: '-'
-        });
-      });
-
-      localStorage.setItem('sys_mails', JSON.stringify(mails));
-      localStorage.setItem('sys_popups', JSON.stringify(popups));
-      alert('考試日程已建立，並已自動發送站內郵件與強制彈窗通知！');
-    }
-
-    // --- 排行榜 ---
-    function searchRanking() {
-      const code = document.getElementById('rank-bank-code').value.trim();
-      if (!code) { alert('請輸入題庫代碼'); return; }
-
-      const records = JSON.parse(localStorage.getItem('sys_exam_records'));
-      const users = JSON.parse(localStorage.getItem('sys_users'));
-
-      // 篩選對應題庫，並依分數倒序排序
-      const filtered = records.filter(r => r.bankCode.toLowerCase() === code.toLowerCase())
-                              .sort((a, b) => b.score - a.score)
-                              .slice(0, 20);
-
-      const tbody = document.getElementById('ranking-list');
-      tbody.innerHTML = '';
-      filtered.forEach((r, idx) => {
-        const uObj = users[r.username] || {};
-        tbody.innerHTML += `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${uObj.realName || '未知'}</td>
-            <td>${r.username}</td>
-            <td><b>${r.score}</b></td>
-            <td>${r.date}</td>
-          </tr>
-        `;
-      });
-    }
-
-    // --- 站內郵件讀取 ---
-    function loadMails() {
-      const mails = JSON.parse(localStorage.getItem('sys_mails'));
-      const myMails = mails.filter(m => m.targetUser === currentUser.username);
-      const tbody = document.getElementById('mail-list');
-      tbody.innerHTML = '';
-      myMails.forEach(m => {
-        tbody.innerHTML += `<tr><td>${m.sender}</td><td>${m.title}</td><td>${m.content}</td><td>${m.time}</td></tr>`;
-      });
-    }
-
-    // --- 通訊大廳 (LINE 風格) ---
-    function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      const msg = input.value.trim();
-      if (!msg) return;
-
-      const chats = JSON.parse(localStorage.getItem('sys_chats'));
-      chats.push({
-        sender: currentUser.username,
-        realName: currentUser.realName,
-        isAdmin: currentUser.isAdmin,
-        text: msg,
-        time: new Date().toLocaleTimeString()
-      });
-      localStorage.setItem('sys_chats', JSON.stringify(chats));
-      input.value = '';
-      loadChats();
-    }
-
-    function loadChats() {
-      const chats = JSON.parse(localStorage.getItem('sys_chats'));
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = '';
-
-      chats.forEach(c => {
-        const isMe = c.sender === currentUser.username;
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${isMe ? 'me' : ''}`;
-        
-        let senderTag = c.isAdmin 
-          ? `<span class="admin-badge">管理員</span> ${c.realName}` 
-          : `${c.realName} (${c.sender})`;
-
-        bubble.innerHTML = `
-          <div class="chat-sender">${senderTag} - ${c.time}</div>
-          <div>${c.text}</div>
-        `;
-        container.appendChild(bubble);
-      });
-      container.scrollTop = container.scrollHeight;
-    }
-
-    // --- 成績歷史與 PDF 生成 ---
-    function loadMyHistory() {
-      const records = JSON.parse(localStorage.getItem('sys_exam_records'));
-      const myRecs = records.filter(r => r.username === currentUser.username);
-      const tbody = document.getElementById('my-history-list');
-      tbody.innerHTML = '';
-      myRecs.forEach(r => {
-        tbody.innerHTML += `
-          <tr>
-            <td>模擬檢定考試</td>
-            <td>${r.bankCode}</td>
-            <td>${r.score}</td>
-            <td>${r.date}</td>
-            <td><button onclick="downloadPDF('${r.bankCode}', ${r.score}, '${r.date}')">下載 PDF 成績單</button></td>
-          </tr>
-        `;
-      });
-    }
-
-    function downloadPDF(bankCode, score, date) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.setFontSize(20);
-      doc.text("Official Exam Score Report", 20, 20);
-      doc.setFontSize(12);
-      doc.text(`Candidate Real Name: ${currentUser.realName}`, 20, 40);
-      doc.text(`Account ID: ${currentUser.username}`, 20, 50);
-      doc.text(`Question Bank Code: ${bankCode}`, 20, 60);
-      doc.text(`Final Score: ${score}`, 20, 70);
-      doc.text(`Date: ${date}`, 20, 80);
-
-      doc.save(`ScoreReport_${bankCode}_${currentUser.username}.pdf`);
     }
   </script>
 </body>
