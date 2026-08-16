@@ -176,7 +176,8 @@
 
 <!-- Firebase SDK & 核心邏輯 -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
     import { 
         getAuth, 
         GoogleAuthProvider, 
@@ -186,20 +187,23 @@
         createUserWithEmailAndPassword, 
         signOut, 
         onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-    // 💡 請填入你的 Firebase 設定
+    // 💡 已帶入你的正確 Firebase 設定
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
+        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
+        databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "rms-quiz-system-dbserver",
+        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
+        messagingSenderId: "769519554299",
+        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
+        measurementId: "G-939JE1X57X"
     };
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
     
