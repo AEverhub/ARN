@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雲端測驗與評量系統</title>
+    <title>RMS 雲端測驗與評量系統</title>
     <style>
         :root {
             --primary: #1e40af;
@@ -18,13 +18,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             background: var(--bg); margin: 0; padding: 20px; color: #1e293b; 
         }
-        .container { max-width: 850px; margin: 0 auto; background: var(--card); border-radius: 12px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 0 auto; background: var(--card); border-radius: 12px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         h1 { margin-top: 0; font-size: 1.75rem; color: #0f172a; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
 
         .hidden { display: none !important; }
         .panel { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border); }
         
-        input[type="text"], input[type="password"], input[type="email"], textarea, select { 
+        input[type="text"], input[type="password"], input[type="email"], input[type="datetime-local"], textarea, select { 
             width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; 
             outline: none; margin-bottom: 12px; box-sizing: border-box; font-size: 0.95rem; background: #fff;
         }
@@ -73,6 +73,23 @@
         
         .q-builder-card { background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 12px; }
         .option-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .quiz-question-card { background: #ffffff; border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 15px; }
+
+        /* iOS 風格滑動開關 Toggle Switch */
+        .switch {
+            position: relative; display: inline-block; width: 46px; height: 24px; vertical-align: middle;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .3s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(22px); }
     </style>
 </head>
 <body>
@@ -80,7 +97,6 @@
 <div class="container" id="appContainer">
     <h1>RMS 雲端測驗與評量系統</h1>
 
-    <!-- 1. 登入面板 -->
     <div id="authPanel" class="panel" style="max-width: 450px; margin: 30px auto; text-align: center;">
         <p style="margin-bottom: 20px; color: #475569; font-weight: 500;">請選擇身分驗證方式進入測驗平台</p>
 
@@ -111,7 +127,6 @@
         </div>
     </div>
 
-    <!-- 2. 主操作介面 -->
     <div id="mainPanel" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #e2e8f0; padding: 12px 16px; border-radius: 8px;">
             <span id="userDisplay" style="font-weight: 600;">使用者</span>
@@ -124,15 +139,14 @@
                 <input type="text" id="bankCode" placeholder="請輸入測驗代碼" style="margin-bottom:0;">
                 <button onclick="fetchFirebaseBank()" style="width: auto; white-space: nowrap;">開始測驗</button>
             </div>
-            <button onclick="loadOpenBanks()" class="btn-secondary" style="width: 100%;">瀏覽站內開放題庫清單</button>
         </div>
 
-        <!-- 管理員控制台 -->
         <div id="adminPanel" class="panel hidden" style="border: 2px dashed #f59e0b; background: #fffbeb;">
             <h3 style="margin-top:0; color:#b45309;">👑 管理員控制台管理模組</h3>
             
             <label style="font-weight: 600; font-size: 0.9rem; color: #78350f; display: block; margin-bottom: 5px;">選擇管理員操作功能：</label>
             <select id="adminActionSelect" onchange="switchAdminTab(this.value)">
+                <option value="tab6">📂 現有題庫管理與公開排程</option>
                 <option value="tab1">📦 JSON 代碼建立題庫</option>
                 <option value="tab2">📝 表單式多選建題庫</option>
                 <option value="tab3">📊 查看考生歷次成績</option>
@@ -140,7 +154,14 @@
                 <option value="tab5">📢 發送系統公告廣播</option>
             </select>
 
-            <div id="tab1" class="admin-tab">
+            <div id="tab6" class="admin-tab">
+                <h4>現有題庫列表與公開狀態/時間管理</h4>
+                <p style="font-size:0.85rem; color:#64748b;">在此可直接透過滑動開關切換公開狀態，並設定開放起訖時間。</p>
+                <button onclick="loadAdminBankManager()" style="width:auto; margin-bottom:10px;">重新整理題庫清單</button>
+                <div id="adminBankListTable"></div>
+            </div>
+
+            <div id="tab1" class="admin-tab hidden">
                 <h4>JSON 原始碼批次建立題庫</h4>
                 <input type="text" id="newBankCode" placeholder="自訂題庫代碼 (例: math101)">
                 <textarea id="jsonInput" style="height:120px;" placeholder='{"title":"考試名稱","questions":[]}'></textarea>
@@ -180,7 +201,6 @@
     </div>
 </div>
 
-<!-- 通用彈窗 Modal 容器 -->
 <div id="customModal" class="modal-overlay hidden">
     <div class="modal-box">
         <h3 id="modalTitle" style="margin-top:0; color:var(--primary);">系統提示</h3>
@@ -189,7 +209,6 @@
     </div>
 </div>
 
-<!-- 站內公告強制彈窗容器 -->
 <div id="announcementModal" class="modal-overlay hidden">
     <div class="modal-box" style="max-width: 500px; text-align: left;">
         <h3 style="margin-top:0; color:#b45309; text-align: center;">📢 站內最新重要公告</h3>
@@ -201,7 +220,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
@@ -246,6 +265,7 @@
     window.switchAdminTab = (tabId) => {
         document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
         document.getElementById(tabId).classList.remove('hidden');
+        if(tabId === 'tab6') loadAdminBankManager();
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -253,8 +273,20 @@
             document.getElementById('authPanel').classList.add('hidden');
             document.getElementById('mainPanel').classList.remove('hidden');
             document.getElementById('userDisplay').innerText = `目前登入使用者：${user.displayName || user.email}`;
-            if (user.email === "admin@rms.com") document.getElementById('adminPanel').classList.remove('hidden');
+            if (user.email === "admin@rms.com") {
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadAdminBankManager(); // 預設載入題庫管理清單
+            }
             
+            // 檢查停權狀態
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.email));
+                if(userDoc.exists() && userDoc.data().suspended) {
+                    showAlert("帳號停權", "您的帳號已被系統管理員停權，無法進行測驗。", () => signOut(auth));
+                    return;
+                }
+            } catch(e) { console.error(e); }
+
             // 載入公告並強制彈窗
             try {
                 const snap = await getDocs(collection(db, "announcements"));
@@ -278,12 +310,66 @@
         document.getElementById('announcementModal').classList.add('hidden');
     };
 
+    // 載入管理員題庫清單 (含開關與時間控制)
+    window.loadAdminBankManager = async () => {
+        try {
+            const snap = await getDocs(collection(db, "banks"));
+            let html = "<table><tr><th>代碼</th><th>考試名稱</th><th>公開狀態</th><th>開始時間</th><th>結束時間</th><th>操作</th></tr>";
+            let count = 0;
+            snap.forEach(d => {
+                count++;
+                const data = d.data();
+                const isPublished = data.published !== false; // 預設未設定時為 true
+                const startTime = data.startTime || "";
+                const endTime = data.endTime || "";
+
+                html += `<tr>
+                    <td><code>${d.id}</code></td>
+                    <td><b>${data.title || '未命名'}</b></td>
+                    <td style="text-align:center;">
+                        <label class="switch">
+                            <input type="checkbox" id="pub_${d.id}" ${isPublished ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td><input type="datetime-local" id="start_${d.id}" value="${startTime}" style="margin-bottom:0; font-size:0.85rem; padding:4px;"></td>
+                    <td><input type="datetime-local" id="end_${d.id}" value="${endTime}" style="margin-bottom:0; font-size:0.85rem; padding:4px;"></td>
+                    <td><button onclick="updateBankSchedule('${d.id}')" style="padding:6px 10px; font-size:0.85rem;">儲存設定</button></td>
+                </tr>`;
+            });
+            if(count === 0) html = "<p style='color:#64748b; text-align:center; padding:15px;'>目前尚無任何題庫資料。</p>";
+            else html += "</table>";
+            document.getElementById('adminBankListTable').innerHTML = html;
+        } catch(e) {
+            showAlert("讀取失敗", e.message);
+        }
+    };
+
+    // 儲存單一題庫的開關與時間設定
+    window.updateBankSchedule = async (code) => {
+        const published = document.getElementById(`pub_${code}`).checked;
+        const startTime = document.getElementById(`start_${code}`).value;
+        const endTime = document.getElementById(`end_${code}`).value;
+
+        try {
+            await updateDoc(doc(db, "banks", code), {
+                published,
+                startTime,
+                endTime
+            });
+            showAlert("成功", `題庫 [${code}] 設定已更新！`);
+        } catch(e) {
+            showAlert("更新失敗", e.message);
+        }
+    };
+
     // JSON 題庫上傳
     window.uploadNewBank = async () => {
         try {
             const code = document.getElementById('newBankCode').value.trim();
             const data = JSON.parse(document.getElementById('jsonInput').value);
             if(!code) return showAlert("提示", "請輸入自訂題庫代碼");
+            data.published = true; // 預設公開
             await setDoc(doc(db, "banks", code), data);
             showAlert("成功", "JSON 題庫建立成功！", () => {
                 document.getElementById('newBankCode').value = '';
@@ -294,7 +380,7 @@
         }
     };
 
-    // 表單建立：動態新增題目 (選項可加減、支援複選)
+    // 表單建立：動態新增題目
     window.addQuestionField = () => {
         const container = document.getElementById('questionFormArea');
         const qCard = document.createElement('div');
@@ -364,7 +450,6 @@
                 return showAlert("格式錯誤", `題目「${qText}」尚未勾選任何正確答案！`);
             }
 
-            // 支援單選相容或複選陣列
             questions.push({
                 q: qText,
                 options: options,
@@ -373,7 +458,13 @@
         }
 
         try {
-            await setDoc(doc(db, "banks", code), { title, questions });
+            await setDoc(doc(db, "banks", code), { 
+                title, 
+                questions,
+                published: true,
+                startTime: "",
+                endTime: ""
+            });
             showAlert("成功", `表單題庫「${title}」已成功儲存並發布！`, () => {
                 document.getElementById('formBankCode').value = '';
                 document.getElementById('formBankTitle').value = '';
@@ -381,6 +472,113 @@
             });
         } catch(e) {
             showAlert("儲存失敗", e.message);
+        }
+    };
+
+    // 取得並開始測驗 (驗證公開狀態與時間)
+    window.fetchFirebaseBank = async () => {
+        const code = document.getElementById('bankCode').value.trim();
+        if(!code) return showAlert("提示", "請輸入測驗代碼");
+
+        try {
+            const docSnap = await getDoc(doc(db, "banks", code));
+            if(!docSnap.exists()) {
+                return showAlert("查無題庫", "找不到對應的測驗代碼，請確認代碼是否正確。");
+            }
+
+            const bankData = docSnap.data();
+            const now = new Date();
+
+            // 檢查公開開關
+            if(bankData.published === false) {
+                return showAlert("測驗未開放", "此題庫目前已被管理員關閉公開狀態。");
+            }
+
+            // 檢查開始時間
+            if(bankData.startTime && now < new Date(bankData.startTime)) {
+                return showAlert("未到開放時間", `此測驗尚未開始，開放時間為：${bankData.startTime.replace('T', ' ')} 以後。`);
+            }
+
+            // 檢查結束時間
+            if(bankData.endTime && now > new Date(bankData.endTime)) {
+                return showAlert("測驗已結束", `此測驗已於 ${bankData.endTime.replace('T', ' ')} 截止。`);
+            }
+
+            renderQuiz(code, bankData);
+        } catch(e) {
+            showAlert("讀取失敗", e.message);
+        }
+    };
+
+    // 渲染測驗作答畫面
+    function renderQuiz(code, bankData) {
+        let html = `<div class="panel" style="background:#ffffff; border:2px solid var(--primary);">
+            <h2 style="color:var(--primary); margin-top:0;">📖 ${bankData.title || '線上測驗'}</h2>
+            <p style="color:#64748b; font-size:0.9rem; margin-bottom:20px;">測驗代碼：${code}</p>
+            <form id="activeQuizForm">`;
+
+        bankData.questions.forEach((item, qIdx) => {
+            const isMulti = Array.isArray(item.ans);
+            html += `<div class="quiz-question-card">
+                <p style="font-weight:600; margin-top:0;">Q${qIdx + 1}. ${item.q} <span style="font-size:0.8rem; color:#64748b; font-weight:normal;">(${isMulti ? '複選題' : '單選題'})</span></p>`;
+            
+            item.options.forEach((opt, oIdx) => {
+                const inputType = isMulti ? 'checkbox' : 'radio';
+                html += `<label style="display:block; margin-bottom:8px; cursor:pointer; font-size:0.95rem;">
+                    <input type="${inputType}" name="q_${qIdx}" value="${oIdx}" style="width:auto; margin-right:8px;"> ${opt}
+                </label>`;
+            });
+            html += `</div>`;
+        });
+
+        html += `<button type="button" onclick="submitQuizScore('${code}', '${bankData.title || '未命名測驗'}')" class="btn-success" style="width:100%; padding:12px; font-size:1rem;">交卷並計算分數</button>
+            </form></div>`;
+
+        document.getElementById('quizContainer').innerHTML = html;
+        window.currentBankQuestions = bankData.questions;
+    }
+
+    // 計算分數並寫入成績庫
+    window.submitQuizScore = async (code, bankTitle) => {
+        const questions = window.currentBankQuestions;
+        let score = 0;
+        const totalQ = questions.length;
+        const pointsPerQ = 100 / totalQ;
+
+        questions.forEach((item, qIdx) => {
+            const isMulti = Array.isArray(item.ans);
+            const selected = document.querySelectorAll(`input[name="q_${qIdx}"]:checked`);
+            
+            if(isMulti) {
+                const userAns = Array.from(selected).map(el => parseInt(el.value)).sort();
+                const correctAns = [...item.ans].sort();
+                if(JSON.stringify(userAns) === JSON.stringify(correctAns)) {
+                    score += pointsPerQ;
+                }
+            } else {
+                if(selected.length === 1 && parseInt(selected[0].value) === item.ans) {
+                    score += pointsPerQ;
+                }
+            }
+        });
+
+        score = Math.round(score);
+
+        try {
+            await addDoc(collection(db, "quiz_results"), {
+                userEmail: auth.currentUser ? auth.currentUser.email : "匿名訪客",
+                bankCode: code,
+                bankTitle: bankTitle,
+                score: score,
+                timestamp: serverTimestamp()
+            });
+
+            showAlert("測驗完成", `恭喜完成測驗！您的得分為：${score} 分`, () => {
+                document.getElementById('quizContainer').innerHTML = ``;
+                document.getElementById('bankCode').value = '';
+            });
+        } catch(e) {
+            showAlert("繳交失敗", e.message);
         }
     };
 
@@ -430,28 +628,6 @@
             });
         } catch(e) {
             showAlert("發送失敗", e.message);
-        }
-    };
-
-    // 瀏覽開放題庫
-    window.loadOpenBanks = async () => {
-        try {
-            const snap = await getDocs(collection(db, "banks"));
-            let html = "<div class='panel' style='background:white;'><h4>📋 站內現正開放測驗清單：</h4>";
-            let count = 0;
-            snap.forEach(d => {
-                count++;
-                const data = d.data();
-                html += `<div style="background:#f8fafc; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                    <div><b>${data.title || '未命名測驗'}</b></div>
-                    <div>代碼: <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:bold; color:var(--primary);">${d.id}</code></div>
-                </div>`;
-            });
-            if(count === 0) html += "<p style='color:#64748b;'>目前尚無任何開放中的題庫。</p>";
-            html += "</div>";
-            document.getElementById('quizContainer').innerHTML = html;
-        } catch(e) {
-            showAlert("讀取失敗", e.message);
         }
     };
 </script>
