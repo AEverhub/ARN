@@ -1,19 +1,21 @@
-// 檔案路徑：banks/MATH01.js
-window.QUIZ_BANKS = window.QUIZ_BANKS || {};
-
-window.QUIZ_BANKS["MATH01"] = {
-  code: "MATH01",
-  title: "高級數學隨堂測驗",
-  questions: [
-    {
-      question: "請問 12 + 28 等於多少？",
-      options: ["A. 30", "B. 40", "C. 50", "D. 60"],
-      answer: "B"
-    },
-    {
-      question: "若 x + 5 = 12，則 x 等於？",
-      options: ["A. 5", "B. 6", "C. 7", "D. 8"],
-      answer: "C"
-    }
-  ]
+// 檔名：001.js（同層）
+window.bankData_001 = {
+    title: "電子學基礎題庫 (001)",
+    questions: [
+        {
+            q: "1. 電流的基本單位是什麼？",
+            options: ["安培 (A)", "伏特 (V)", "歐姆 (Ω)", "瓦特 (W)"],
+            ans: 0
+        },
+        {
+            q: "2. 根據歐姆定律，電壓 (V) 等於什麼？",
+            options: ["I / R", "I * R", "R / I", "I + R"],
+            ans: 1
+        },
+        {
+            q: "3. 二極體的主要特性是什麼？",
+            options: ["雙向導通", "單向導通", "放大信號", "儲存電荷"],
+            ans: 1
+        }
+    ]
 };
