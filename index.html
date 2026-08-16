@@ -148,7 +148,7 @@
     <h1>線上題測系統-網頁版V-19-beta</h1>
 
     <div id="authPanel" class="panel" style="max-width: 450px; margin: 20px auto; text-align: center;">
-        <p style="margin-bottom: 20px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px;">安全身份驗證入口（限制單一設備單一登入渠道）</p>
+        <p style="margin-bottom: 20px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px;">安全身份驗證入口（限制單一設備單一帳號切換）</p>
 
         <button onclick="handleGoogleLogin()" class="btn-provider">
             <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -321,7 +321,7 @@
         <h3 style="margin-top:0; color:var(--primary); border-bottom:1px solid var(--border-tech); padding-bottom:10px; font-size:1.1rem;">線上題測系統完整使用者條款與隱私權政策</h3>
         <div style="max-height: 60vh; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; color: var(--text-muted); padding-right: 5px;">
             <p><b>一、 服務條款同意</b><br>歡迎使用線上題測系統（以下簡稱本系統）。當您進行註冊或登入時，即視為您已詳細閱讀、理解並完全同意本使用者條款之所有內容。</p>
-            <p><b>二、 帳號安全與密碼管理</b><br>使用者必須妥善保管自身的登入憑證與帳號安全。基於安全控管，每臺設備僅允許綁定單一身份與登入渠道，若需切換或重新驗證必須輸入管理員設定之驗證碼。</p>
+            <p><b>二、 帳號安全與密碼管理</b><br>使用者必須妥善保管自身的登入憑證與帳號安全。基於安全控管，每臺設備僅允許綁定單一身份與登入渠道，若登出後嘗試切換不同帳號登入，必須輸入管理員設定之驗證碼。</p>
             <p><b>三、 測驗規範與誠信原則</b><br>本系統嚴禁任何形式之作弊。測驗期間嚴禁切換視窗或離開畫面，否則將觸發自動強制交卷機制。</p>
         </div>
         <div style="margin-top: 20px;">
@@ -340,8 +340,8 @@
 
 <div id="regOverrideModal" class="modal-overlay hidden">
     <div class="modal-box" style="max-width: 420px; text-align: center;">
-        <h3 style="margin-top:0; color:var(--danger); letter-spacing: 1px; font-size:1.1rem;">⚠️ 偵測到重複設備綁定</h3>
-        <p id="overrideModalDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 15px;">本設備先前已綁定過其他帳號或登入渠道。依照安全規定，禁止重複創建或切換。若要強制授權，請輸入管理員設定的驗證碼：</p>
+        <h3 style="margin-top:0; color:var(--danger); letter-spacing: 1px; font-size:1.1rem;">⚠️ 偵測到非原帳號重新登入</h3>
+        <p id="overrideModalDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 15px;">本設備先前登入的帳號與目前嘗試登入的帳號不一致。依照安全規範，登出後重新登入若更換不同帳號需輸入驗證碼授權：</p>
         <input type="text" id="popupOverrideCode" placeholder="請輸入授權驗證碼" style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button onclick="cancelMultiRegister()" class="btn-secondary" style="flex:1;">取消</button>
@@ -432,18 +432,16 @@
       }
   };
 
-  // 統一的設備綁定防護處理函式
   let pendingProviderAction = null;
 
-  async function checkDeviceBindingAndExecute(providerType, actionCallback) {
-      // 檢查本設備是否已經綁定過任何身份渠道
-      const boundEmail = localStorage.getItem('rms_device_bound_email');
-      const boundProvider = localStorage.getItem('rms_device_bound_provider');
+  // 登出後重新登入帳號比對與綁定防護
+  async function checkAccountMatchAndExecute(targetEmail, actionCallback) {
+      const lastLoggedInEmail = localStorage.getItem('rms_last_logged_in_email');
 
-      // 如果本設備已經有綁定記錄，且跟這次的不同，或是想防止切換
-      if (boundEmail && boundProvider) {
+      // 如果先前有登入過其他帳號，且這次嘗試登入/切換成不同的帳號，要求驗證碼
+      if (lastLoggedInEmail && lastLoggedInEmail !== targetEmail) {
           pendingProviderAction = actionCallback;
-          document.getElementById('overrideModalDesc').innerText = `本設備先前已透過 [${boundProvider.toUpperCase()}] 綁定帳號 (${boundEmail})。\n依照安全規定，每臺設備僅允許單一登入渠道與身份。若要強制覆蓋切換，請輸入驗證碼：`;
+          document.getElementById('overrideModalDesc').innerText = `本設備先前登入的帳號為 [${lastLoggedInEmail}]，而您目前嘗試登入不同的帳號 [${targetEmail}]。\n依照安全規定，登出後更換帳號必須輸入管理員設定的驗證碼：`;
           document.getElementById('popupOverrideCode').value = '';
           document.getElementById('regOverrideModal').classList.remove('hidden');
           return;
@@ -452,32 +450,56 @@
       actionCallback();
   }
 
-  window.handleGoogleLogin = () => {
-      checkDeviceBindingAndExecute('google', async () => {
-          try {
-              const result = await signInWithPopup(auth, googleProvider);
-              if (result.user && result.user.email) {
-                  localStorage.setItem('rms_device_bound_email', result.user.email);
-                  localStorage.setItem('rms_device_bound_provider', 'google');
+  window.handleGoogleLogin = async () => {
+      try {
+          // 透過 Popup 先取得 Google 帳號 Email 進行預先檢核
+          const providerCheckResult = await signInWithPopup(auth, googleProvider);
+          const email = providerCheckResult.user ? providerCheckResult.user.email : null;
+          
+          if (!email) return showAlert("錯誤", "無法取得 Google 帳號電子郵件");
+
+          // 登出剛才自動觸發的暫存登入，改由驗證邏輯掌控
+          await signOut(auth);
+
+          checkAccountMatchAndExecute(email, async () => {
+              try {
+                  const result = await signInWithPopup(auth, googleProvider);
+                  if (result.user && result.user.email) {
+                      localStorage.setItem('rms_last_logged_in_email', result.user.email);
+                      localStorage.setItem('rms_device_bound_provider', 'google');
+                  }
+              } catch(e) {
+                  showAlert("驗證失敗", e.message);
               }
-          } catch(e) {
-              showAlert("驗證失敗", e.message);
-          }
-      });
+          });
+      } catch(e) {
+          showAlert("Google 登入失敗", e.message);
+      }
   };
 
-  window.handleAppleLogin = () => {
-      checkDeviceBindingAndExecute('apple', async () => {
-          try {
-              const result = await signInWithPopup(auth, appleProvider);
-              if (result.user && result.user.email) {
-                  localStorage.setItem('rms_device_bound_email', result.user.email);
-                  localStorage.setItem('rms_device_bound_provider', 'apple');
+  window.handleAppleLogin = async () => {
+      try {
+          const providerCheckResult = await signInWithPopup(auth, appleProvider);
+          const email = providerCheckResult.user ? providerCheckResult.user.email : null;
+
+          if (!email) return showAlert("錯誤", "無法取得 Apple 帳號電子郵件");
+
+          await signOut(auth);
+
+          checkAccountMatchAndExecute(email, async () => {
+              try {
+                  const result = await signInWithPopup(auth, appleProvider);
+                  if (result.user && result.user.email) {
+                      localStorage.setItem('rms_last_logged_in_email', result.user.email);
+                      localStorage.setItem('rms_device_bound_provider', 'apple');
+                  }
+              } catch(e) {
+                  showAlert("驗證失敗", e.message);
               }
-          } catch(e) {
-              showAlert("驗證失敗", e.message);
-          }
-      });
+          });
+      } catch(e) {
+          showAlert("Apple 登入失敗", e.message);
+      }
   };
 
   window.handleEmailLogin = async () => {
@@ -485,22 +507,13 @@
       const password = document.getElementById('authPassword').value;
       if(!email || !password) return showAlert("錯誤", "請完整輸入電子郵件信箱與密碼");
 
-      const boundEmail = localStorage.getItem('rms_device_bound_email');
-      if (boundEmail && boundEmail !== email) {
-          pendingProviderAction = () => executeEmailLoginAuth(email, password);
-          document.getElementById('overrideModalDesc').innerText = `本設備已綁定其他帳號 (${boundEmail})。\n若要強制登入新帳號，請輸入驗證碼：`;
-          document.getElementById('popupOverrideCode').value = '';
-          document.getElementById('regOverrideModal').classList.remove('hidden');
-          return;
-      }
-
-      executeEmailLoginAuth(email, password);
+      checkAccountMatchAndExecute(email, () => executeEmailLoginAuth(email, password));
   };
 
   async function executeEmailLoginAuth(email, password) {
       try {
           await signInWithEmailAndPassword(auth, email, password);
-          localStorage.setItem('rms_device_bound_email', email);
+          localStorage.setItem('rms_last_logged_in_email', email);
           localStorage.setItem('rms_device_bound_provider', 'email');
       } catch(e) {
           showAlert("驗證失敗", e.message);
@@ -515,19 +528,10 @@
       const password = document.getElementById('authPassword').value;
       if(!email || !password) return showAlert("錯誤", "請完整輸入電子郵件信箱與密碼");
 
-      const boundEmail = localStorage.getItem('rms_device_bound_email');
-      
-      if (boundEmail && boundEmail !== email) {
-          tempRegisterEmail = email;
-          tempRegisterPassword = password;
-          pendingProviderAction = () => executeRegistration(tempRegisterEmail, tempRegisterPassword);
-          document.getElementById('overrideModalDesc').innerText = `本設備先前已綁定過帳號 (${boundEmail})。\n依照安全規定，禁止重複創建帳號。若要強制建立，請輸入驗證碼：`;
-          document.getElementById('popupOverrideCode').value = '';
-          document.getElementById('regOverrideModal').classList.remove('hidden');
-          return;
-      }
+      tempRegisterEmail = email;
+      tempRegisterPassword = password;
 
-      executeRegistration(email, password);
+      checkAccountMatchAndExecute(email, () => executeRegistration(tempRegisterEmail, tempRegisterPassword));
   };
 
   window.cancelMultiRegister = () => {
@@ -555,7 +559,7 @@
   async function executeRegistration(email, password) {
       try {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
-          localStorage.setItem('rms_device_bound_email', cred.user.email);
+          localStorage.setItem('rms_last_logged_in_email', cred.user.email);
           localStorage.setItem('rms_device_bound_provider', 'email');
           showAlert("成功", "使用者帳號註冊成功並已綁定本設備");
       } catch(e) {
@@ -584,7 +588,7 @@
           document.getElementById('userDisplay').innerText = `使用終端: ${user.displayName || user.email}`;
           
           if(user.email) {
-              localStorage.setItem('rms_device_bound_email', user.email);
+              localStorage.setItem('rms_last_logged_in_email', user.email);
               if(!localStorage.getItem('rms_device_bound_provider')) {
                   localStorage.setItem('rms_device_bound_provider', user.providerData && user.providerData.length > 0 ? user.providerData[0].providerId.split('.')[0] : 'email');
               }
@@ -686,7 +690,6 @@
       }
   };
 
-  // 排行榜功能實作
   window.openLeaderboardModal = async (code) => {
       if(!code) return showAlert("錯誤", "請先輸入測驗存取代碼或從公開清單選擇！");
       
@@ -759,7 +762,6 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
   };
 
-  // 管理員修改與刪除成績功能
   window.openEditScoreModal = (resultId, userEmail, currentScore) => {
       document.getElementById('editResultDocId').value = resultId;
       document.getElementById('editScoreInfo').innerText = `考生: ${userEmail} (目前分數: ${currentScore})`;
@@ -1200,4 +1202,47 @@
           });
           if(count === 0) html = "<p style='color:var(--text-muted); text-align:center; padding:15px;'>沒有記錄到符合條件的結果資料。</p>";
           else html += "</table>";
-          document
+          document.getElementById('resultsTable').innerHTML = html;
+      } catch(e) {
+          showAlert("讀取錯誤", e.message);
+      }
+  };
+
+  window.setUserSuspension = async (isSuspended) => {
+      const email = document.getElementById('targetUserSelect').value;
+      if(!email) return showAlert("錯誤", "請選擇目標考生帳號");
+
+      const reason = document.getElementById('suspendReason').value.trim() || "未說明原因";
+      const suspendUntil = document.getElementById('suspendUntil').value;
+
+      try {
+          await setDoc(doc(db, "users", email), { 
+              suspended: isSuspended, 
+              suspendReason: isSuspended ? reason : "", 
+              suspendUntil: isSuspended ? suspendUntil : "" 
+          }, { merge: true });
+
+          const actionText = isSuspended ? "已被停權" : "已解除停權";
+          showAlert("成功", `考生 [${email}] ${actionText}。`, loadUserDropdowns);
+      } catch(e) {
+          showAlert("錯誤", e.message);
+      }
+  };
+
+  window.sendAnnouncement = async () => {
+      const title = document.getElementById('annTitle').value.trim();
+      const content = document.getElementById('annContent').value.trim();
+      if(!title || !content) return showAlert("錯誤", "請填寫完整的標題與內容");
+      try {
+          await addDoc(collection(db, "announcements"), { title, content, timestamp: serverTimestamp() });
+          showAlert("成功", "全域廣播已傳送。", () => {
+              document.getElementById('annTitle').value = '';
+              document.getElementById('annContent').value = '';
+          });
+      } catch(e) {
+          showAlert("錯誤", e.message);
+      }
+  };
+</script>
+</body>
+</html>
