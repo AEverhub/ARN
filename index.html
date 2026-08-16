@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>線上題測系統-網頁版V-20-beta</title>
+    <title>線上題測系統-網頁版V-19</title>
     <style>
         :root {
             --bg-deep: #000000;
@@ -51,7 +51,6 @@
             h1 { font-size: 1.75rem; letter-spacing: 3px; }
         }
 
-        /* 右上角固定按鈕 */
         .top-right-feedback-btn {
             position: absolute;
             top: 15px;
@@ -157,7 +156,7 @@
 <div class="container" id="appContainer">
     <button onclick="openFeedbackModal()" class="top-right-feedback-btn">💬 問題反饋</button>
 
-    <h1>線上題測系統-網頁版V-20-beta</h1>
+    <h1>線上題測系統-網頁版V-19</h1>
 
     <div id="authPanel" class="panel" style="max-width: 450px; margin: 20px auto; text-align: center;">
         <p style="margin-bottom: 20px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px;">安全身份驗證入口（限制單一設備單一帳號切換）</p>
@@ -374,18 +373,10 @@
     </div>
 </div>
 
-<div id="announcementModal" class="modal-overlay hidden">
-    <div class="modal-box" style="max-width: 480px;">
-        <h3 id="announcementModalTitle" style="margin-top:0; color:var(--danger); text-align: center; letter-spacing: 1px; font-size:1.1rem;">重要系統通知</h3>
-        <div id="announcementModalContent" style="max-height: 40vh; overflow-y: auto; background: #000000; padding: 12px; border-radius: 2px; border: 1px solid var(--border-tech); margin-bottom: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--text-muted);"></div>
-        <button onclick="closeAnnouncementModal()" class="btn-success">確認並繼續</button>
-    </div>
-</div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
-  import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -422,7 +413,6 @@
 
   window.closeModal = () => document.getElementById('customModal').classList.add('hidden');
 
-  // --- 💬 用戶問題反饋邏輯 ---
   window.openFeedbackModal = () => {
       document.getElementById('feedbackContent').value = '';
       if(auth.currentUser && auth.currentUser.email) {
@@ -541,52 +531,35 @@
       actionCallback();
   }
 
-  // --- 【已修復】改用 signInWithRedirect 避免手機瀏覽器缺少 initial state 錯誤 ---
   window.handleGoogleLogin = async () => {
       try {
-          localStorage.setItem('rms_pending_provider', 'google');
-          await signInWithRedirect(auth, googleProvider);
-      } catch (err) {
-          showAlert("Google 登入失敗", err.message);
+          const result = await signInWithPopup(auth, googleProvider);
+          const email = result.user.email;
+          checkAccountMatchAndExecute(email, () => {
+              localStorage.setItem('rms_last_logged_in_email', email);
+              localStorage.setItem('rms_device_bound_provider', 'google');
+          });
+      } catch(err) {
+          if (err.code !== 'auth/popup-closed-by-user') {
+              showAlert("Google 登入失敗", err.message);
+          }
       }
   };
 
   window.handleAppleLogin = async () => {
       try {
-          localStorage.setItem('rms_pending_provider', 'apple');
-          await signInWithRedirect(auth, appleProvider);
-      } catch (err) {
-          showAlert("Apple 登入失敗", err.message);
+          const result = await signInWithPopup(auth, appleProvider);
+          const email = result.user.email || result.user.providerData[0].email;
+          checkAccountMatchAndExecute(email, () => {
+              localStorage.setItem('rms_last_logged_in_email', email);
+              localStorage.setItem('rms_device_bound_provider', 'apple');
+          });
+      } catch(err) {
+          if (err.code !== 'auth/popup-closed-by-user') {
+              showAlert("Apple 登入失敗", err.message);
+          }
       }
   };
-
-  window.addEventListener('DOMContentLoaded', async () => {
-      try {
-          const result = await getRedirectResult(auth);
-          if (result && result.user && result.user.email) {
-              const email = result.user.email;
-              const lastLoggedInEmail = localStorage.getItem('rms_last_logged_in_email');
-              const pendingProvider = localStorage.getItem('rms_pending_provider') || 'google';
-
-              if (lastLoggedInEmail && lastLoggedInEmail !== email) {
-                  await signOut(auth);
-                  pendingProviderAction = () => {
-                      localStorage.setItem('rms_last_logged_in_email', email);
-                      localStorage.setItem('rms_device_bound_provider', pendingProvider);
-                      window.location.reload();
-                  };
-                  const currentCode = await getDynamicRegCode();
-                  document.getElementById('overrideModalDesc').innerText = `本設備先前登入的帳號為 [${lastLoggedInEmail}]，而您目前嘗試登入不同的帳號 [${email}]。\n依照安全規定，更換帳號必須輸入驗證碼：`;
-                  document.getElementById('currentDynamicCodeHint').innerText = `(提示：目前資料庫驗證碼為：${currentCode})`;
-                  document.getElementById('popupOverrideCode').value = '';
-                  document.getElementById('regOverrideModal').classList.remove('hidden');
-              } else {
-                  localStorage.setItem('rms_last_logged_in_email', email);
-                  localStorage.setItem('rms_device_bound_provider', pendingProvider);
-              }
-          }
-      } catch (e) { console.error("Redirect auth error:", e); }
-  });
 
   window.handleEmailLogin = async () => {
       const email = document.getElementById('authEmail').value.trim();
