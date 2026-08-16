@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>線上題測系統-網頁版V-19</title>
+    <title>線上題測系統-網頁版V-20</title>
     <style>
         :root {
             --bg-deep: #000000;
@@ -156,7 +156,7 @@
 <div class="container" id="appContainer">
     <button onclick="openFeedbackModal()" class="top-right-feedback-btn">💬 問題反饋</button>
 
-    <h1>線上題測系統-網頁版V-19</h1>
+    <h1>線上題測系統-網頁版V-20</h1>
 
     <div id="authPanel" class="panel" style="max-width: 450px; margin: 20px auto; text-align: center;">
         <p style="margin-bottom: 20px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px;">安全身份驗證入口（限制單一設備單一帳號切換）</p>
@@ -230,13 +230,14 @@
 
             <div id="tabFeedback" class="admin-tab hidden">
                 <h4 style="color:var(--primary); margin-top:0; font-size:1rem;">💬 接收到的用戶問題反饋清單</h4>
-                <p style="font-size:0.8rem; color:var(--text-muted);">管理員可在此檢視所有未登入或已登入用戶提交的問題與意見反饋，並可進行回覆或刪除紀錄。</p>
+                <p style="font-size:0.8rem; color:var(--text-muted);">管理員可在此檢視所有未登入或已登入用戶提交的問題與意見反饋，並可進行狀態更新與刪除紀錄。</p>
                 <button onclick="loadAdminFeedbackList()" style="margin-bottom:10px;">重新整理反饋清單</button>
                 <div id="adminFeedbackTable" class="table-responsive"></div>
             </div>
 
             <div id="tab6" class="admin-tab">
                 <h4 style="color:var(--primary); margin-top:0; font-size:1rem;">題庫功能與安全刪除管理</h4>
+                <p style="font-size:0.8rem; color:var(--text-muted);">您可以勾選「公開」讓所有用戶在首頁列表中看到此題庫；若不勾選則僅能透過輸入代碼存取。並支援安全刪除。</p>
                 <button onclick="loadAdminBankManager()" style="margin-bottom:10px;">重新整理題庫矩陣</button>
                 <div id="adminBankListTable" class="table-responsive"></div>
             </div>
@@ -244,6 +245,9 @@
             <div id="tab1" class="admin-tab hidden">
                 <h4 style="color:var(--primary); margin-top:0; font-size:1rem;">JSON 原始碼上傳</h4>
                 <input type="text" id="newBankCode" placeholder="自訂題庫代碼 (例如: math101)">
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px; cursor:pointer; font-size:0.9rem;">
+                    <input type="checkbox" id="newBankPublic" style="width:auto; margin:0;" checked> 設為公開題庫（顯示於首頁列表供所有人點選）
+                </label>
                 <textarea id="jsonInput" style="height:120px;" placeholder='{"title":"測驗標題","questions":[]}'></textarea>
                 <button onclick="uploadNewBank()">提交 JSON 題庫</button>
             </div>
@@ -252,6 +256,9 @@
                 <h4 style="color:var(--primary); margin-top:0; font-size:1rem;">互動式表單建構器</h4>
                 <input id="formBankCode" placeholder="題庫代碼 (例如: cs102)">
                 <input id="formBankTitle" placeholder="正式測驗標題">
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px; cursor:pointer; font-size:0.9rem;">
+                    <input type="checkbox" id="formBankPublic" style="width:auto; margin:0;" checked> 設為公開題庫（顯示於首頁列表供所有人點選）
+                </label>
                 <div id="questionFormArea"></div>
                 <button onclick="addQuestionField()" class="btn-secondary" style="margin-bottom: 12px;">+ 新增題目節點</button>
                 <button onclick="saveFormBank()" class="btn-success">提交表單題庫</button>
@@ -372,6 +379,15 @@
     </div>
 </div>
 
+<!-- 全域彈窗廣播 Modal -->
+<div id="globalPopupModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 450px; text-align: center; border-color: var(--danger);">
+        <h3 id="globalPopupTitle" style="margin-top:0; color: var(--danger); font-size: 1.2rem;">📢 系統公告通知</h3>
+        <p id="globalPopupContent" style="color: var(--text-main); line-height: 1.6; margin-bottom: 20px; font-size: 0.95rem; white-space: pre-wrap;"></p>
+        <button onclick="closeGlobalPopup()" class="btn-danger">我知道了</button>
+    </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
@@ -459,6 +475,7 @@
       }
   };
 
+  // 完整化：載入管理員反饋清單，支援狀態切換與刪除
   window.loadAdminFeedbackList = async () => {
       try {
           const snap = await getDocs(collection(db, "user_feedbacks"));
@@ -474,7 +491,7 @@
                   <td style="white-space: pre-wrap; max-width: 300px;">${data.content}</td>
                   <td><span style="color:${data.status==='已處理'?'#22c55e':'#ef4444'}">${data.status || '未處理'}</span></td>
                   <td>
-                      <button onclick="updateFeedbackStatus('${d.id}', '已處理')" class="btn-success" style="padding:4px 8px; font-size:0.7rem; width:auto; margin-bottom:2px;">標記已處理</button>
+                      <button onclick="updateFeedbackStatus('${d.id}', '${data.status === '已處理' ? '未處理' : '已處理'}')" class="btn-success" style="padding:4px 8px; font-size:0.7rem; width:auto; margin-bottom:2px;">${data.status === '已處理' ? '標記未處理' : '標記已處理'}</button>
                       <button onclick="deleteDoc(doc(db, 'user_feedbacks', '${d.id}')).then(()=>loadAdminFeedbackList())" class="btn-danger" style="padding:4px 8px; font-size:0.7rem; width:auto;">刪除</button>
                   </td>
               </tr>`;
@@ -627,6 +644,145 @@
       }
   };
 
+  // 完整化管理員下拉選單與各項功能資料載入
+  window.loadUserDropdowns = async () => {
+      try {
+          const resultsSnap = await getDocs(collection(db, "quiz_results"));
+          const usersSet = new Set();
+          resultsSnap.forEach(d => {
+              if (d.data().userEmail) usersSet.add(d.data().userEmail);
+          });
+          
+          let userSelectHtml = '<option value="">-- 全部檢視 --</option>';
+          let targetUserHtml = '<option value="">-- 請選擇用戶 --</option>';
+          let popupUserHtml = '<option value="ALL">-- 全體廣播彈窗 --</option>';
+
+          usersSet.forEach(email => {
+              userSelectHtml += `<option value="${email}">${email}</option>`;
+              targetUserHtml += `<option value="${email}">${email}</option>`;
+              popupUserHtml += `<option value="${email}">${email}</option>`;
+          });
+
+          if(document.getElementById('resultUserSelect')) document.getElementById('resultUserSelect').innerHTML = userSelectHtml;
+          if(document.getElementById('targetUserSelect')) document.getElementById('targetUserSelect').innerHTML = targetUserHtml;
+          if(document.getElementById('targetPopupUser')) document.getElementById('targetPopupUser').innerHTML = popupUserHtml;
+      } catch(e) { console.error(e); }
+  };
+
+  // 完整化：考試成績檢視與管理（含成績刪除功能）
+  window.loadExamResults = async () => {
+      const filterUser = document.getElementById('resultUserSelect') ? document.getElementById('resultUserSelect').value : '';
+      try {
+          const snap = await getDocs(collection(db, "quiz_results"));
+          let html = "<table><tr><th>作答時間</th><th>考生帳號</th><th>題庫代碼</th><th>測驗標題</th><th>得分</th><th>操作</th></tr>";
+          let count = 0;
+          snap.forEach(d => {
+              const data = d.data();
+              if(!filterUser || data.userEmail === filterUser) {
+                  count++;
+                  const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : '剛剛';
+                  html += `<tr>
+                      <td>${timeStr}</td>
+                      <td><b>${data.userEmail || '未知'}</b></td>
+                      <td><code>${data.bankCode}</code></td>
+                      <td>${data.bankTitle || '未命名'}</td>
+                      <td><b style="color:var(--primary);">${data.score}</b> 分</td>
+                      <td>
+                          <button onclick="deleteDoc(doc(db, 'quiz_results', '${d.id}')).then(()=>loadExamResults())" class="btn-danger" style="padding:4px 8px; font-size:0.7rem; width:auto;">刪除成績</button>
+                      </td>
+                  </tr>`;
+              }
+          });
+          if(count === 0) html = `<p style="text-align:center; color:var(--text-muted); padding:20px;">目前尚無符合條件的考試成績紀錄。</p>`;
+          else html += "</table>";
+          document.getElementById('resultsTable').innerHTML = html;
+      } catch(e) {
+          document.getElementById('resultsTable').innerHTML = `<p style="color:var(--danger);">載入成績失敗：${e.message}</p>`;
+      }
+  };
+
+  // 完整化：使用者帳號停權與解除管理
+  window.setUserSuspension = async (isSuspend) => {
+      const email = document.getElementById('targetUserSelect').value;
+      const reason = document.getElementById('suspendReason').value.trim();
+      const until = document.getElementById('suspendUntil').value;
+
+      if(!email) return showAlert("錯誤", "請先選擇要控制的用戶帳號！");
+      if(isSuspend && (!reason || !until)) return showAlert("錯誤", "執行停權時必須完整填寫停權原因與有效期限！");
+
+      try {
+          await setDoc(doc(db, "user_suspensions", email.replace(/[@.]/g, '_')), {
+              email: email,
+              suspended: isSuspend,
+              reason: isSuspend ? reason : "",
+              until: isSuspend ? until : "",
+              updatedAt: serverTimestamp()
+          });
+          showAlert("成功", isSuspend ? `已成功將用戶 [${email}] 停權。` : `已成功解除用戶 [${email}] 的停權狀態。`);
+          document.getElementById('suspendReason').value = '';
+          document.getElementById('suspendUntil').value = '';
+      } catch(e) { showAlert("操作失敗", e.message); }
+  };
+
+  // 完整化：發送定向或全體彈窗通知
+  window.sendTargetedPopup = async () => {
+      const target = document.getElementById('targetPopupUser').value;
+      const title = document.getElementById('popupTitleInput').value.trim();
+      const content = document.getElementById('popupContentInput').value.trim();
+
+      if(!title || !content) return showAlert("錯誤", "彈窗標題與詳細內容不得為空！");
+
+      try {
+          await addDoc(collection(db, "system_popups"), {
+              target: target, // "ALL" 或 特定信箱
+              title: title,
+              content: content,
+              active: true,
+              timestamp: serverTimestamp()
+          });
+          showAlert("成功", target === 'ALL' ? "全體廣播彈窗發送成功！" : `已成功向用戶 [${target}] 發送指定彈窗通知！`);
+          document.getElementById('popupTitleInput').value = '';
+          document.getElementById('popupContentInput').value = '';
+      } catch(e) { showAlert("發送失敗", e.message); }
+  };
+
+  // 檢查是否有未讀取的彈窗通知
+  async function checkUserPopups(userEmail) {
+      try {
+          const snap = await getDocs(collection(db, "system_popups"));
+          snap.forEach(async d => {
+              const data = d.data();
+              if(data.active === true && (data.target === 'ALL' || data.target === userEmail)) {
+                  document.getElementById('globalPopupTitle').innerText = data.title || "📢 系統公告通知";
+                  document.getElementById('globalPopupContent').innerText = data.content || "";
+                  document.getElementById('globalPopupModal').classList.remove('hidden');
+                  // 讀取後關閉該彈窗避免重複跳出
+                  await updateDoc(doc(db, "system_popups", d.id), { active: false });
+              }
+          });
+      } catch(e) { console.error(e); }
+  }
+
+  window.closeGlobalPopup = () => {
+      document.getElementById('globalPopupModal').classList.add('hidden');
+  };
+
+  // 檢查用戶是否被停權
+  async function checkUserSuspensionStatus(userEmail) {
+      try {
+          const docSnap = await getDoc(doc(db, "user_suspensions", userEmail.replace(/[@.]/g, '_')));
+          if(docSnap.exists() && docSnap.data().suspended === true) {
+              const data = docSnap.data();
+              const untilStr = data.until ? new Date(data.until).toLocaleString() : '永久';
+              showAlert("帳號已被停權", `您的帳號 [${userEmail}] 目前已被系統管理員停權。\n原因：${data.reason || '未提供'}\n停權截止：${untilStr}`, () => {
+                  signOut(auth);
+              });
+              return true;
+          }
+      } catch(e) { console.error(e); }
+      return false;
+  }
+
   onAuthStateChanged(auth, async (user) => {
       if (user) {
           document.getElementById('authPanel').classList.add('hidden');
@@ -635,12 +791,16 @@
           
           if(user.email) {
               localStorage.setItem('rms_last_logged_in_email', user.email);
+              const isSuspended = await checkUserSuspensionStatus(user.email);
+              if(isSuspended) return;
+              checkUserPopups(user.email);
           }
 
           if (user.email === "admin@rms.com") {
               document.getElementById('adminPanel').classList.remove('hidden');
               loadAdminBankManager();
               loadAdminFeedbackList();
+              loadUserDropdowns();
           }
           
           loadPublicBankList();
@@ -714,14 +874,142 @@
   window.loadAdminBankManager = async () => {
       try {
           const snap = await getDocs(collection(db, "banks"));
-          let html = "<table><tr><th>代碼</th><th>標題</th><th>操作</th></tr>";
+          let html = "<table><tr><th>代碼</th><th>標題</th><th>公開狀態</th><th>操作</th></tr>";
+          let count = 0;
           snap.forEach(d => {
+              count++;
               const data = d.data();
-              html += `<tr><td><code>${d.id}</code></td><td><b>${data.title || '未命名'}</b></td><td><button onclick="deleteDoc(doc(db, 'banks', '${d.id}')).then(()=>loadAdminBankManager())" class="btn-danger" style="padding:4px 8px; font-size:0.75rem; width:auto;">刪除題庫</button></td></tr>`;
+              const isChecked = data.public === true ? 'checked' : '';
+              html += `<tr>
+                  <td><code>${d.id}</code></td>
+                  <td><b>${data.title || '未命名'}</b></td>
+                  <td>
+                      <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.85rem; margin:0;">
+                          <input type="checkbox" id="pub_toggle_${d.id}" ${isChecked} onchange="toggleBankPublicStatus('${d.id}', this.checked)" style="width:auto; margin:0;"> 公開
+                      </label>
+                  </td>
+                  <td>
+                      <button onclick="confirmDeleteBank('${d.id}', '${(data.title || '未命名').replace(/'/g, "\\'")}')" class="btn-danger" style="padding:4px 8px; font-size:0.75rem; width:auto;">刪除題庫</button>
+                  </td>
+              </tr>`;
           });
-          html += "</table>";
+          if(count === 0) html = `<p style="text-align:center; color:var(--text-muted); padding:20px;">目前尚無任何題庫。</p>`;
+          else html += "</table>";
           document.getElementById('adminBankListTable').innerHTML = html;
-      } catch(e) { console.error(e); }
+      } catch(e) { 
+          document.getElementById('adminBankListTable').innerHTML = `<p style="color:var(--danger);">載入題庫失敗：${e.message}</p>`;
+      }
+  };
+
+  window.toggleBankPublicStatus = async (code, isPublic) => {
+      try {
+          await updateDoc(doc(db, "banks", code), { public: isPublic });
+          loadPublicBankList();
+      } catch(e) {
+          showAlert("更新失敗", e.message);
+          loadAdminBankManager();
+      }
+  };
+
+  window.confirmDeleteBank = (code, title) => {
+      showAlert("確認刪除", `您確定要永久刪除題庫 [${code}] ${title} 嗎？此操作無法復原。`, async () => {
+          try {
+              await deleteDoc(doc(db, "banks", code));
+              loadAdminBankManager();
+              loadPublicBankList();
+              showAlert("成功", `題庫 [${code}] 已成功刪除。`);
+          } catch(e) {
+              showAlert("刪除失敗", e.message);
+          }
+      });
+  };
+
+  window.uploadNewBank = async () => {
+      const code = document.getElementById('newBankCode').value.trim();
+      const isPublic = document.getElementById('newBankPublic').checked;
+      const jsonStr = document.getElementById('jsonInput').value.trim();
+      if(!code || !jsonStr) return showAlert("錯誤", "請完整填寫題庫代碼與 JSON 內容");
+      try {
+          const bankData = JSON.parse(jsonStr);
+          bankData.public = isPublic;
+          bankData.active = true;
+          await setDoc(doc(db, "banks", code), bankData);
+          showAlert("成功", `JSON 題庫 [${code}] 上傳成功！`);
+          document.getElementById('newBankCode').value = '';
+          document.getElementById('jsonInput').value = '';
+          loadAdminBankManager();
+          loadPublicBankList();
+      } catch(e) { showAlert("格式錯誤或上傳失敗", e.message); }
+  };
+
+  // 完整化：互動式表單建構器邏輯
+  let formQuestionsCount = 0;
+  window.addQuestionField = () => {
+      formQuestionsCount++;
+      const qId = formQuestionsCount;
+      const area = document.getElementById('questionFormArea');
+      const div = document.createElement('div');
+      div.id = `form_q_item_${qId}`;
+      div.className = "quiz-question-card";
+      div.style.marginBottom = "15px";
+      div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <b>第 ${qId} 題</b>
+              <button type="button" onclick="document.getElementById('form_q_item_${qId}').remove()" class="btn-danger" style="width:auto; padding:2px 8px; font-size:0.75rem;">移除此題</button>
+          </div>
+          <input type="text" id="fq_text_${qId}" placeholder="請輸入題目內容" style="margin-bottom:8px;">
+          <input type="text" id="fq_opts_${qId}" placeholder="選項用半角逗號隔開 (例: 選項A,選項B,選項C)" style="margin-bottom:8px;">
+          <input type="text" id="fq_ans_${qId}" placeholder="正確答案索引 (單選填數字如 0；多選用逗號如 0,2)" style="margin-bottom:0;">
+      `;
+      area.appendChild(div);
+  };
+
+  window.saveFormBank = async () => {
+      const code = document.getElementById('formBankCode').value.trim();
+      const title = document.getElementById('formBankTitle').value.trim();
+      const isPublic = document.getElementById('formBankPublic').checked;
+
+      if(!code || !title) return showAlert("錯誤", "請填寫題庫代碼與正式測驗標題！");
+      
+      const items = document.querySelectorAll('[id^="form_q_item_"]');
+      if(items.length === 0) return showAlert("錯誤", "請至少新增一個題目節點！");
+
+      const questions = [];
+      for(let item of items) {
+          const idMatch = item.id.match(/\d+$/);
+          if(!idMatch) continue;
+          const qId = idMatch[0];
+          const qText = document.getElementById(`fq_text_${qId}`).value.trim();
+          const optsStr = document.getElementById(`fq_opts_${qId}`).value.trim();
+          const ansStr = document.getElementById(`fq_ans_${qId}`).value.trim();
+
+          if(!qText || !optsStr || !ansStr) return showAlert("錯誤", `請完整填寫第 ${qId} 題的題目、選項與答案！`);
+
+          const options = optsStr.split(',').map(s => s.trim());
+          let ans;
+          if(ansStr.includes(',')) {
+              ans = ansStr.split(',').map(s => parseInt(s.trim()));
+          } else {
+              ans = parseInt(ansStr);
+          }
+          questions.push({ q: qText, options, ans });
+      }
+
+      try {
+          await setDoc(doc(db, "banks", code), {
+              title: title,
+              public: isPublic,
+              active: true,
+              questions: questions
+          });
+          showAlert("成功", `表單題庫 [${code}] 提交成功！`);
+          document.getElementById('formBankCode').value = '';
+          document.getElementById('formBankTitle').value = '';
+          document.getElementById('questionFormArea').innerHTML = '';
+          formQuestionsCount = 0;
+          loadAdminBankManager();
+          loadPublicBankList();
+      } catch(e) { showAlert("提交失敗", e.message); }
   };
 
   window.fetchFirebaseBank = async (code) => {
