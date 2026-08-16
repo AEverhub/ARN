@@ -6,32 +6,33 @@
     <title>RMS 雲端量子評量系統</title>
     <style>
         :root {
-            --bg-deep: #030712;
-            --panel-bg: rgba(15, 23, 42, 0.90);
-            --primary: #0ea5e9;
-            --primary-hover: #38bdf8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --border-tech: rgba(14, 165, 233, 0.3);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-deep: #000000;
+            --panel-bg: rgba(10, 10, 10, 0.95);
+            --primary: #ffffff;
+            --primary-hover: #e2e8f0;
+            --success: #ffffff;
+            --danger: #ff0033;
+            --warning: #ff3333;
+            --border-tech: rgba(255, 255, 255, 0.25);
+            --border-danger: rgba(255, 0, 51, 0.5);
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
         }
         body { 
             font-family: 'Courier New', Courier, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background: var(--bg-deep); 
             background-image: 
-                radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
-                linear-gradient(to right, rgba(15, 23, 42, 0.5) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(15, 23, 42, 0.5) 1px, transparent 1px);
+                radial-gradient(circle at 50% 0%, rgba(255, 0, 51, 0.08) 0%, transparent 60%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 100% 100%, 40px 40px, 40px 40px;
             margin: 0; padding: 10px; color: var(--text-main); 
         }
         .container { 
             max-width: 950px; margin: 0 auto; background: var(--panel-bg); 
             backdrop-filter: blur(12px); border: 1px solid var(--border-tech); 
-            border-radius: 8px; padding: 15px; 
-            box-shadow: 0 0 30px rgba(14, 165, 233, 0.15); 
+            border-radius: 4px; padding: 15px; 
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.05); 
             box-sizing: border-box;
         }
         @media (min-width: 768px) {
@@ -40,49 +41,49 @@
         }
         h1 { 
             margin-top: 0; font-size: 1.35rem; color: var(--primary); text-align: center; 
-            border-bottom: 1px solid var(--border-tech); padding-bottom: 12px; 
-            letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 0 10px rgba(14,165,233,0.5);
+            border-bottom: 2px solid var(--primary); padding-bottom: 12px; 
+            letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 10px rgba(255,255,255,0.4);
         }
         @media (min-width: 768px) {
-            h1 { font-size: 1.75rem; letter-spacing: 2px; }
+            h1 { font-size: 1.75rem; letter-spacing: 3px; }
         }
 
         .hidden { display: none !important; }
-        .panel { background: rgba(30, 41, 59, 0.6); padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid var(--border-tech); box-sizing: border-box; }
+        .panel { background: rgba(15, 15, 15, 0.85); padding: 15px; border-radius: 4px; margin-bottom: 15px; border: 1px solid var(--border-tech); box-sizing: border-box; }
         @media (min-width: 768px) { .panel { padding: 20px; margin-bottom: 20px; } }
         
         input[type="text"], input[type="password"], input[type="email"], input[type="datetime-local"], textarea, select { 
-            width: 100%; padding: 12px; border: 1px solid var(--border-tech); border-radius: 4px; 
-            outline: none; margin-bottom: 12px; box-sizing: border-box; font-size: 16px; /* 防止 iOS 縮放 */
-            background: rgba(3, 7, 18, 0.8); color: var(--text-main); font-family: inherit;
+            width: 100%; padding: 12px; border: 1px solid var(--border-tech); border-radius: 2px; 
+            outline: none; margin-bottom: 12px; box-sizing: border-box; font-size: 16px; 
+            background: #000000; color: var(--text-main); font-family: inherit;
         }
         input:focus, textarea:focus, select:focus { 
-            border-color: var(--primary); box-shadow: 0 0 10px rgba(14, 165, 233, 0.4); 
+            border-color: var(--primary); box-shadow: 0 0 8px rgba(255, 255, 255, 0.3); 
         }
         
         button { 
-            background: rgba(14, 165, 233, 0.15); color: var(--primary); border: 1px solid var(--primary); 
-            padding: 12px 18px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.95rem; 
+            background: #000000; color: var(--primary); border: 1px solid var(--primary); 
+            padding: 12px 18px; border-radius: 2px; cursor: pointer; font-weight: 600; font-size: 0.95rem; 
             transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; width: 100%; box-sizing: border-box;
         }
         @media (min-width: 768px) { button { width: auto; } }
-        button:hover { background: var(--primary); color: #030712; box-shadow: 0 0 15px var(--primary); }
+        button:hover { background: var(--primary); color: #000000; box-shadow: 0 0 12px rgba(255,255,255,0.6); }
         
-        .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
-        .btn-danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 15px var(--danger); }
+        .btn-danger { background: #000000; color: var(--danger); border-color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #ffffff; box-shadow: 0 0 12px var(--danger); }
         
-        .btn-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: var(--success); }
-        .btn-success:hover { background: var(--success); color: #fff; box-shadow: 0 0 15px var(--success); }
+        .btn-success { background: #000000; color: var(--success); border-color: var(--success); }
+        .btn-success:hover { background: var(--success); color: #000000; box-shadow: 0 0 12px var(--success); }
         
-        .btn-secondary { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border-color: var(--text-muted); }
-        .btn-secondary:hover { background: var(--text-muted); color: #030712; }
+        .btn-secondary { background: #000000; color: var(--text-muted); border-color: var(--text-muted); }
+        .btn-secondary:hover { background: var(--text-muted); color: #000000; }
 
         .btn-provider {
-            background: rgba(3, 7, 18, 0.8); color: var(--text-main); border: 1px solid var(--border-tech);
+            background: #000000; color: var(--text-main); border: 1px solid var(--border-tech);
             padding: 12px 20px; font-size: 0.95rem; display: flex; align-items: center;
-            justify-content: center; gap: 10px; margin-bottom: 10px; width: 100%; cursor: pointer; border-radius: 4px; font-weight: 500;
+            justify-content: center; gap: 10px; margin-bottom: 10px; width: 100%; cursor: pointer; border-radius: 2px; font-weight: 500;
         }
-        .btn-provider:hover { background: rgba(14, 165, 233, 0.1); border-color: var(--primary); }
+        .btn-provider:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
 
         .divider {
             display: flex; align-items: center; text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.85rem; letter-spacing: 1px;
@@ -95,38 +96,36 @@
             font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px; line-height: 1.5;
         }
         .terms-link { color: var(--primary); cursor: pointer; text-decoration: underline; }
-        .terms-link:hover { color: var(--primary-hover); }
+        .terms-link:hover { color: #d4d4d8; }
 
-        /* 手機響應式彈窗 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.90); backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 10px; box-sizing: border-box;
         }
         .modal-box {
-            background: var(--panel-bg); border: 1px solid var(--primary); width: 100%; max-width: 550px; 
-            padding: 20px; border-radius: 6px; box-shadow: 0 0 30px rgba(14, 165, 233, 0.3); text-align: left; box-sizing: border-box;
-            max-height: 90vh; display: flex; flexDirection: column;
+            background: #0a0a0a; border: 1px solid var(--primary); width: 100%; max-width: 550px; 
+            padding: 20px; border-radius: 4px; box-shadow: 0 0 30px rgba(255, 255, 255, 0.15); text-align: left; box-sizing: border-box;
+            max-height: 90vh; display: flex; flex-direction: column;
         }
 
-        .admin-tab { margin-top: 15px; padding: 15px; background: rgba(15, 23, 42, 0.9); border-radius: 6px; border: 1px solid var(--border-tech); text-align: left; box-sizing: border-box; }
+        .admin-tab { margin-top: 15px; padding: 15px; background: #000000; border-radius: 4px; border: 1px solid var(--border-tech); text-align: left; box-sizing: border-box; }
         
-        /* 手機自適應表格 */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
         th, td { border: 1px solid var(--border-tech); padding: 8px 10px; text-align: left; font-size: 0.85rem; white-space: nowrap; }
-        th { background: rgba(14, 165, 233, 0.1); color: var(--primary); letter-spacing: 1px; }
+        th { background: rgba(255, 255, 255, 0.05); color: var(--primary); letter-spacing: 1px; }
         
-        .q-builder-card { background: rgba(3, 7, 18, 0.5); border: 1px solid var(--border-tech); padding: 12px; border-radius: 6px; margin-bottom: 12px; box-sizing: border-box; }
+        .q-builder-card { background: #000000; border: 1px solid var(--border-tech); padding: 12px; border-radius: 4px; margin-bottom: 12px; box-sizing: border-box; }
         .option-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-        .quiz-question-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-tech); padding: 14px; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
+        .quiz-question-card { background: #0a0a0a; border: 1px solid var(--border-tech); padding: 14px; border-radius: 4px; margin-bottom: 15px; box-sizing: border-box; }
 
         .switch { position: relative; display: inline-block; width: 42px; height: 22px; vertical-align: middle; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 22px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #27272a; transition: .3s; border-radius: 22px; border: 1px solid var(--border-tech); }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: #ffffff; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #ffffff; }
+        input:checked + .slider:before { transform: translateX(20px); background-color: #000000; }
     </style>
 </head>
 <body>
@@ -139,10 +138,10 @@
 
         <button onclick="handleGoogleLogin()" class="btn-provider">
             <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                <path fill="#ffffff" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#a1a1aa" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#71717a" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#e4e4e7" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
             透過 GOOGLE 驗證登入
         </button>
@@ -158,6 +157,10 @@
 
         <input type="email" id="authEmail" placeholder="請輸入電子郵件信箱">
         <input type="password" id="authPassword" placeholder="請輸入存取密碼">
+        <div id="registerOverrideContainer" class="hidden" style="margin-bottom: 12px; background: rgba(255,0,51,0.05); border: 1px dashed var(--danger); padding: 10px; border-radius: 2px;">
+            <p style="font-size: 0.8rem; color: var(--danger); margin: 0 0 8px 0; text-align: left;">偵測到本設備已註冊過帳號。若要強制註冊新帳號，請輸入解鎖驗證碼 (990420)：</p>
+            <input type="text" id="overrideCodeInput" placeholder="請輸入解鎖驗證碼 990420" style="margin-bottom: 0;">
+        </div>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
             <button onclick="handleEmailLogin()">登入系統</button>
             <button onclick="handleEmailRegister()" class="btn-success">註冊帳號</button>
@@ -169,7 +172,7 @@
     </div>
 
     <div id="mainPanel" class="hidden">
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; background: rgba(15, 23, 42, 0.9); padding: 12px; border-radius: 6px; border: 1px solid var(--border-tech);">
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; background: #000000; padding: 12px; border-radius: 4px; border: 1px solid var(--border-tech);">
             <span id="userDisplay" style="font-weight: 600; color: var(--primary); word-break: break-all;">使用者終端</span>
             <button onclick="handleLogout()" class="btn-danger" style="padding: 8px 14px; width: 100%;">登出系統</button>
         </div>
@@ -182,10 +185,10 @@
             </div>
         </div>
 
-        <div id="adminPanel" class="panel hidden" style="border: 1px dashed var(--warning); background: rgba(30, 27, 12, 0.6);">
-            <h3 style="margin-top:0; color:var(--warning); letter-spacing: 1px; font-size:1.1rem;">系統管理控制矩陣</h3>
+        <div id="adminPanel" class="panel hidden" style="border: 1px solid var(--danger); background: rgba(20, 0, 5, 0.4);">
+            <h3 style="margin-top:0; color:var(--danger); letter-spacing: 1px; font-size:1.1rem;">系統管理控制矩陣</h3>
             
-            <label style="font-weight: 600; font-size: 0.85rem; color: #fde047; display: block; margin-bottom: 5px;">選擇管理模組：</label>
+            <label style="font-weight: 600; font-size: 0.85rem; color: #ff3333; display: block; margin-bottom: 5px;">選擇管理模組：</label>
             <select id="adminActionSelect" onchange="switchAdminTab(this.value)">
                 <option value="tab6">題庫、排程與刪除管理</option>
                 <option value="tab1">批次 JSON 題庫上傳</option>
@@ -220,13 +223,27 @@
 
             <div id="tab3" class="admin-tab hidden">
                 <h4 style="color:var(--primary); margin-top:0; font-size:1rem;">考生結果報告矩陣</h4>
+                <div style="margin-bottom: 10px;">
+                    <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:4px;">依用戶篩選檢視：</label>
+                    <select id="resultUserSelect" onchange="loadExamResults()">
+                        <option value="">-- 載入中 / 全部用戶 --</option>
+                    </select>
+                </div>
                 <button onclick="loadExamResults()" style="margin-bottom: 10px;">重新整理分數矩陣</button>
                 <div id="resultsTable" class="table-responsive"></div>
             </div>
 
             <div id="tab4" class="admin-tab hidden">
                 <h4 style="color:var(--primary); margin-top:0; font-size:1rem;">使用者帳號停權與解除控制</h4>
-                <input id="targetEmail" placeholder="請輸入目標考生電子郵件">
+                <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:4px;">選擇目標考生帳號：</label>
+                <select id="targetUserSelect" style="margin-bottom:12px;">
+                    <option value="">-- 載入中 / 請選擇用戶 --</option>
+                </select>
+                
+                <input id="suspendReason" type="text" placeholder="請填寫停權原因 (例如: 違反測驗誠信原則)">
+                <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:4px;">設定自動解禁時間 (留空則代表永久封鎖直到管理員解鎖)：</label>
+                <input id="suspendUntil" type="datetime-local" style="margin-bottom:12px;">
+
                 <div style="display:flex; flex-direction:column; gap:10px;">
                     <button onclick="setUserSuspension(true)" class="btn-danger">執行帳號停權</button>
                     <button onclick="setUserSuspension(false)" class="btn-success">解除帳號停權</button>
@@ -273,9 +290,9 @@
 
 <div id="announcementModal" class="modal-overlay hidden">
     <div class="modal-box" style="max-width: 480px;">
-        <h3 style="margin-top:0; color:var(--warning); text-align: center; letter-spacing: 1px; font-size:1.1rem;">重要系統廣播</h3>
-        <div id="announcementModalContent" style="max-height: 40vh; overflow-y: auto; background: rgba(3, 7, 18, 0.8); padding: 12px; border-radius: 4px; border: 1px solid var(--border-tech); margin-bottom: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--text-muted);"></div>
-        <button onclick="closeAnnouncementModal()" style="background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: var(--success);">確認並繼續</button>
+        <h3 style="margin-top:0; color:var(--danger); text-align: center; letter-spacing: 1px; font-size:1.1rem;">重要系統廣播</h3>
+        <div id="announcementModalContent" style="max-height: 40vh; overflow-y: auto; background: #000000; padding: 12px; border-radius: 2px; border: 1px solid var(--border-tech); margin-bottom: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--text-muted);"></div>
+        <button onclick="closeAnnouncementModal()" class="btn-success">確認並繼續</button>
     </div>
 </div>
 
@@ -319,19 +336,53 @@
 
   window.closeModal = () => document.getElementById('customModal').classList.add('hidden');
 
+  // 檢查本地設備註冊狀態
+  function checkDeviceRegistrationStatus() {
+      const registeredEmail = localStorage.getItem('rms_device_registered_email');
+      const overrideContainer = document.getElementById('registerOverrideContainer');
+      if (registeredEmail) {
+          overrideContainer.classList.remove('hidden');
+      } else {
+          overrideContainer.classList.add('hidden');
+      }
+  }
+
   window.handleGoogleLogin = () => signInWithPopup(auth, googleProvider).catch(e => showAlert("驗證失敗", e.message));
   window.handleAppleLogin = () => signInWithPopup(auth, appleProvider).catch(e => showAlert("驗證失敗", e.message));
+  
   window.handleEmailLogin = () => signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).catch(e => showAlert("驗證失敗", e.message));
-  window.handleEmailRegister = () => createUserWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).then(() => showAlert("成功", "使用者註冊成功")).catch(e => showAlert("註冊失敗", e.message));
+  
+  window.handleEmailRegister = async () => {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const registeredEmail = localStorage.getItem('rms_device_registered_email');
+      const overrideCode = document.getElementById('overrideCodeInput').value.trim();
+
+      if (registeredEmail) {
+          if (overrideCode !== "990420") {
+              return showAlert("註冊限制", "本設備依照安全原則，一臺設備僅能註冊一支帳號。若要突破此限制，請輸入正確的解鎖驗證碼 (990420)。");
+          }
+      }
+
+      try {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          localStorage.setItem('rms_device_registered_email', cred.user.email);
+          showAlert("成功", "使用者帳號註冊成功並已綁定本設備");
+          checkDeviceRegistrationStatus();
+      } catch(e) {
+          showAlert("註冊失敗", e.message);
+      }
+  };
+
   window.handleLogout = () => signOut(auth);
 
   window.switchAdminTab = (tabId) => {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
       document.getElementById(tabId).classList.remove('hidden');
       if(tabId === 'tab6') loadAdminBankManager();
+      if(tabId === 'tab3' || tabId === 'tab4') loadUserDropdowns();
   };
 
-  // 用來暫存當前未讀公告的 ID 列表以便確認時寫入 localStorage
   let pendingAnnouncementIds = [];
 
   onAuthStateChanged(auth, async (user) => {
@@ -339,20 +390,44 @@
           document.getElementById('authPanel').classList.add('hidden');
           document.getElementById('mainPanel').classList.remove('hidden');
           document.getElementById('userDisplay').innerText = `使用終端: ${user.displayName || user.email}`;
+          
+          // 自動記錄此設備已註冊過帳號
+          if(user.email) {
+              localStorage.setItem('rms_device_registered_email', user.email);
+          }
+
           if (user.email === "admin@rms.com") {
               document.getElementById('adminPanel').classList.remove('hidden');
               loadAdminBankManager();
+              loadUserDropdowns();
           }
           
           try {
               const userDoc = await getDoc(doc(db, "users", user.email));
               if(userDoc.exists() && userDoc.data().suspended) {
-                  showAlert("存取拒絕", "您的帳號已被系統管理員停權。", () => signOut(auth));
+                  const data = userDoc.data();
+                  const reason = data.suspendReason || "未說明原因";
+                  const suspendUntil = data.suspendUntil;
+                  
+                  let timeMsg = "";
+                  if (!suspendUntil) {
+                      timeMsg = "解禁時間：請聯絡管理員";
+                  } else {
+                      const now = new Date();
+                      const targetTime = new Date(suspendUntil);
+                      const diffHours = Math.ceil((targetTime - now) / (1000 * 60 * 60));
+                      if (diffHours > 0) {
+                          timeMsg = `距離解禁還剩約 ${diffHours} 小時 (解禁時間: ${suspendUntil.replace('T', ' ')})`;
+                      } else {
+                          timeMsg = "您的停權時間已過期，請重新整理或聯絡管理員解禁。";
+                      }
+                  }
+
+                  showAlert("存取拒絕 - 帳號已停權", `停權原因：${reason}\n${timeMsg}`, () => signOut(auth));
                   return;
               }
           } catch(e) { console.error(e); }
 
-          // 檢查站內公告 (每則廣播只顯示一次邏輯：比對 localStorage 中已讀取的公告 ID)
           try {
               const snap = await getDocs(collection(db, "announcements"));
               let annHtml = "";
@@ -376,6 +451,7 @@
       } else {
           document.getElementById('authPanel').classList.remove('hidden');
           document.getElementById('mainPanel').classList.add('hidden');
+          checkDeviceRegistrationStatus();
       }
   });
 
@@ -389,7 +465,30 @@
       }
   };
 
-  // 載入管理員題庫清單 (含開關、時間控制與刪除功能)
+  window.loadUserDropdowns = async () => {
+      try {
+          const snap = await getDocs(collection(db, "users"));
+          let optionsHtmlTarget = `<option value="">-- 請選擇目標使用者 --</option>`;
+          let optionsHtmlResult = `<option value="">-- 全部檢視 --</option>`;
+          
+          snap.forEach(d => {
+              const email = d.id;
+              const suspendedText = d.data().suspended ? ' [已停權]' : '';
+              optionsHtmlTarget += `<option value="${email}">${email}${suspendedText}</option>`;
+              optionsHtmlResult += `<option value="${email}">${email}</option>`;
+          });
+
+          if(snap.size === 0) {
+              optionsHtmlTarget = `<option value="">目前尚無註冊用戶記錄</option>`;
+          }
+
+          document.getElementById('targetUserSelect').innerHTML = optionsHtmlTarget;
+          document.getElementById('resultUserSelect').innerHTML = optionsHtmlResult;
+      } catch(e) {
+          console.error("載入使用者下拉選單錯誤", e);
+      }
+  };
+
   window.loadAdminBankManager = async () => {
       try {
           const snap = await getDocs(collection(db, "banks"));
@@ -522,4 +621,180 @@
 
           optRows.forEach((row, idx) => {
               const optText = row.querySelector('.q-opt-input').value.trim();
-              const isChecked = row
+              const isChecked = row.querySelector('.q-ans-checkbox').checked;
+              if(optText) {
+                  options.push(optText);
+                  if(isChecked) ansList.push(idx);
+              }
+          });
+
+          if(!qText || options.length < 2) return showAlert("錯誤", "每個題目皆需要內容與至少兩個選項");
+          if(ansList.length === 0) return showAlert("錯誤", `題目 "${qText}" 未選擇正確答案`);
+
+          questions.push({ q: qText, options: options, ans: ansList.length === 1 ? ansList[0] : ansList });
+      }
+
+      try {
+          await setDoc(doc(db, "banks", code), { title, questions, published: true, startTime: "", endTime: "" });
+          showAlert("成功", `表單題庫 "${title}" 已提交。`, () => {
+              document.getElementById('formBankCode').value = '';
+              document.getElementById('formBankTitle').value = '';
+              document.getElementById('questionFormArea').innerHTML = '';
+          });
+      } catch(e) {
+          showAlert("提交錯誤", e.message);
+      }
+  };
+
+  window.fetchFirebaseBank = async () => {
+      const code = document.getElementById('bankCode').value.trim();
+      if(!code) return showAlert("錯誤", "請輸入測驗存取代碼");
+
+      try {
+          const docSnap = await getDoc(doc(db, "banks", code));
+          if(!docSnap.exists()) return showAlert("找不到", "此測驗代碼不存在。");
+
+          const bankData = docSnap.data();
+          const now = new Date();
+
+          if(bankData.published === false) return showAlert("已鎖定", "此測驗已被管理員停用。");
+          if(bankData.startTime && now < new Date(bankData.startTime)) return showAlert("尚未開始", `測驗尚未開放。開放時間: ${bankData.startTime.replace('T', ' ')}`);
+          if(bankData.endTime && now > new Date(bankData.endTime)) return showAlert("已過期", `測驗已於以下時間關閉: ${bankData.endTime.replace('T', ' ')}`);
+
+          renderQuiz(code, bankData);
+      } catch(e) {
+          showAlert("讀取錯誤", e.message);
+      }
+  };
+
+  function renderQuiz(code, bankData) {
+      let html = `<div class="panel" style="border:1px solid var(--primary);">
+          <h2 style="color:var(--primary); margin-top:0; font-size:1.2rem;">測驗: ${bankData.title || '未命名'}</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px;">存取代碼: ${code}</p>
+          <form id="activeQuizForm">`;
+
+      bankData.questions.forEach((item, qIdx) => {
+          const isMulti = Array.isArray(item.ans);
+          html += `<div class="quiz-question-card">
+              <p style="font-weight:600; margin-top:0;">第 ${qIdx + 1} 題. ${item.q} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">(${isMulti ? '複選題' : '單選題'})</span></p>`;
+          
+          item.options.forEach((opt, oIdx) => {
+              const inputType = isMulti ? 'checkbox' : 'radio';
+              html += `<label style="display:block; margin-bottom:8px; cursor:pointer; font-size:0.9rem;">
+                  <input type="${inputType}" name="q_${qIdx}" value="${oIdx}" style="width:auto; margin-right:8px;"> ${opt}
+              </label>`;
+          });
+          html += `</div>`;
+      });
+
+      html += `<button type="button" onclick="submitQuizScore('${code}', '${bankData.title || '未命名'}')" class="btn-success" style="width:100%; padding:12px; font-size:1rem;">提交測驗矩陣</button>
+          </form></div>`;
+
+      document.getElementById('quizContainer').innerHTML = html;
+      window.currentBankQuestions = bankData.questions;
+  }
+
+  window.submitQuizScore = async (code, bankTitle) => {
+      const questions = window.currentBankQuestions;
+      let score = 0;
+      const totalQ = questions.length;
+      const pointsPerQ = 100 / totalQ;
+
+      questions.forEach((item, qIdx) => {
+          const isMulti = Array.isArray(item.ans);
+          const selected = document.querySelectorAll(`input[name="q_${qIdx}"]:checked`);
+          
+          if(isMulti) {
+              const userAns = Array.from(selected).map(el => parseInt(el.value)).sort();
+              const correctAns = [...item.ans].sort();
+              if(JSON.stringify(userAns) === JSON.stringify(correctAns)) score += pointsPerQ;
+          } else {
+              if(selected.length === 1 && parseInt(selected[0].value) === item.ans) score += pointsPerQ;
+          }
+      });
+
+      score = Math.round(score);
+
+      const currentUserEmail = auth.currentUser ? auth.currentUser.email : "訪客";
+
+      try {
+          if(auth.currentUser) {
+              await setDoc(doc(db, "users", currentUserEmail), { lastActive: serverTimestamp() }, { merge: true });
+          }
+
+          await addDoc(collection(db, "quiz_results"), {
+              userEmail: currentUserEmail,
+              bankCode: code,
+              bankTitle: bankTitle,
+              score: score,
+              timestamp: serverTimestamp()
+          });
+
+          showAlert("已完成", `測驗提交成功。最終分數: ${score} 分`, () => {
+              document.getElementById('quizContainer').innerHTML = ``;
+              document.getElementById('bankCode').value = '';
+          });
+      } catch(e) {
+          showAlert("提交錯誤", e.message);
+      }
+  };
+
+  window.loadExamResults = async () => {
+      const filterUser = document.getElementById('resultUserSelect').value;
+      try {
+          const snap = await getDocs(collection(db, "quiz_results"));
+          let html = "<table><tr><th>考生</th><th>測驗標題</th><th>分數</th></tr>";
+          let count = 0;
+          snap.forEach(d => {
+              const data = d.data();
+              if(!filterUser || data.userEmail === filterUser) {
+                  count++;
+                  html += `<tr><td>${data.userEmail}</td><td>${data.bankTitle || '未命名'}</td><td><b style="color:var(--primary);">${data.score}</b> 分</td></tr>`;
+              }
+          });
+          if(count === 0) html = "<p style='color:var(--text-muted); text-align:center; padding:15px;'>沒有記錄到符合條件的結果資料。</p>";
+          else html += "</table>";
+          document.getElementById('resultsTable').innerHTML = html;
+      } catch(e) {
+          showAlert("讀取錯誤", e.message);
+      }
+  };
+
+  window.setUserSuspension = async (isSuspended) => {
+      const email = document.getElementById('targetUserSelect').value;
+      if(!email) return showAlert("錯誤", "請選擇目標考生帳號");
+
+      const reason = document.getElementById('suspendReason').value.trim() || "未說明原因";
+      const suspendUntil = document.getElementById('suspendUntil').value;
+
+      try {
+          await setDoc(doc(db, "users", email), { 
+              suspended: isSuspended, 
+              suspendReason: isSuspended ? reason : "", 
+              suspendUntil: isSuspended ? suspendUntil : "" 
+          }, { merge: true });
+
+          const actionText = isSuspended ? "已被停權" : "已解除停權";
+          showAlert("成功", `考生 [${email}] ${actionText}。`, loadUserDropdowns);
+      } catch(e) {
+          showAlert("錯誤", e.message);
+      }
+  };
+
+  window.sendAnnouncement = async () => {
+      const title = document.getElementById('annTitle').value.trim();
+      const content = document.getElementById('annContent').value.trim();
+      if(!title || !content) return showAlert("錯誤", "請填寫完整的標題與內容");
+      try {
+          await addDoc(collection(db, "announcements"), { title, content, timestamp: serverTimestamp() });
+          showAlert("成功", "全域廣播已傳送。", () => {
+              document.getElementById('annTitle').value = '';
+              document.getElementById('annContent').value = '';
+          });
+      } catch(e) {
+          showAlert("錯誤", e.message);
+      }
+  };
+</script>
+</body>
+</html>
