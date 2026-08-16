@@ -364,7 +364,6 @@
     <div class="modal-box" style="max-width: 420px; text-align: center;">
         <h3 style="margin-top:0; color:var(--danger); letter-spacing: 1px; font-size:1.1rem;">⚠️ 偵測到非原帳號重新登入</h3>
         <p id="overrideModalDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;"></p>
-        <p id="currentDynamicCodeHint" style="font-size: 0.8rem; color: var(--primary); margin-bottom: 10px; font-weight: bold;"></p>
         <input type="text" id="popupOverrideCode" placeholder="請輸入授權驗證碼" style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button onclick="cancelMultiRegister()" class="btn-secondary" style="flex:1;">取消</button>
@@ -521,9 +520,7 @@
       const lastLoggedInEmail = localStorage.getItem('rms_last_logged_in_email');
       if (lastLoggedInEmail && lastLoggedInEmail !== targetEmail) {
           pendingProviderAction = actionCallback;
-          const currentCode = await getDynamicRegCode();
           document.getElementById('overrideModalDesc').innerText = `本設備先前登入的帳號為 [${lastLoggedInEmail}]，而您目前嘗試登入不同的帳號 [${targetEmail}]。\n依照安全規定，登出後更換帳號必須輸入驗證碼：`;
-          document.getElementById('currentDynamicCodeHint').innerText = `(提示：目前資料庫驗證碼為：${currentCode})`;
           document.getElementById('popupOverrideCode').value = '';
           document.getElementById('regOverrideModal').classList.remove('hidden');
           return;
@@ -599,7 +596,7 @@
       const inputCode = document.getElementById('popupOverrideCode').value.trim();
       const correctCode = await getDynamicRegCode();
       if (inputCode !== correctCode) {
-          return showAlert("驗證錯誤", `授權驗證碼不正確！您輸入的是 [${inputCode}]，正確驗證碼為 [${correctCode}]`);
+          return showAlert("驗證錯誤", "授權驗證碼不正確！");
       }
       document.getElementById('regOverrideModal').classList.add('hidden');
       if (pendingProviderAction) {
