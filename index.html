@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RMS CLOUD QUANTUM ASSESSMENT SYSTEM</title>
+    <title>RMS 雲端量子評量系統</title>
     <style>
         :root {
             --bg-deep: #030712;
@@ -80,14 +80,12 @@
         .divider::before { margin-right: .75em; }
         .divider::after { margin-left: .75em; }
 
-        /* 條款聲明區塊 */
         .terms-notice {
             font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px; line-height: 1.5;
         }
         .terms-link { color: var(--primary); cursor: pointer; text-decoration: underline; }
         .terms-link:hover { color: var(--primary-hover); }
 
-        /* Modal 彈窗樣式 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px);
@@ -107,7 +105,6 @@
         .option-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
         .quiz-question-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-tech); padding: 16px; border-radius: 6px; margin-bottom: 15px; }
 
-        /* 切換開關 */
         .switch { position: relative; display: inline-block; width: 46px; height: 24px; vertical-align: middle; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 24px; }
@@ -119,10 +116,11 @@
 <body>
 
 <div class="container" id="appContainer">
-    <h1>RMS CLOUD QUANTUM ASSESSMENT SYSTEM</h1>
+    <h1>RMS 雲端量子評量系統</h1>
 
+    <!-- 1. 登入面板 -->
     <div id="authPanel" class="panel" style="max-width: 450px; margin: 30px auto; text-align: center;">
-        <p style="margin-bottom: 20px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px;">SECURE AUTHENTICATION PORTAL</p>
+        <p style="margin-bottom: 20px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px;">安全身份驗證入口</p>
 
         <button onclick="handleGoogleLogin()" class="btn-provider">
             <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -131,23 +129,23 @@
                 <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                 <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            AUTHENTICATE WITH GOOGLE
+            透過 GOOGLE 驗證登入
         </button>
 
         <button onclick="handleAppleLogin()" class="btn-provider">
             <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 5.16c.55-.67.92-1.6.82-2.53-.82.03-1.82.55-2.41 1.22-.52.59-.98 1.54-.85 2.46.92.07 1.86-.48 2.44-1.15z"/>
             </svg>
-            AUTHENTICATE WITH APPLE
+            透過 APPLE 驗證登入
         </button>
 
-        <div class="divider">CREDENTIAL AUTHENTICATION</div>
+        <div class="divider">憑證身份驗證</div>
 
-        <input type="email" id="authEmail" placeholder="ENTER EMAIL ADDRESS">
-        <input type="password" id="authPassword" placeholder="ENTER ACCESS PASSWORD">
+        <input type="email" id="authEmail" placeholder="請輸入電子郵件信箱">
+        <input type="password" id="authPassword" placeholder="請輸入存取密碼">
         <div style="display: flex; gap: 10px; margin-top: 5px;">
-            <button onclick="handleEmailLogin()" style="flex:1;">LOGIN</button>
-            <button onclick="handleEmailRegister()" class="btn-success" style="flex:1;">REGISTER</button>
+            <button onclick="handleEmailLogin()" style="flex:1;">登入系統</button>
+            <button onclick="handleEmailRegister()" class="btn-success" style="flex:1;">註冊帳號</button>
         </div>
 
         <div class="terms-notice">
@@ -155,83 +153,88 @@
         </div>
     </div>
 
+    <!-- 2. 主操作介面 -->
     <div id="mainPanel" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.9); padding: 12px 16px; border-radius: 6px; border: 1px solid var(--border-tech);">
-            <span id="userDisplay" style="font-weight: 600; color: var(--primary);">USER TERMINAL</span>
-            <button onclick="handleLogout()" class="btn-danger" style="width: auto; padding: 6px 14px;">LOGOUT</button>
+            <span id="userDisplay" style="font-weight: 600; color: var(--primary);">使用者終端</span>
+            <button onclick="handleLogout()" class="btn-danger" style="width: auto; padding: 6px 14px;">登出系統</button>
         </div>
 
         <div class="panel">
-            <h3 style="margin-top:0; color:var(--primary); letter-spacing: 1px;">ONLINE ASSESSMENT GATEWAY</h3>
+            <h3 style="margin-top:0; color:var(--primary); letter-spacing: 1px;">線上測驗閘道</h3>
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input type="text" id="bankCode" placeholder="ENTER ASSESSMENT ACCESS CODE" style="margin-bottom:0;">
-                <button onclick="fetchFirebaseBank()" style="width: auto; white-space: nowrap;">INITIALIZE TEST</button>
+                <input type="text" id="bankCode" placeholder="請輸入測驗存取代碼" style="margin-bottom:0;">
+                <button onclick="fetchFirebaseBank()" style="width: auto; white-space: nowrap;">初始化測驗</button>
             </div>
         </div>
 
+        <!-- 管理員控制台 -->
         <div id="adminPanel" class="panel hidden" style="border: 1px dashed #f59e0b; background: rgba(30, 27, 12, 0.6);">
-            <h3 style="margin-top:0; color:#f59e0b; letter-spacing: 1px;">ADMINISTRATION CONTROL MATRIX</h3>
+            <h3 style="margin-top:0; color:#f59e0b; letter-spacing: 1px;">系統管理控制矩陣</h3>
             
-            <label style="font-weight: 600; font-size: 0.9rem; color: #fde047; display: block; margin-bottom: 5px;">SELECT ADMIN MODULE:</label>
+            <label style="font-weight: 600; font-size: 0.9rem; color: #fde047; display: block; margin-bottom: 5px;">選擇管理模組：</label>
             <select id="adminActionSelect" onchange="switchAdminTab(this.value)">
-                <option value="tab6">ASSESSMENT BANK & SCHEDULE MANAGER</option>
-                <option value="tab1">BATCH JSON BANK UPLOAD</option>
-                <option value="tab2">FORM-BASED MULTI-CHOICE BUILDER</option>
-                <option value="tab3">EXAM RESULT ANALYTICS MATRIX</option>
-                <option value="tab4">USER PERMISSION & SUSPENSION</option>
-                <option value="tab5">BROADCAST SYSTEM ANNOUNCEMENT</option>
+                <option value="tab6">題庫與排程管理員</option>
+                <option value="tab1">批次 JSON 題庫上傳</option>
+                <option value="tab2">表單式多選題建構器</option>
+                <option value="tab3">考試成績分析矩陣</option>
+                <option value="tab4">使用者權限與停權控制</option>
+                <option value="tab5">廣播系統公告</option>
             </select>
 
+            <!-- 6. 題庫清單與開關管理 -->
             <div id="tab6" class="admin-tab">
-                <h4 style="color:var(--primary); margin-top:0;">ASSESSMENT BANK MATRIX CONFIGURATION</h4>
-                <p style="font-size:0.85rem; color:var(--text-muted);">Configure live state toggles and active temporal windows for assessments.</p>
-                <button onclick="loadAdminBankManager()" style="width:auto; margin-bottom:10px;">REFRESH BANK MATRIX</button>
+                <h4 style="color:var(--primary); margin-top:0;">題庫矩陣配置設定</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted);">設定測驗的即時狀態開關與有效時間窗口。</p>
+                <button onclick="loadAdminBankManager()" style="width:auto; margin-bottom:10px;">重新整理題庫矩陣</button>
                 <div id="adminBankListTable"></div>
             </div>
 
             <div id="tab1" class="admin-tab hidden">
-                <h4 style="color:var(--primary); margin-top:0;">JSON SOURCE CODE UPLOAD</h4>
-                <input type="text" id="newBankCode" placeholder="CUSTOM BANK CODE (e.g., math101)">
-                <textarea id="jsonInput" style="height:120px;" placeholder='{"title":"Exam Title","questions":[]}'></textarea>
-                <button onclick="uploadNewBank()">COMMIT JSON BANK</button>
+                <h4 style="color:var(--primary); margin-top:0;">JSON 原始碼上傳</h4>
+                <input type="text" id="newBankCode" placeholder="自訂題庫代碼 (例如: math101)">
+                <textarea id="jsonInput" style="height:120px;" placeholder='{"title":"測驗標題","questions":[]}'></textarea>
+                <button onclick="uploadNewBank()">提交 JSON 題庫</button>
             </div>
 
             <div id="tab2" class="admin-tab hidden">
-                <h4 style="color:var(--primary); margin-top:0;">INTERACTIVE FORM BUILDER</h4>
-                <input id="formBankCode" placeholder="BANK CODE (e.g., cs102)">
-                <input id="formBankTitle" placeholder="FORMAL ASSESSMENT TITLE">
+                <h4 style="color:var(--primary); margin-top:0;">互動式表單建構器</h4>
+                <input id="formBankCode" placeholder="題庫代碼 (例如: cs102)">
+                <input id="formBankTitle" placeholder="正式測驗標題">
                 <div id="questionFormArea"></div>
-                <button onclick="addQuestionField()" class="btn-secondary" style="margin-bottom: 12px;">+ ADD QUESTION NODE</button>
-                <button onclick="saveFormBank()" class="btn-success">COMMIT FORM BANK</button>
+                <button onclick="addQuestionField()" class="btn-secondary" style="margin-bottom: 12px;">+ 新增題目節點</button>
+                <button onclick="saveFormBank()" class="btn-success">提交表單題庫</button>
             </div>
 
             <div id="tab3" class="admin-tab hidden">
-                <h4 style="color:var(--primary); margin-top:0;">CANDIDATE RESULT REPORT MATRIX</h4>
-                <button onclick="loadExamResults()" style="width:auto; margin-bottom: 10px;">REFRESH SCORE MATRIX</button>
+                <h4 style="color:var(--primary); margin-top:0;">考生結果報告矩陣</h4>
+                <button onclick="loadExamResults()" style="width:auto; margin-bottom: 10px;">重新整理分數矩陣</button>
                 <div id="resultsTable"></div>
             </div>
 
             <div id="tab4" class="admin-tab hidden">
-                <h4 style="color:var(--primary); margin-top:0;">USER ACCOUNT SUSPENSION CONTROL</h4>
-                <input id="targetEmail" placeholder="ENTER TARGET CANDIDATE EMAIL">
-                <button onclick="suspendUser()" class="btn-danger">EXECUTE SUSPENSION</button>
+                <h4 style="color:var(--primary); margin-top:0;">使用者帳號停權控制</h4>
+                <input id="targetEmail" placeholder="請輸入目標考生電子郵件">
+                <button onclick="suspendUser()" class="btn-danger">執行帳號停權</button>
             </div>
 
             <div id="tab5" class="admin-tab hidden">
-                <h4 style="color:var(--primary); margin-top:0;">BROADCAST GLOBAL ANNOUNCEMENT</h4>
-                <input id="annTitle" placeholder="ANNOUNCEMENT TITLE">
-                <textarea id="annContent" placeholder="ANNOUNCEMENT DETAILED PAYLOAD"></textarea>
-                <button onclick="sendAnnouncement()">TRANSMIT BROADCAST</button>
+                <h4 style="color:var(--primary); margin-top:0;">發送全域系統公告</h4>
+                <input id="annTitle" placeholder="公告標題">
+                <textarea id="annContent" placeholder="公告詳細內容"></textarea>
+                <button onclick="sendAnnouncement()">傳送廣播公告</button>
             </div>
         </div>
 
+        <!-- 測驗作答區 -->
         <div id="quizContainer"></div>
     </div>
 </div>
 
+<!-- 使用者條款彈窗 Modal 容器 -->
 <div id="termsModal" class="modal-overlay hidden">
     <div class="modal-box" style="max-width: 650px;">
-        <h3 style="margin-top:0; color:var(--primary); border-bottom:1px solid var(--border-tech); padding-bottom:10px;">RMS SYSTEM USER TERMS & PRIVACY POLICY</h3>
+        <h3 style="margin-top:0; color:var(--primary); border-bottom:1px solid var(--border-tech); padding-bottom:10px;">RMS 系統使用者條款與隱私權政策</h3>
         <div style="max-height: 350px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; color: var(--text-muted); padding-right: 5px;">
             <p><b>一、 服務條款同意</b><br>歡迎使用 RMS 雲端測驗與評量系統（以下簡稱本系統）。當您透過 Google 帳號、Apple 帳號或電子郵件憑證進行註冊或登入時，即視為您已詳細閱讀、理解並完全同意本使用者條款之所有內容。如果您不同意本條款之全部或部分內容，請立即停止使用本系統。</p>
             <p><b>二、 帳號安全與責任</b><br>使用者必須妥善保管自身的登入憑證與帳號安全。任何透過您的帳號所進行之所有測驗活動、資料傳輸與系統操作，將視為您的個人行為並由您承擔完全法律責任。</p>
@@ -240,195 +243,395 @@
             <p><b>五、 系統權利與免責聲明</b><br>本系統保留隨時修改、暫停或終止部分或全部服務功能之權利，對於因網路通訊異常或不可抗力因素導致測驗數據中斷，本系統不負直接賠償責任。</p>
         </div>
         <div style="text-align: right; margin-top: 20px;">
-            <button onclick="closeTermsModal()" style="width: auto;">I UNDERSTAND & AGREE</button>
+            <button onclick="closeTermsModal()" style="width: auto;">我已了解並同意</button>
         </div>
     </div>
 </div>
 
+<!-- 通用提示 Modal 容器 -->
 <div id="customModal" class="modal-overlay hidden">
     <div class="modal-box" style="text-align: center; max-width: 450px;">
-        <h3 id="modalTitle" style="margin-top:0; color:var(--primary);">SYSTEM ALERT</h3>
+        <h3 id="modalTitle" style="margin-top:0; color:var(--primary);">系統提示</h3>
         <p id="modalMessage" style="color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;"></p>
-        <button id="modalConfirmBtn" onclick="closeModal()" style="width: 100%;">ACKNOWLEDGE</button>
+        <button id="modalConfirmBtn" onclick="closeModal()" style="width: 100%;">確認</button>
     </div>
 </div>
 
+<!-- 站內公告強制彈窗容器 -->
 <div id="announcementModal" class="modal-overlay hidden">
     <div class="modal-box" style="max-width: 500px;">
-        <h3 style="margin-top:0; color:#f59e0b; text-align: center; letter-spacing: 1px;">CRITICAL SYSTEM BROADCAST</h3>
+        <h3 style="margin-top:0; color:#f59e0b; text-align: center; letter-spacing: 1px;">重要系統廣播</h3>
         <div id="announcementModalContent" style="max-height: 250px; overflow-y: auto; background: rgba(3, 7, 18, 0.8); padding: 12px; border-radius: 4px; border: 1px solid var(--border-tech); margin-bottom: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--text-muted);"></div>
-        <button onclick="closeAnnouncementModal()" style="width: 100%; background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: var(--success);">ACKNOWLEDGE & PROCEED</button>
+        <button onclick="closeAnnouncementModal()" style="width: 100%; background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: var(--success);">確認並繼續</button>
     </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+  import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
-        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
-        databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "rms-quiz-system-dbserver",
-        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
-        messagingSenderId: "769519554299",
-        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
-        measurementId: "G-939JE1X57X"
-    };
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
+    authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
+    databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "rms-quiz-system-dbserver",
+    storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
+    messagingSenderId: "769519554299",
+    appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
+    measurementId: "G-939JE1X57X"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const googleProvider = new GoogleAuthProvider();
-    const appleProvider = new OAuthProvider('apple.com');
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const googleProvider = new GoogleAuthProvider();
+  const appleProvider = new OAuthProvider('apple.com');
 
-    // 條款 Modal 控制
-    window.openTermsModal = () => document.getElementById('termsModal').classList.remove('hidden');
-    window.closeTermsModal = () => document.getElementById('termsModal').classList.add('hidden');
+  window.openTermsModal = () => document.getElementById('termsModal').classList.remove('hidden');
+  window.closeTermsModal = () => document.getElementById('termsModal').classList.add('hidden');
 
-    // 彈窗提示輔助函數
-    window.showAlert = (title, message, callback) => {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMessage').innerText = message;
-        const btn = document.getElementById('modalConfirmBtn');
-        btn.onclick = () => {
-            closeModal();
-            if(callback) callback();
-        };
-        document.getElementById('customModal').classList.remove('hidden');
-    };
+  window.showAlert = (title, message, callback) => {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerText = message;
+      const btn = document.getElementById('modalConfirmBtn');
+      btn.onclick = () => {
+          closeModal();
+          if(callback) callback();
+      };
+      document.getElementById('customModal').classList.remove('hidden');
+  };
 
-    window.closeModal = () => document.getElementById('customModal').classList.add('hidden');
+  window.closeModal = () => document.getElementById('customModal').classList.add('hidden');
 
-    window.handleGoogleLogin = () => signInWithPopup(auth, googleProvider).catch(e => showAlert("AUTHENTICATION FAILED", e.message));
-    window.handleAppleLogin = () => signInWithPopup(auth, appleProvider).catch(e => showAlert("AUTHENTICATION FAILED", e.message));
-    window.handleEmailLogin = () => signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).catch(e => showAlert("AUTHENTICATION FAILED", e.message));
-    window.handleEmailRegister = () => createUserWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).then(() => showAlert("SUCCESS", "USER REGISTRATION SUCCESSFUL")).catch(e => showAlert("REGISTRATION FAILED", e.message));
-    window.handleLogout = () => signOut(auth);
+  window.handleGoogleLogin = () => signInWithPopup(auth, googleProvider).catch(e => showAlert("驗證失敗", e.message));
+  window.handleAppleLogin = () => signInWithPopup(auth, appleProvider).catch(e => showAlert("驗證失敗", e.message));
+  window.handleEmailLogin = () => signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).catch(e => showAlert("驗證失敗", e.message));
+  window.handleEmailRegister = () => createUserWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).then(() => showAlert("成功", "使用者註冊成功")).catch(e => showAlert("註冊失敗", e.message));
+  window.handleLogout = () => signOut(auth);
 
-    // 管理員選單切換
-    window.switchAdminTab = (tabId) => {
-        document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
-        document.getElementById(tabId).classList.remove('hidden');
-        if(tabId === 'tab6') loadAdminBankManager();
-    };
+  window.switchAdminTab = (tabId) => {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      if(tabId === 'tab6') loadAdminBankManager();
+  };
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            document.getElementById('authPanel').classList.add('hidden');
-            document.getElementById('mainPanel').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = `ACTIVE TERMINAL: ${user.displayName || user.email}`;
-            if (user.email === "admin@rms.com") {
-                document.getElementById('adminPanel').classList.remove('hidden');
-                loadAdminBankManager();
-            }
-            
-            // 檢查停權狀態
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.email));
-                if(userDoc.exists() && userDoc.data().suspended) {
-                    showAlert("ACCESS DENIED", "YOUR ACCOUNT HAS BEEN SUSPENDED BY SYSTEM ADMINISTRATOR.", () => signOut(auth));
-                    return;
-                }
-            } catch(e) { console.error(e); }
+  onAuthStateChanged(auth, async (user) => {
+      if (user) {
+          document.getElementById('authPanel').classList.add('hidden');
+          document.getElementById('mainPanel').classList.remove('hidden');
+          document.getElementById('userDisplay').innerText = `使用終端: ${user.displayName || user.email}`;
+          if (user.email === "admin@rms.com") {
+              document.getElementById('adminPanel').classList.remove('hidden');
+              loadAdminBankManager();
+          }
+          
+          try {
+              const userDoc = await getDoc(doc(db, "users", user.email));
+              if(userDoc.exists() && userDoc.data().suspended) {
+                  showAlert("存取拒絕", "您的帳號已被系統管理員停權。", () => signOut(auth));
+                  return;
+              }
+          } catch(e) { console.error(e); }
 
-            // 載入公告並強制彈窗
-            try {
-                const snap = await getDocs(collection(db, "announcements"));
-                let annHtml = "";
-                snap.forEach(d => {
-                    const data = d.data();
-                    annHtml += `<p style="margin-bottom:12px; border-bottom:1px dashed var(--border-tech); padding-bottom:8px;"><b style="color:var(--primary);">${data.title || 'BROADCAST'}</b><br>${data.content}</p>`;
-                });
-                if(annHtml) {
-                    document.getElementById('announcementModalContent').innerHTML = annHtml;
-                    document.getElementById('announcementModal').classList.remove('hidden');
-                }
-            } catch(e) { console.error(e); }
-        } else {
-            document.getElementById('authPanel').classList.remove('hidden');
-            document.getElementById('mainPanel').classList.add('hidden');
-        }
-    });
+          try {
+              const snap = await getDocs(collection(db, "announcements"));
+              let annHtml = "";
+              snap.forEach(d => {
+                  const data = d.data();
+                  annHtml += `<p style="margin-bottom:12px; border-bottom:1px dashed var(--border-tech); padding-bottom:8px;"><b style="color:var(--primary);">${data.title || '系統廣播'}</b><br>${data.content}</p>`;
+              });
+              if(annHtml) {
+                  document.getElementById('announcementModalContent').innerHTML = annHtml;
+                  document.getElementById('announcementModal').classList.remove('hidden');
+              }
+          } catch(e) { console.error(e); }
+      } else {
+          document.getElementById('authPanel').classList.remove('hidden');
+          document.getElementById('mainPanel').classList.add('hidden');
+      }
+  });
 
-    window.closeAnnouncementModal = () => document.getElementById('announcementModal').classList.add('hidden');
+  window.closeAnnouncementModal = () => document.getElementById('announcementModal').classList.add('hidden');
 
-    // 載入管理員題庫清單 (含開關與時間控制)
-    window.loadAdminBankManager = async () => {
-        try {
-            const snap = await getDocs(collection(db, "banks"));
-            let html = "<table><tr><th>CODE</th><th>TITLE</th><th>STATE</th><th>START TIME</th><th>END TIME</th><th>ACTION</th></tr>";
-            let count = 0;
-            snap.forEach(d => {
-                count++;
-                const data = d.data();
-                const isPublished = data.published !== false;
-                const startTime = data.startTime || "";
-                const endTime = data.endTime || "";
+  window.loadAdminBankManager = async () => {
+      try {
+          const snap = await getDocs(collection(db, "banks"));
+          let html = "<table><tr><th>代碼</th><th>標題</th><th>狀態</th><th>開始時間</th><th>結束時間</th><th>操作</th></tr>";
+          let count = 0;
+          snap.forEach(d => {
+              count++;
+              const data = d.data();
+              const isPublished = data.published !== false;
+              const startTime = data.startTime || "";
+              const endTime = data.endTime || "";
 
-                html += `<tr>
-                    <td><code>${d.id}</code></td>
-                    <td><b>${data.title || 'UNNAMED'}</b></td>
-                    <td style="text-align:center;">
-                        <label class="switch">
-                            <input type="checkbox" id="pub_${d.id}" ${isPublished ? 'checked' : ''}>
-                            <span class="slider"></span>
-                        </label>
-                    </td>
-                    <td><input type="datetime-local" id="start_${d.id}" value="${startTime}" style="margin-bottom:0; font-size:0.8rem; padding:4px;"></td>
-                    <td><input type="datetime-local" id="end_${d.id}" value="${endTime}" style="margin-bottom:0; font-size:0.8rem; padding:4px;"></td>
-                    <td><button onclick="updateBankSchedule('${d.id}')" style="padding:6px 10px; font-size:0.8rem;">SAVE</button></td>
-                </tr>`;
-            });
-            if(count === 0) html = "<p style='color:var(--text-muted); text-align:center; padding:15px;'>NO ASSESSMENT BANKS FOUND.</p>";
-            else html += "</table>";
-            document.getElementById('adminBankListTable').innerHTML = html;
-        } catch(e) {
-            showAlert("READ ERROR", e.message);
-        }
-    };
+              html += `<tr>
+                  <td><code>${d.id}</code></td>
+                  <td><b>${data.title || '未命名'}</b></td>
+                  <td style="text-align:center;">
+                      <label class="switch">
+                          <input type="checkbox" id="pub_${d.id}" ${isPublished ? 'checked' : ''}>
+                          <span class="slider"></span>
+                      </label>
+                  </td>
+                  <td><input type="datetime-local" id="start_${d.id}" value="${startTime}" style="margin-bottom:0; font-size:0.8rem; padding:4px;"></td>
+                  <td><input type="datetime-local" id="end_${d.id}" value="${endTime}" style="margin-bottom:0; font-size:0.8rem; padding:4px;"></td>
+                  <td><button onclick="updateBankSchedule('${d.id}')" style="padding:6px 10px; font-size:0.8rem;">儲存</button></td>
+              </tr>`;
+          });
+          if(count === 0) html = "<p style='color:var(--text-muted); text-align:center; padding:15px;'>找不到任何測驗題庫。</p>";
+          else html += "</table>";
+          document.getElementById('adminBankListTable').innerHTML = html;
+      } catch(e) {
+          showAlert("讀取錯誤", e.message);
+      }
+  };
 
-    window.updateBankSchedule = async (code) => {
-        const published = document.getElementById(`pub_${code}`).checked;
-        const startTime = document.getElementById(`start_${code}`).value;
-        const endTime = document.getElementById(`end_${code}`).value;
+  window.updateBankSchedule = async (code) => {
+      const published = document.getElementById(`pub_${code}`).checked;
+      const startTime = document.getElementById(`start_${code}`).value;
+      const endTime = document.getElementById(`end_${code}`).value;
 
-        try {
-            await updateDoc(doc(db, "banks", code), { published, startTime, endTime });
-            showAlert("SUCCESS", `ASSESSMENT [${code}] SCHEDULE UPDATED.`);
-        } catch(e) {
-            showAlert("UPDATE ERROR", e.message);
-        }
-    };
+      try {
+          await updateDoc(doc(db, "banks", code), { published, startTime, endTime });
+          showAlert("成功", `測驗 [${code}] 排程已更新。`);
+      } catch(e) {
+          showAlert("更新錯誤", e.message);
+      }
+  };
 
-    // JSON 題庫上傳
-    window.uploadNewBank = async () => {
-        try {
-            const code = document.getElementById('newBankCode').value.trim();
-            const data = JSON.parse(document.getElementById('jsonInput').value);
-            if(!code) return showAlert("ERROR", "PLEASE ENTER CUSTOM BANK CODE");
-            data.published = true;
-            await setDoc(doc(db, "banks", code), data);
-            showAlert("SUCCESS", "JSON ASSESSMENT BANK COMMITTED.", () => {
-                document.getElementById('newBankCode').value = '';
-                document.getElementById('jsonInput').value = '';
-            });
-        } catch(e) {
-            showAlert("PARSING ERROR", "INVALID JSON FORMAT: " + e.message);
-        }
-    };
+  window.uploadNewBank = async () => {
+      try {
+          const code = document.getElementById('newBankCode').value.trim();
+          const data = JSON.parse(document.getElementById('jsonInput').value);
+          if(!code) return showAlert("錯誤", "請輸入自訂題庫代碼");
+          data.published = true;
+          await setDoc(doc(db, "banks", code), data);
+          showAlert("成功", "JSON 測驗題庫已提交。", () => {
+              document.getElementById('newBankCode').value = '';
+              document.getElementById('jsonInput').value = '';
+          });
+      } catch(e) {
+          showAlert("解析錯誤", "無效的 JSON 格式: " + e.message);
+      }
+  };
 
-    // 表單建立：動態新增題目
-    window.addQuestionField = () => {
-        const container = document.getElementById('questionFormArea');
-        const qCard = document.createElement('div');
-        qCard.className = 'q-builder-card';
-        qCard.innerHTML = `
-            <input class="q-text" placeholder="ENTER QUESTION CONTENT" style="font-weight:600;">
-            <div class="options-container">
-                <label style="font-size:0.85rem; color:var(--text-muted);">OPTIONS & CORRECT ANSWER CHECKBOX:</label>
-                <div class="option-row">
-                    <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
-                    <input class="q-opt-input" placeholder="OPTION 1" style="margin-bottom:0;">
-                </div>
+  window.addQuestionField = () => {
+      const container = document.getElementById('questionFormArea');
+      const qCard = document.createElement('div');
+      qCard.className = 'q-builder-card';
+      qCard.innerHTML = `
+          <input class="q-text" placeholder="請輸入題目內容" style="font-weight:600;">
+          <div class="options-container">
+              <label style="font-size:0.85rem; color:var(--text-muted);">選項與正確答案勾選方塊：</label>
+              <div class="option-row">
+                  <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
+                  <input class="q-opt-input" placeholder="選項一" style="margin-bottom:0;">
+              </div>
+              <div class="option-row">
+                  <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
+                  <input class="q-opt-input" placeholder="選項二" style="margin-bottom:0;">
+              </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:8px;">
+              <button onclick="addOptionRow(this)" class="btn-secondary" style="padding:4px 10px; font-size:0.8rem; width:auto;">+ 新增選項</button>
+              <button onclick="this.closest('.q-builder-card').remove()" class="btn-danger" style="padding:4px 10px; font-size:0.8rem; width:auto;">移除節點</button>
+          </div>
+      `;
+      container.appendChild(qCard);
+  };
+
+  window.addOptionRow = (btn) => {
+      const optContainer = btn.previousElementSibling;
+      const row = document.createElement('div');
+      row.className = 'option-row';
+      row.innerHTML = `
+          <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
+          <input class="q-opt-input" placeholder="新選項" style="margin-bottom:0;">
+          <button onclick="this.closest('.option-row').remove()" style="background:none; color:var(--danger); border:none; cursor:pointer; font-weight:bold; width:auto; padding:0 5px;">X</button>
+      `;
+      optContainer.appendChild(row);
+  };
+
+  window.saveFormBank = async () => {
+      const code = document.getElementById('formBankCode').value.trim();
+      const title = document.getElementById('formBankTitle').value.trim();
+      if(!code || !title) return showAlert("錯誤", "請指定題庫代碼與標題");
+      
+      const qCards = document.querySelectorAll('.q-builder-card');
+      if(qCards.length === 0) return showAlert("錯誤", "請至少新增一個題目節點");
+
+      const questions = [];
+      for(let card of qCards) {
+          const qText = card.querySelector('.q-text').value.trim();
+          const optRows = card.querySelectorAll('.option-row');
+          const options = [];
+          const ansList = [];
+
+          optRows.forEach((row, idx) => {
+              const optText = row.querySelector('.q-opt-input').value.trim();
+              const isChecked = row.querySelector('.q-ans-checkbox').checked;
+              if(optText) {
+                  options.push(optText);
+                  if(isChecked) ansList.push(idx);
+              }
+          });
+
+          if(!qText || options.length < 2) return showAlert("錯誤", "每個題目皆需要內容與至少兩個選項");
+          if(ansList.length === 0) return showAlert("錯誤", `題目 "${qText}" 未選擇正確答案`);
+
+          questions.push({ q: qText, options: options, ans: ansList.length === 1 ? ansList[0] : ansList });
+      }
+
+      try {
+          await setDoc(doc(db, "banks", code), { title, questions, published: true, startTime: "", endTime: "" });
+          showAlert("成功", `表單題庫 "${title}" 已提交。`, () => {
+              document.getElementById('formBankCode').value = '';
+              document.getElementById('formBankTitle').value = '';
+              document.getElementById('questionFormArea').innerHTML = '';
+          });
+      } catch(e) {
+          showAlert("提交錯誤", e.message);
+      }
+  };
+
+  window.fetchFirebaseBank = async () => {
+      const code = document.getElementById('bankCode').value.trim();
+      if(!code) return showAlert("錯誤", "請輸入測驗存取代碼");
+
+      try {
+          const docSnap = await getDoc(doc(db, "banks", code));
+          if(!docSnap.exists()) return showAlert("找不到", "此測驗代碼不存在。");
+
+          const bankData = docSnap.data();
+          const now = new Date();
+
+          if(bankData.published === false) return showAlert("已鎖定", "此測驗已被管理員停用。");
+          if(bankData.startTime && now < new Date(bankData.startTime)) return showAlert("尚未開始", `測驗尚未開放。開放時間: ${bankData.startTime.replace('T', ' ')}`);
+          if(bankData.endTime && now > new Date(bankData.endTime)) return showAlert("已過期", `測驗已於以下時間關閉: ${bankData.endTime.replace('T', ' ')}`);
+
+          renderQuiz(code, bankData);
+      } catch(e) {
+          showAlert("讀取錯誤", e.message);
+      }
+  };
+
+  function renderQuiz(code, bankData) {
+      let html = `<div class="panel" style="border:1px solid var(--primary);">
+          <h2 style="color:var(--primary); margin-top:0;">測驗: ${bankData.title || '未命名'}</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">存取代碼: ${code}</p>
+          <form id="activeQuizForm">`;
+
+      bankData.questions.forEach((item, qIdx) => {
+          const isMulti = Array.isArray(item.ans);
+          html += `<div class="quiz-question-card">
+              <p style="font-weight:600; margin-top:0;">第 ${qIdx + 1} 題. ${item.q} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">(${isMulti ? '複選題' : '單選題'})</span></p>`;
+          
+          item.options.forEach((opt, oIdx) => {
+              const inputType = isMulti ? 'checkbox' : 'radio';
+              html += `<label style="display:block; margin-bottom:8px; cursor:pointer; font-size:0.95rem;">
+                  <input type="${inputType}" name="q_${qIdx}" value="${oIdx}" style="width:auto; margin-right:8px;"> ${opt}
+              </label>`;
+          });
+          html += `</div>`;
+      });
+
+      html += `<button type="button" onclick="submitQuizScore('${code}', '${bankData.title || '未命名'}')" class="btn-success" style="width:100%; padding:12px; font-size:1rem;">提交測驗矩陣</button>
+          </form></div>`;
+
+      document.getElementById('quizContainer').innerHTML = html;
+      window.currentBankQuestions = bankData.questions;
+  }
+
+  window.submitQuizScore = async (code, bankTitle) => {
+      const questions = window.currentBankQuestions;
+      let score = 0;
+      const totalQ = questions.length;
+      const pointsPerQ = 100 / totalQ;
+
+      questions.forEach((item, qIdx) => {
+          const isMulti = Array.isArray(item.ans);
+          const selected = document.querySelectorAll(`input[name="q_${qIdx}"]:checked`);
+          
+          if(isMulti) {
+              const userAns = Array.from(selected).map(el => parseInt(el.value)).sort();
+              const correctAns = [...item.ans].sort();
+              if(JSON.stringify(userAns) === JSON.stringify(correctAns)) score += pointsPerQ;
+          } else {
+              if(selected.length === 1 && parseInt(selected[0].value) === item.ans) score += pointsPerQ;
+          }
+      });
+
+      score = Math.round(score);
+
+      try {
+          await addDoc(collection(db, "quiz_results"), {
+              userEmail: auth.currentUser ? auth.currentUser.email : "訪客",
+              bankCode: code,
+              bankTitle: bankTitle,
+              score: score,
+              timestamp: serverTimestamp()
+          });
+
+          showAlert("已完成", `測驗提交成功。最終分數: ${score} 分`, () => {
+              document.getElementById('quizContainer').innerHTML = ``;
+              document.getElementById('bankCode').value = '';
+          });
+      } catch(e) {
+          showAlert("提交錯誤", e.message);
+      }
+  };
+
+  window.loadExamResults = async () => {
+      try {
+          const snap = await getDocs(collection(db, "quiz_results"));
+          let html = "<table><tr><th>考生</th><th>測驗標題</th><th>分數</th></tr>";
+          let count = 0;
+          snap.forEach(d => {
+              count++;
+              const data = d.data();
+              html += `<tr><td>${data.userEmail}</td><td>${data.bankTitle || '未命名'}</td><td><b style="color:var(--primary);">${data.score}</b> 分</td></tr>`;
+          });
+          if(count === 0) html = "<p style='color:var(--text-muted); text-align:center; padding:15px;'>沒有記錄到任何結果資料。</p>";
+          else html += "</table>";
+          document.getElementById('resultsTable').innerHTML = html;
+      } catch(e) {
+          showAlert("讀取錯誤", e.message);
+      }
+  };
+
+  window.suspendUser = async () => {
+      const email = document.getElementById('targetEmail').value.trim();
+      if(!email) return showAlert("錯誤", "請輸入目標電子郵件");
+      try {
+          await setDoc(doc(db, "users", email), { suspended: true }, { merge: true });
+          showAlert("成功", `考生 [${email}] 已被停權。`);
+      } catch(e) {
+          showAlert("錯誤", e.message);
+      }
+  };
+
+  window.sendAnnouncement = async () => {
+      const title = document.getElementById('annTitle').value.trim();
+      const content = document.getElementById('annContent').value.trim();
+      if(!title || !content) return showAlert("錯誤", "請填寫完整的標題與內容");
+      try {
+          await addDoc(collection(db, "announcements"), { title, content, timestamp: serverTimestamp() });
+          showAlert("成功", "全域廣播已傳送。", () => {
+              document.getElementById('annTitle').value = '';
+              document.getElementById('annContent').value = '';
+          });
+      } catch(e) {
+          showAlert("錯誤", e.message);
+      }
+  };
+</script>
+</body>
+</html>
