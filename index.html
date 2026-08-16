@@ -2,467 +2,145 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RMS 雲端測驗與管理系統</title>
-    <!-- 引入 jsPDF 用於產生證書 -->
+    <title>雲端測驗與管理系統</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root {
-            --primary: #2563eb;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --bg: #f8fafc;
-            --card: #ffffff;
-        }
-        /* 防作弊：禁止選取文字與右鍵 */
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: var(--bg); margin: 0; padding: 20px; color: #334155; 
-            user-select: none; -webkit-user-select: none; 
-        }
-        .container { max-width: 750px; margin: 0 auto; background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        h1 { margin-top: 0; font-size: 1.5rem; color: #0f172a; text-align: center; }
-
+        :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .hidden { display: none !important; }
-        .panel { background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        input[type="text"], input[type="password"], input[type="email"] { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
-        
-        button { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
-        button:hover { opacity: 0.9; }
-        .btn-danger { background: var(--danger); width: auto; }
+        .panel { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin: 5px 0; }
         .btn-success { background: var(--success); }
-
-        /* 第三方登入按鈕共用樣式 */
-        .btn-provider {
-            background: white;
-            color: #374151;
-            border: 1px solid #cbd5e1;
-            padding: 12px 20px;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 10px;
-            transition: background 0.2s;
-            width: 100%;
-        }
-        .btn-provider:hover { background: #f8fafc; }
-        .btn-apple { background: #000; color: #fff; border: 1px solid #000; }
-        .btn-apple:hover { background: #222; }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: #94a3b8;
-            margin: 15px 0;
-            font-size: 0.85rem;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #cbd5e1;
-        }
-        .divider::before { margin-right: .75em; }
-        .divider::after { margin-left: .75em; }
-
-        .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #eff6ff; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
-        .timer { color: #b91c1c; }
-
-        .q-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; margin-bottom: 16px; text-align: left; }
-        .q-title { font-weight: 600; margin-bottom: 12px; }
-        .option-label { display: block; padding: 10px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 8px; cursor: pointer; text-align: left; }
-        .option-label:hover { background: #eff6ff; }
-        
-        .correct-opt { background: #dcfce7 !important; border-color: var(--success) !important; color: #14532d; font-weight: bold; }
-        .wrong-opt { background: #fee2e2 !important; border-color: var(--danger) !important; color: #7f1d1d; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 8px; }
-        .badge-success { background: #22c55e; color: white; }
-        .badge-danger { background: #ef4444; color: white; }
-
-        .result-box { text-align: center; padding: 20px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; margin-top: 20px; }
-        .score { font-size: 2.2rem; font-weight: bold; color: #047857; margin: 10px 0; }
-        
-        .user-info-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.9rem; background: #e2e8f0; padding: 8px 12px; border-radius: 6px; }
+        .btn-danger { background: var(--danger); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container" id="appContainer">
-    <h1>RMS 雲端測驗與管理系統</h1>
-
-    <!-- 1. 多重登入畫面區 -->
-    <div id="authPanel" class="panel">
-        <p style="margin-bottom: 15px; color: #64748b;">請選擇登入方式以開始測驗</p>
-
-        <!-- 第三方快速登入 -->
-        <button onclick="handleGoogleLogin()" class="btn-provider">
-            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-            </svg>
-            使用 Google 帳號登入
-        </button>
-
-        <button onclick="handleAppleLogin()" class="btn-provider btn-apple">
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 5.16c.55-.67.92-1.6.82-2.53-.82.03-1.82.55-2.41 1.22-.52.59-.98 1.54-.85 2.46.92.07 1.86-.48 2.44-1.15z"/>
-            </svg>
-            使用 Apple 帳號登入
-        </button>
-
-        <div class="divider">或使用電子郵件</div>
-
-        <!-- 傳統信箱密碼登入/註冊 -->
-        <div class="input-group">
-            <input type="email" id="authEmail" placeholder="電子郵件">
-        </div>
-        <div class="input-group">
-            <input type="password" id="authPassword" placeholder="密碼">
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="handleEmailLogin()">登入</button>
-            <button onclick="handleEmailRegister()" class="btn-success">註冊</button>
-        </div>
+    <h1>RMS 雲端測驗系統</h1>
+    
+    <!-- 登入區 -->
+    <div id="authPanel">
+        <input type="email" id="authEmail" placeholder="Email">
+        <input type="password" id="authPassword" placeholder="密碼">
+        <button onclick="handleEmailLogin()">登入</button>
+        <button onclick="handleEmailRegister()" class="btn-success">註冊</button>
     </div>
 
-    <!-- 2. 主操作介面 (登入後顯示) -->
+    <!-- 主選單 -->
     <div id="mainPanel" class="hidden">
-        <div class="user-info-bar">
-            <span id="userDisplay">使用者：未登入</span>
-            <button onclick="handleLogout()" class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem;">登出</button>
+        <div class="user-info-bar">歡迎：<span id="userEmailDisplay"></span> <button onclick="handleLogout()">登出</button></div>
+        
+        <div class="panel">
+            <h3>測驗入口</h3>
+            <input type="text" id="bankCode" placeholder="輸入題庫代碼">
+            <button onclick="fetchFirebaseBank()">開始測驗</button>
+            <button onclick="loadOpenBanks()">瀏覽開放題庫</button>
         </div>
 
-        <!-- 測驗載入控制台 -->
-        <div class="panel" style="text-align: left;">
-            <div class="input-group">
-                <input type="text" id="bankCode" placeholder="輸入 Firebase 題庫代碼 (例如: 001)">
-                <button onclick="fetchFirebaseBank()" style="width: auto;">載入題庫測驗</button>
+        <!-- 管理員控制台 -->
+        <div id="adminPanel" class="panel hidden" style="border: 2px dashed #eab308;">
+            <h3>管理員控制台</h3>
+            <button onclick="showTab('tab1')">JSON 建立</button>
+            <button onclick="showTab('tab2')">成績查看</button>
+            <button onclick="showTab('tab3')">用戶停權</button>
+            <button onclick="showTab('tab4')">公告通知</button>
+            <button onclick="showTab('tab5')">表單建立</button>
+
+            <div id="tab1" class="admin-tab hidden">
+                <input type="text" id="newBankCode" placeholder="代碼">
+                <textarea id="jsonInput" placeholder='JSON: {"title":"考試名稱", "questions":[]}'></textarea>
+                <button onclick="uploadNewBank()">上傳 JSON</button>
             </div>
-            <div style="display: flex; gap: 15px; font-size: 0.9rem; align-items: center;">
-                <label><input type="checkbox" id="chkShuffle"> 隨機洗牌題目與選項</label>
-                <label><input type="checkbox" id="chkTimer"> 啟用限時 (每題 1 分鐘)</label>
+            <div id="tab2" class="admin-tab hidden"><button onclick="loadExamResults()">重新整理</button><div id="resultsTable"></div></div>
+            <div id="tab3" class="admin-tab hidden"><input id="targetEmail" placeholder="Email"><button onclick="suspendUser()" class="btn-danger">停權該用戶</button></div>
+            <div id="tab4" class="admin-tab hidden"><input id="annTitle" placeholder="標題"><textarea id="annContent" placeholder="內容"></textarea><button onclick="sendAnnouncement()">發送公告</button></div>
+            <div id="tab5" class="admin-tab hidden">
+                <input id="formBankCode" placeholder="代碼"><input id="formBankTitle" placeholder="考試名稱">
+                <div id="questionFormArea"></div><button onclick="addQuestionField()">+ 新增題目</button><button onclick="saveFormBank()" class="btn-success">儲存表單題庫</button>
             </div>
         </div>
-
-        <!-- 管理員專用控制台 -->
-        <div id="adminPanel" class="panel hidden" style="border: 2px dashed #eab308; text-align: left;">
-            <h3 style="margin-top:0; color:#b45309;">👑 管理員控制台</h3>
-            <p style="font-size:0.8rem; color:#64748b;">(提示：可在 Firebase Firestore 手動維護 `banks` 集合以擴充題庫資料)</p>
-        </div>
-    </div>
-
-    <!-- 3. 計時與資訊列 -->
-    <div id="statusBar" class="status-bar hidden">
-        <span id="bankTitleDisplay">題庫名稱</span>
-        <span class="timer" id="timerDisplay">剩餘時間: --:--</span>
-    </div>
-
-    <!-- 4. 題目作答區 -->
-    <div id="quizContainer"></div>
-
-    <!-- 5. 成績結算與證書區 -->
-    <div id="resultBox" class="result-box hidden">
-        <h2>測驗完成！成績已同步至雲端</h2>
-        <div class="score" id="scoreText">0 / 0</div>
-        <button onclick="generatePDFCertificate()" class="btn-success" style="margin-top: 10px; width: auto;">下載結算證書 (PDF)</button>
+        
+        <div id="quizContainer"></div>
+        <div id="announcementArea" class="panel"></div>
     </div>
 </div>
 
-<!-- Firebase SDK & 核心邏輯 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
-    import { 
-        getAuth, 
-        GoogleAuthProvider, 
-        OAuthProvider, 
-        signInWithPopup, 
-        signInWithEmailAndPassword, 
-        createUserWithEmailAndPassword, 
-        signOut, 
-        onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-    // 💡 已帶入你的正確 Firebase 設定
-    const firebaseConfig = {
-        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
-        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
-        databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "rms-quiz-system-dbserver",
-        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
-        messagingSenderId: "769519554299",
-        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
-        measurementId: "G-939JE1X57X"
-    };
-
+    const firebaseConfig = { /* 請填入你的 Firebase 設定 */ };
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    
-    const googleProvider = new GoogleAuthProvider();
-    const appleProvider = new OAuthProvider('apple.com');
 
-    let currentUser = null;
-    let currentQuestions = [];
-    let originalData = null;
-    let timerInterval = null;
-    let secondsLeft = 0;
-    let activeBankCode = "";
-    let lastFinalScore = 0;
+    // 基礎功能
+    window.handleEmailLogin = () => signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
+    window.handleEmailRegister = () => createUserWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
+    window.handleLogout = () => signOut(auth);
+    window.showTab = (id) => { document.querySelectorAll('.admin-tab').forEach(t=>t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
 
-    // 🔐 防作弊：禁止右鍵與複製
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('copy', event => event.preventDefault());
-
-    // 帳號狀態監聽
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUser = user;
             document.getElementById('authPanel').classList.add('hidden');
             document.getElementById('mainPanel').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = `使用者：${user.displayName || user.email}`;
-
-            // 管理員權限判定
-            if (user.email === "admin@rms.com") {
-                document.getElementById('adminPanel').classList.remove('hidden');
-            }
+            document.getElementById('userEmailDisplay').innerText = user.email;
+            if (user.email === "admin@rms.com") document.getElementById('adminPanel').classList.remove('hidden');
+            // 載入公告
+            const snap = await getDocs(collection(db, "announcements"));
+            snap.forEach(d => document.getElementById('announcementArea').innerHTML += `<div><b>${d.data().title}</b>: ${d.data().content}</div>`);
         } else {
-            currentUser = null;
             document.getElementById('authPanel').classList.remove('hidden');
             document.getElementById('mainPanel').classList.add('hidden');
-            document.getElementById('adminPanel').classList.add('hidden');
         }
     });
 
-    // Google 登入
-    window.handleGoogleLogin = async function() {
-        try {
-            await signInWithPopup(auth, googleProvider);
-        } catch (e) {
-            console.error(e);
-            alert('Google 登入失敗：' + e.message);
-        }
+    // 題庫/管理功能實作
+    window.addQuestionField = () => {
+        const div = document.createElement('div');
+        div.innerHTML = `<input class="q-text" placeholder="題目"><input class="q-opt" placeholder="選項(逗號隔開)"><input class="q-ans" placeholder="答案索引(0-3)">`;
+        document.getElementById('questionFormArea').appendChild(div);
     };
 
-    // Apple 登入
-    window.handleAppleLogin = async function() {
-        try {
-            await signInWithPopup(auth, appleProvider);
-        } catch (e) {
-            console.error(e);
-            alert('Apple 登入失敗：' + e.message);
-        }
+    window.saveFormBank = async () => {
+        const questions = Array.from(document.querySelectorAll('#questionFormArea > div')).map(d => ({
+            q: d.querySelector('.q-text').value,
+            options: d.querySelector('.q-opt').value.split(','),
+            ans: parseInt(d.querySelector('.q-ans').value)
+        }));
+        await setDoc(doc(db, "banks", document.getElementById('formBankCode').value), { title: document.getElementById('formBankTitle').value, questions });
+        alert("題庫建立完成");
     };
 
-    // 電子郵件登入
-    window.handleEmailLogin = async function() {
-        const email = document.getElementById('authEmail').value;
-        const pass = document.getElementById('authPassword').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (e) {
-            alert('登入失敗：' + e.message);
-        }
+    window.loadOpenBanks = async () => {
+        const snap = await getDocs(collection(db, "banks"));
+        let html = "<h4>開放題庫清單：</h4>";
+        snap.forEach(d => html += `<div class="panel"><b>${d.data().title}</b> (代碼: ${d.id})</div>`);
+        document.getElementById('quizContainer').innerHTML = html;
     };
 
-    // 電子郵件註冊
-    window.handleEmailRegister = async function() {
-        const email = document.getElementById('authEmail').value;
-        const pass = document.getElementById('authPassword').value;
-        try {
-            await createUserWithEmailAndPassword(auth, email, pass);
-            alert('註冊成功並已自動登入！');
-        } catch (e) {
-            alert('註冊失敗：' + e.message);
-        }
+    window.sendAnnouncement = async () => {
+        await addDoc(collection(db, "announcements"), { title: document.getElementById('annTitle').value, content: document.getElementById('annContent').value, timestamp: serverTimestamp() });
+        alert("公告已發送");
     };
 
-    // 登出功能
-    window.handleLogout = async function() {
-        await signOut(auth);
-        document.getElementById('quizContainer').innerHTML = '';
-        document.getElementById('statusBar').classList.add('hidden');
-        document.getElementById('resultBox').classList.add('hidden');
+    window.loadExamResults = async () => {
+        const snap = await getDocs(collection(db, "quiz_results"));
+        let html = "<table><tr><th>考生</th><th>考試名稱</th><th>成績</th></tr>";
+        snap.forEach(d => html += `<tr><td>${d.data().userEmail}</td><td>${d.data().bankTitle}</td><td>${d.data().score}</td></tr>`);
+        document.getElementById('resultsTable').innerHTML = html + "</table>";
     };
 
-    // 從 Firestore 載入題庫
-    window.fetchFirebaseBank = async function() {
-        const code = document.getElementById('bankCode').value.trim();
-        if (!code) return alert('請輸入題庫代碼');
-        activeBankCode = code;
-
-        try {
-            const docRef = doc(db, "banks", code);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                originalData = docSnap.data();
-                initQuiz();
-            } else {
-                alert(`雲端找不到代碼為 "${code}" 的題庫`);
-            }
-        } catch (error) {
-            console.error(error);
-            alert('讀取雲端題庫失敗，請確認網路或 Firebase 權限設定。');
-        }
-    };
-
-    function initQuiz() {
-        clearInterval(timerInterval);
-        currentQuestions = JSON.parse(JSON.stringify(originalData.questions));
-
-        const shouldShuffle = document.getElementById('chkShuffle').checked;
-        const useTimer = document.getElementById('chkTimer').checked;
-
-        if (shouldShuffle) {
-            currentQuestions.sort(() => Math.random() - 0.5);
-            currentQuestions.forEach(q => {
-                const originalAnsText = q.options[q.ans];
-                q.options.sort(() => Math.random() - 0.5);
-                q.ans = q.options.indexOf(originalAnsText);
-            });
-        }
-
-        if (useTimer) {
-            secondsLeft = currentQuestions.length * 60;
-            document.getElementById('timerDisplay').style.display = 'inline';
-            startTimer();
-        } else {
-            document.getElementById('timerDisplay').style.display = 'none';
-        }
-
-        document.getElementById('bankTitleDisplay').innerText = originalData.title;
-        document.getElementById('statusBar').classList.remove('hidden');
-        document.getElementById('resultBox').classList.add('hidden');
-
-        renderQuiz();
-    }
-
-    function startTimer() {
-        updateTimerDisplay();
-        timerInterval = setInterval(() => {
-            secondsLeft--;
-            updateTimerDisplay();
-            if (secondsLeft <= 0) {
-                clearInterval(timerInterval);
-                alert('時間到！系統已自動提交試卷。');
-                window.calculateScore();
-            }
-        }, 1000);
-    }
-
-    function updateTimerDisplay() {
-        const mins = Math.floor(secondsLeft / 60);
-        const secs = secondsLeft % 60;
-        document.getElementById('timerDisplay').innerText = `剩餘時間: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function renderQuiz() {
-        const container = document.getElementById('quizContainer');
-        let html = `<form id="quizForm">`;
-
-        currentQuestions.forEach((q, qIdx) => {
-            html += `
-                <div class="q-card">
-                    <div class="q-title">${qIdx + 1}. ${q.q} <span id="badge_${qIdx}"></span></div>
-                    ${q.options.map((opt, oIdx) => `
-                        <label class="option-label" id="optLabel_${qIdx}_${oIdx}">
-                            <input type="radio" name="q_${qIdx}" value="${oIdx}"> ${opt}
-                        </label>
-                    `).join('')}
-                </div>
-            `;
-        });
-
-        html += `<button type="button" class="btn-success" style="padding:12px;" onclick="window.calculateScore()">提交試卷並結算</button></form>`;
-        container.innerHTML = html;
-    }
-
-    // 計算分數並寫入雲端紀錄
-    window.calculateScore = async function() {
-        clearInterval(timerInterval);
-        let score = 0;
-        const form = document.getElementById('quizForm');
-
-        currentQuestions.forEach((q, qIdx) => {
-            const selectedVal = form[`q_${qIdx}`]?.value;
-            const selectedOpt = selectedVal !== undefined ? parseInt(selectedVal) : -1;
-            const badgeEl = document.getElementById(`badge_${qIdx}`);
-
-            const inputs = document.getElementsByName(`q_${qIdx}`);
-            inputs.forEach(i => i.disabled = true);
-
-            document.getElementById(`optLabel_${qIdx}_${q.ans}`).classList.add('correct-opt');
-
-            if (selectedOpt === q.ans) {
-                score++;
-                badgeEl.innerHTML = `<span class="badge badge-success">答對</span>`;
-            } else {
-                badgeEl.innerHTML = `<span class="badge badge-danger">答錯</span>`;
-                if (selectedOpt !== -1) {
-                    document.getElementById(`optLabel_${qIdx}_${selectedOpt}`).classList.add('wrong-opt');
-                }
-            }
-        });
-
-        const total = currentQuestions.length;
-        lastFinalScore = Math.round((score / total) * 100);
-        
-        document.getElementById('scoreText').innerText = `${score} / ${total} 題 (${lastFinalScore}分)`;
-        document.getElementById('resultBox').classList.remove('hidden');
-
-        // 上傳成績至 Firestore
-        try {
-            await addDoc(collection(db, "quiz_results"), {
-                userName: currentUser.displayName || currentUser.email || "未命名",
-                userEmail: currentUser.email || "無信箱",
-                bankCode: activeBankCode,
-                bankTitle: originalData.title,
-                score: lastFinalScore,
-                correctCount: score,
-                totalQuestions: total,
-                timestamp: serverTimestamp()
-            });
-        } catch (e) {
-            console.error("寫入成績失敗：", e);
-        }
-
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    };
-
-    // PDF 證書生成模組
-    window.generatePDFCertificate = function() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(22);
-        doc.text("RMS Certificate of Completion", 105, 40, { align: "center" });
-
-        doc.setFontSize(14);
-        doc.text(`This is to certify that`, 105, 65, { align: "center" });
-        
-        doc.setFontSize(18);
-        doc.text(`${currentUser.displayName || currentUser.email}`, 105, 80, { align: "center" });
-
-        doc.setFontSize(14);
-        doc.text(`has successfully passed the assessment`, 105, 100, { align: "center" });
-        
-        doc.setFontSize(16);
-        doc.text(`Test: ${originalData.title}`, 105, 115, { align: "center" });
-        doc.text(`Final Score: ${lastFinalScore} Points`, 105, 130, { align: "center" });
-
-        doc.save(`RMS-Certificate-${activeBankCode}.pdf`);
+    window.suspendUser = async () => {
+        await setDoc(doc(db, "users", document.getElementById('targetEmail').value), { suspended: true }, { merge: true });
+        alert("該用戶已被停權");
     };
 </script>
-
 </body>
 </html>
