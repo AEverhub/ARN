@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>題庫考場系統</title>
+  <title>題庫考場系統 V19.6.01</title>
   <style>
     :root {
       --primary: #3b82f6;
@@ -56,10 +55,6 @@
     #exam-viewport { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 1000; display: none; flex-direction: column; }
     #cheat-bar { background-color: var(--danger); color: white; padding: 8px; font-size: 0.85rem; font-weight: bold; text-align: center; display: none; }
   </style>
-
-  <!-- 引入 banks 資料夾中的獨立題庫 JS 檔 -->
-  <script src="banks/MATH01.js"></script>
-  <script src="banks/ENG01.js"></script>
 </head>
 <body>
 
@@ -95,20 +90,16 @@
   <!-- 主要內容區 -->
   <div id="main-content">
 
-    <!-- 1. 考場首頁與公開題庫 -->
+    <!-- 1. 考場首頁 -->
     <div id="tab-home" class="content-section active">
       <div class="card">
-        <h3>公開題庫大廳</h3>
-        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">點擊直接開始測驗：</p>
-        <div id="public-banks-list">載入題庫中...</div>
-      </div>
-
-      <div class="card">
-        <h3>輸入私人代碼測驗</h3>
-        <div class="form-group" style="margin-top: 8px;">
-          <input type="text" id="practice-code" placeholder="請輸入題庫代碼 (例: ENG01)">
+        <h3>輸入外部題庫代碼測驗</h3>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">請輸入檔名/代碼 (例如: MATH01，系統將自動載入 banks/MATH01.js)：</p>
+        <div class="form-group">
+          <input type="text" id="practice-code" placeholder="請輸入題庫代碼 (例: MATH01)">
         </div>
-        <button class="btn" onclick="startPracticeExamByInput()">進入測驗</button>
+        <div id="load-status" style="font-size: 0.85rem; margin-bottom: 10px; font-weight: bold;"></div>
+        <button class="btn" onclick="startPracticeExamByInput()">載入並開始測驗</button>
       </div>
 
       <div class="card">
@@ -117,7 +108,7 @@
       </div>
     </div>
 
-    <!-- 2. 排行榜 (所有人可看，管理員可改) -->
+    <!-- 2. 排行榜 -->
     <div id="tab-ranking" class="content-section">
       <div class="card">
         <h3>官方/練習排行榜</h3>
@@ -143,14 +134,9 @@
     <!-- 3. 管理員後台 -->
     <div id="tab-admin" class="content-section">
       <div class="card">
-        <h3>已載入的外部 JS 題庫清單</h3>
-        <div id="admin-banks-setting"></div>
-      </div>
-
-      <div class="card">
         <h3>建立官方考試日程</h3>
         <div class="form-group"><label>時間</label><input type="datetime-local" id="sched-time"></div>
-        <div class="form-group"><label>題庫代碼</label><input type="text" id="sched-bank" placeholder="MATH01"></div>
+        <div class="form-group"><label>題庫代碼 (需有對應 js 檔)</label><input type="text" id="sched-bank" placeholder="MATH01"></div>
         <div class="form-group">
           <label>指定考生</label>
           <select id="sched-users" multiple style="height: 80px;"></select>
@@ -198,7 +184,18 @@
   </div>
 
   <script>
-    // 初始化預設帳號與儲存空間
+    // 全域變數定義
+    window.QUIZ_BANKS = {}; 
+    let currentUser = null;
+    let isRegisterMode = false;
+    let currentActiveExam = null;
+    let cheatCount = 0;
+    let isMarkedCheat = false;
+    let currentQuestions = [];
+    let currentAnswers = {};
+    let wrongQuestions = [];
+
+    // 初始化儲存區
     function initDB() {
       if (!localStorage.getItem('sys_users')) {
         const users = {
@@ -213,16 +210,56 @@
     }
     initDB();
 
-    let currentUser = null;
-    let isRegisterMode = false;
-    let currentActiveExam = null;
-    let cheatCount = 0;
-    let isMarkedCheat = false;
-    let currentQuestions = [];
-    let currentAnswers = {};
-    let wrongQuestions = [];
+    // 【核心邏輯】傳統動態注入外部 JS 題庫腳本
+    function loadExternalQuizScript(code, callback) {
+      const statusDiv = document.getElementById('load-status');
+      statusDiv.style.color = "var(--primary)";
+      statusDiv.innerText = "⏳ 載入外部檔案中...";
 
-    // 帳號認證邏輯
+      // 清除舊腳本
+      const oldScript = document.getElementById('dynamic-quiz-script');
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement('script');
+      script.id = 'dynamic-quiz-script';
+      // 可支援相對路徑，若檔案放置於 banks/ 目錄下：
+      script.src = `banks/${code}.js`;
+
+      script.onload = () => {
+        if (window.QUIZ_BANKS && window.QUIZ_BANKS[code]) {
+          statusDiv.style.color = "var(--success)";
+          statusDiv.innerText = `✅ 成功讀取外部題庫：${window.QUIZ_BANKS[code].title || code}`;
+          callback(true);
+        } else if (window.currentQuiz) {
+          // 相容舊版 currentQuiz 物件格式
+          window.QUIZ_BANKS[code] = {
+            code: code,
+            title: window.currentQuiz.name || code,
+            questions: window.currentQuiz.data.map(q => ({
+              question: q.q,
+              options: q.o,
+              answer: q.a
+            }))
+          };
+          statusDiv.style.color = "var(--success)";
+          statusDiv.innerText = `✅ 成功讀取外部題庫：${window.QUIZ_BANKS[code].title}`;
+          callback(true);
+        } else {
+          statusDiv.style.color = "var(--danger)";
+          statusDiv.innerText = "❌ 檔案已讀取，但格式不符！";
+          callback(false);
+        }
+      };
+
+      script.onerror = () => {
+        statusDiv.style.color = "var(--danger)";
+        statusDiv.innerText = `❌ 載入失敗！找不到檔案 banks/${code}.js`;
+        callback(false);
+      };
+
+      document.head.appendChild(script);
+    }
+
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
       document.getElementById('auth-title').innerText = isRegisterMode ? "帳號註冊" : "系統登入";
@@ -264,7 +301,6 @@
         document.getElementById('th-admin-op').style.display = 'table-cell';
         loadAdminData();
       }
-      renderPublicBanks();
       renderHomeSchedules();
       checkPopups();
     }
@@ -276,54 +312,27 @@
       btn.classList.add('active');
     }
 
-    // 渲染由 JS 自動註冊的題庫
-    function renderPublicBanks() {
-      const banks = window.QUIZ_BANKS || {};
-      const container = document.getElementById('public-banks-list');
-      container.innerHTML = '';
-
-      const publicList = Object.values(banks).filter(b => b.isPublic);
-      if (publicList.length === 0) { container.innerHTML = '<span style="font-size:0.85rem; color:#64748b;">目前無公開題庫</span>'; return; }
-
-      publicList.forEach(b => {
-        container.innerHTML += `
-          <div class="bank-item">
-            <div>
-              <strong>${b.title}</strong>
-              <div style="font-size:0.75rem; color:#64748b;">代碼: ${b.code}</div>
-            </div>
-            <button class="btn btn-sm btn-success" onclick="launchExamViewport('${b.code}', false, false)">進入考試</button>
-          </div>
-        `;
-      });
-    }
-
     function startPracticeExamByInput() {
       const code = document.getElementById('practice-code').value.trim().toUpperCase();
       if (!code) return alert('請輸入代碼');
-      launchExamViewport(code, false, false);
+      
+      loadExternalQuizScript(code, (success) => {
+        if (success) {
+          launchExamViewport(code, false, false);
+        }
+      });
     }
 
-    // 啟動考場
     function launchExamViewport(bankCode, isOfficial, isRetry) {
-      const banks = window.QUIZ_BANKS || {};
-      const bank = banks[bankCode];
-
-      if (!bank) {
-        alert(`找不到題庫代碼【${bankCode}】！請確認 banks/${bankCode}.js 檔案已上傳且路徑正確。`);
-        return;
-      }
+      const bank = window.QUIZ_BANKS[bankCode];
+      if (!bank) return alert("題庫未成功載入！");
 
       currentActiveExam = { bankCode, isOfficial, isRetry };
       cheatCount = 0;
       isMarkedCheat = false;
       currentAnswers = {};
 
-      if (isRetry) {
-        currentQuestions = [...wrongQuestions];
-      } else {
-        currentQuestions = bank.questions;
-      }
+      currentQuestions = isRetry ? [...wrongQuestions] : bank.questions;
 
       document.getElementById('cheat-bar').style.display = 'none';
       document.getElementById('question-container').style.display = 'block';
@@ -370,7 +379,6 @@
       currentAnswers[qIndex] = value;
     }
 
-    // 防作弊監控邏輯
     function handlePageBlur() {
       if (!currentActiveExam) return;
       cheatCount++;
@@ -400,7 +408,6 @@
       const calculatedScore = Math.round((correctCount / currentQuestions.length) * 100);
       const finalScore = isMarkedCheat ? 0 : calculatedScore;
 
-      // 錯題重測不計入正式排行榜
       if (!currentActiveExam.isRetry) {
         const records = JSON.parse(localStorage.getItem('sys_records'));
         records.push({
@@ -440,7 +447,6 @@
       currentActiveExam = null;
     }
 
-    // 排行榜檢索與管理員修改權限
     function renderRanking() {
       const code = document.getElementById('rank-code').value.trim().toUpperCase();
       const type = document.getElementById('rank-type').value;
@@ -514,40 +520,13 @@
       }
     }
 
-    // 後台管理資料
     function loadAdminData() {
-      const banks = window.QUIZ_BANKS || {};
-      const container = document.getElementById('admin-banks-setting');
-      container.innerHTML = '';
-
-      Object.values(banks).forEach(b => {
-        container.innerHTML += `
-          <div class="bank-item">
-            <div>
-              <strong>${b.title} (${b.code})</strong>
-              <div style="font-size:0.75rem; color:#64748b;">狀態: ${b.isPublic ? '公開' : '不公開'} | 共 ${b.questions.length} 題</div>
-            </div>
-            <button class="btn btn-sm ${b.isPublic ? 'btn-danger' : 'btn-success'}" onclick="toggleBankPublic('${b.code}')">
-              ${b.isPublic ? '設為隱藏' : '設為公開'}
-            </button>
-          </div>
-        `;
-      });
-
       const users = JSON.parse(localStorage.getItem('sys_users'));
       const select = document.getElementById('sched-users');
       select.innerHTML = '';
       Object.values(users).forEach(u => {
         if (!u.isAdmin) select.innerHTML += `<option value="${u.username}">${u.realName} (${u.username})</option>`;
       });
-    }
-
-    function toggleBankPublic(code) {
-      if (window.QUIZ_BANKS && window.QUIZ_BANKS[code]) {
-        window.QUIZ_BANKS[code].isPublic = !window.QUIZ_BANKS[code].isPublic;
-        loadAdminData();
-        renderPublicBanks();
-      }
     }
 
     function createSchedule() {
@@ -592,7 +571,7 @@
         id: 'pop_' + Date.now(),
         targetUser: currentUser.username,
         title: "【官方考試開始】",
-        content: `官方考試 (${bankCode}) 時間已到！點擊確認後將自動跳轉進入考場。`,
+        content: `官方考試 (${bankCode}) 時間已到！點擊確認後將自動下載/載入題庫並進入考場。`,
         bankCode: bankCode,
         type: 'start_exam',
         confirmed: false
@@ -630,7 +609,9 @@
       document.getElementById('notice-modal').style.display = 'none';
 
       if (type === 'start_exam') {
-        launchExamViewport(bankCode, true, false);
+        loadExternalQuizScript(bankCode, (success) => {
+          if (success) launchExamViewport(bankCode, true, false);
+        });
       }
     }
   </script>
