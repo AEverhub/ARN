@@ -3,64 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RMS 雲端測驗與管理系統</title>
+    <title>RMS 雲端測驗與評量系統</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --bg: #f8fafc;
+            --primary: #1e40af;
+            --primary-hover: #1d4ed8;
+            --success: #15803d;
+            --danger: #b91c1c;
+            --bg: #f1f5f9;
             --card: #ffffff;
+            --border: #cbd5e1;
         }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: var(--bg); margin: 0; padding: 20px; color: #334155; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background: var(--bg); margin: 0; padding: 20px; color: #1e293b; 
         }
-        .container { max-width: 800px; margin: 0 auto; background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        h1 { margin-top: 0; font-size: 1.5rem; color: #0f172a; text-align: center; }
+        .container { max-width: 850px; margin: 0 auto; background: var(--card); border-radius: 12px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; font-size: 1.75rem; color: #0f172a; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
 
         .hidden { display: none !important; }
-        .panel { background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        input[type="text"], input[type="password"], input[type="email"], textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; margin-bottom: 8px; box-sizing: border-box; }
+        .panel { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border); }
         
-        button { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
-        button:hover { opacity: 0.9; }
-        .btn-danger { background: var(--danger); }
-        .btn-success { background: var(--success); }
-
-        /* 第三方登入按鈕 */
-        .btn-provider {
-            background: white; color: #374151; border: 1px solid #cbd5e1;
-            padding: 12px 20px; font-size: 1rem; display: flex; align-items: center;
-            justify-content: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 10px; width: 100%; cursor: pointer; border-radius: 6px;
+        input[type="text"], input[type="password"], input[type="email"], textarea, select { 
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; 
+            outline: none; margin-bottom: 12px; box-sizing: border-box; font-size: 0.95rem; background: #fff;
         }
-        .btn-provider:hover { background: #f8fafc; }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
+        
+        button { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: background 0.2s; }
+        button:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #991b1b; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #166534; }
+        .btn-secondary { background: #475569; }
+        .btn-secondary:hover { background: #334155; }
+
+        .btn-provider {
+            background: white; color: #334155; border: 1px solid var(--border);
+            padding: 12px 20px; font-size: 1rem; display: flex; align-items: center;
+            justify-content: center; gap: 10px; margin-bottom: 10px; width: 100%; cursor: pointer; border-radius: 6px; font-weight: 500;
+        }
+        .btn-provider:hover { background: #f1f5f9; }
         .btn-apple { background: #000; color: #fff; border: 1px solid #000; }
         .btn-apple:hover { background: #222; }
 
         .divider {
-            display: flex; align-items: center; text-align: center; color: #94a3b8; margin: 15px 0; font-size: 0.85rem;
+            display: flex; align-items: center; text-align: center; color: #64748b; margin: 20px 0; font-size: 0.85rem;
         }
-        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #cbd5e1; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
         .divider::before { margin-right: .75em; }
         .divider::after { margin-left: .75em; }
 
-        .admin-tab { margin-top: 15px; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e2e8f0; text-align: left; }
+        /* Modal 彈窗通用樣式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-box {
+            background: white; width: 90%; max-width: 450px; padding: 24px; border-radius: 10px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); text-align: center; animation: modalIn 0.2s ease-out;
+        }
+        @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .admin-tab { margin-top: 15px; padding: 20px; background: white; border-radius: 8px; border: 1px solid var(--border); text-align: left; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; font-size: 0.9rem; }
-        th { background: #f1f5f9; }
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: left; font-size: 0.9rem; }
+        th { background: #f1f5f9; color: #334155; }
+        
+        .q-builder-card { background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 12px; }
+        .option-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     </style>
 </head>
 <body>
 
 <div class="container" id="appContainer">
-    <h1>RMS 雲端測驗與管理系統</h1>
+    <h1>RMS 雲端測驗與評量系統</h1>
 
     <!-- 1. 登入面板 -->
-    <div id="authPanel" class="panel">
-        <p style="margin-bottom: 15px; color: #64748b;">請選擇登入方式以開始測驗</p>
+    <div id="authPanel" class="panel" style="max-width: 450px; margin: 30px auto; text-align: center;">
+        <p style="margin-bottom: 20px; color: #475569; font-weight: 500;">請選擇身分驗證方式進入測驗平台</p>
 
         <button onclick="handleGoogleLogin()" class="btn-provider">
             <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -79,87 +101,107 @@
             使用 Apple 帳號登入
         </button>
 
-        <div class="divider">或使用電子郵件</div>
+        <div class="divider">或使用電子郵件憑證</div>
 
         <input type="email" id="authEmail" placeholder="電子郵件 (例如: admin@rms.com)">
         <input type="password" id="authPassword" placeholder="密碼">
         <div style="display: flex; gap: 10px; margin-top: 5px;">
-            <button onclick="handleEmailLogin()">登入</button>
-            <button onclick="handleEmailRegister()" class="btn-success">註冊帳號</button>
+            <button onclick="handleEmailLogin()" style="flex:1;">登入系統</button>
+            <button onclick="handleEmailRegister()" class="btn-success" style="flex:1;">註冊帳號</button>
         </div>
     </div>
 
     <!-- 2. 主操作介面 -->
     <div id="mainPanel" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e2e8f0; padding: 8px 12px; border-radius: 6px;">
-            <span id="userDisplay">使用者</span>
-            <button onclick="handleLogout()" class="btn-danger" style="width: auto; padding: 4px 10px;">登出</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #e2e8f0; padding: 12px 16px; border-radius: 8px;">
+            <span id="userDisplay" style="font-weight: 600;">使用者</span>
+            <button onclick="handleLogout()" class="btn-danger" style="width: auto; padding: 6px 14px;">安全登出</button>
         </div>
 
-        <div class="panel" style="text-align: left;">
-            <div class="input-group">
-                <input type="text" id="bankCode" placeholder="輸入題庫代碼">
-                <button onclick="fetchFirebaseBank()" style="width: auto;">開始測驗</button>
+        <div class="panel">
+            <h3 style="margin-top:0; color:var(--primary);">線上測驗入口</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="bankCode" placeholder="請輸入測驗代碼" style="margin-bottom:0;">
+                <button onclick="fetchFirebaseBank()" style="width: auto; white-space: nowrap;">開始測驗</button>
             </div>
-            <button onclick="loadOpenBanks()">瀏覽站內開放題庫</button>
+            <button onclick="loadOpenBanks()" class="btn-secondary" style="width: 100%;">瀏覽站內開放題庫清單</button>
         </div>
 
         <!-- 管理員控制台 -->
-        <div id="adminPanel" class="panel hidden" style="border: 2px dashed #eab308; text-align: left;">
-            <h3 style="margin-top:0; color:#b45309;">👑 管理員控制台</h3>
-            <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                <button onclick="showTab('tab1')" style="width:auto;">JSON 建立</button>
-                <button onclick="showTab('tab2')" style="width:auto;" class="btn-success">表單建立</button>
-                <button onclick="showTab('tab3')" style="width:auto;">查看成績</button>
-                <button onclick="showTab('tab4')" style="width:auto;" class="btn-danger">用戶停權</button>
-                <button onclick="showTab('tab5')" style="width:auto;">發送公告</button>
-            </div>
+        <div id="adminPanel" class="panel hidden" style="border: 2px dashed #f59e0b; background: #fffbeb;">
+            <h3 style="margin-top:0; color:#b45309;">👑 管理員控制台管理模組</h3>
+            
+            <label style="font-weight: 600; font-size: 0.9rem; color: #78350f; display: block; margin-bottom: 5px;">選擇管理員操作功能：</label>
+            <select id="adminActionSelect" onchange="switchAdminTab(this.value)">
+                <option value="tab1">📦 JSON 代碼建立題庫</option>
+                <option value="tab2">📝 表單式多選建題庫</option>
+                <option value="tab3">📊 查看考生歷次成績</option>
+                <option value="tab4">🚫 用戶權限與停權管理</option>
+                <option value="tab5">📢 發送系統公告廣播</option>
+            </select>
 
-            <div id="tab1" class="admin-tab hidden">
-                <h4>JSON 代碼建立題庫</h4>
-                <input type="text" id="newBankCode" placeholder="自訂題庫代碼">
-                <textarea id="jsonInput" style="height:100px;" placeholder='{"title":"考試名稱","questions":[]}'></textarea>
-                <button onclick="uploadNewBank()">上傳 JSON 題庫</button>
+            <div id="tab1" class="admin-tab">
+                <h4>JSON 原始碼批次建立題庫</h4>
+                <input type="text" id="newBankCode" placeholder="自訂題庫代碼 (例: math101)">
+                <textarea id="jsonInput" style="height:120px;" placeholder='{"title":"考試名稱","questions":[]}'></textarea>
+                <button onclick="uploadNewBank()">確認上傳 JSON 題庫</button>
             </div>
 
             <div id="tab2" class="admin-tab hidden">
-                <h4>表單式創建題庫</h4>
-                <input id="formBankCode" placeholder="題庫代碼">
-                <input id="formBankTitle" placeholder="考試名稱">
+                <h4>表單式互動建題庫 (支援複選)</h4>
+                <input id="formBankCode" placeholder="題庫代碼 (例: cs102)">
+                <input id="formBankTitle" placeholder="正式考試名稱">
                 <div id="questionFormArea"></div>
-                <button onclick="addQuestionField()" style="background:#475569;">+ 新增題目欄位</button>
+                <button onclick="addQuestionField()" class="btn-secondary" style="margin-bottom: 12px;">+ 新增一個題目</button>
                 <button onclick="saveFormBank()" class="btn-success">儲存並發布表單題庫</button>
             </div>
 
             <div id="tab3" class="admin-tab hidden">
-                <h4>考生歷次成績紀錄</h4>
-                <button onclick="loadExamResults()" style="width:auto;">重新整理成績表</button>
+                <h4>考生歷次測驗成績報表</h4>
+                <button onclick="loadExamResults()" style="width:auto; margin-bottom: 10px;">重新整理成績總表</button>
                 <div id="resultsTable"></div>
             </div>
 
             <div id="tab4" class="admin-tab hidden">
-                <h4>用戶停權管理</h4>
-                <input id="targetEmail" placeholder="輸入要停權的 Email">
-                <button onclick="suspendUser()" class="btn-danger">執行停權</button>
+                <h4>使用者帳號停權管理</h4>
+                <input id="targetEmail" placeholder="輸入要停權的考生 Email">
+                <button onclick="suspendUser()" class="btn-danger">確認執行停權</button>
             </div>
 
             <div id="tab5" class="admin-tab hidden">
-                <h4>發送公告/個別通知</h4>
+                <h4>發送系統全站公告</h4>
                 <input id="annTitle" placeholder="公告標題">
-                <textarea id="annContent" placeholder="公告內容"></textarea>
-                <button onclick="sendAnnouncement()">發送公告</button>
+                <textarea id="annContent" placeholder="公告詳細內容"></textarea>
+                <button onclick="sendAnnouncement()">發送即時公告</button>
             </div>
         </div>
 
         <div id="quizContainer"></div>
-        <div id="announcementArea" class="panel" style="text-align: left;"></div>
+    </div>
+</div>
+
+<!-- 通用彈窗 Modal 容器 -->
+<div id="customModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h3 id="modalTitle" style="margin-top:0; color:var(--primary);">系統提示</h3>
+        <p id="modalMessage" style="color: #475569; line-height: 1.5; margin-bottom: 20px;"></p>
+        <button id="modalConfirmBtn" onclick="closeModal()">確定</button>
+    </div>
+</div>
+
+<!-- 站內公告強制彈窗容器 -->
+<div id="announcementModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 500px; text-align: left;">
+        <h3 style="margin-top:0; color:#b45309; text-align: center;">📢 站內最新重要公告</h3>
+        <div id="announcementModalContent" style="max-height: 250px; overflow-y: auto; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6;"></div>
+        <button onclick="closeAnnouncementModal()" style="width: 100%; background: var(--success);">我已了解並確認</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
@@ -178,26 +220,53 @@
     const googleProvider = new GoogleAuthProvider();
     const appleProvider = new OAuthProvider('apple.com');
 
-    window.handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-    window.handleAppleLogin = () => signInWithPopup(auth, appleProvider);
-    window.handleEmailLogin = () => signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
-    window.handleEmailRegister = () => createUserWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
+    // 彈窗提示輔助函數
+    window.showAlert = (title, message, callback) => {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = message;
+        const btn = document.getElementById('modalConfirmBtn');
+        btn.onclick = () => {
+            closeModal();
+            if(callback) callback();
+        };
+        document.getElementById('customModal').classList.remove('hidden');
+    };
+
+    window.closeModal = () => {
+        document.getElementById('customModal').classList.add('hidden');
+    };
+
+    window.handleGoogleLogin = () => signInWithPopup(auth, googleProvider).catch(e => showAlert("登入失敗", e.message));
+    window.handleAppleLogin = () => signInWithPopup(auth, appleProvider).catch(e => showAlert("登入失敗", e.message));
+    window.handleEmailLogin = () => signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).catch(e => showAlert("登入失敗", e.message));
+    window.handleEmailRegister = () => createUserWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value).then(() => showAlert("成功", "帳號註冊成功！")).catch(e => showAlert("註冊失敗", e.message));
     window.handleLogout = () => signOut(auth);
-    window.showTab = (id) => { document.querySelectorAll('.admin-tab').forEach(t=>t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
+
+    // 管理員選單切換
+    window.switchAdminTab = (tabId) => {
+        document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
+    };
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('authPanel').classList.add('hidden');
             document.getElementById('mainPanel').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = `使用者：${user.displayName || user.email}`;
+            document.getElementById('userDisplay').innerText = `目前登入使用者：${user.displayName || user.email}`;
             if (user.email === "admin@rms.com") document.getElementById('adminPanel').classList.remove('hidden');
             
-            // 載入公告
+            // 載入公告並強制彈窗
             try {
                 const snap = await getDocs(collection(db, "announcements"));
-                let annHtml = "<h4>📢 系統公告：</h4>";
-                snap.forEach(d => annHtml += `<p><b>${d.data().title}</b>: ${d.data().content}</p>`);
-                document.getElementById('announcementArea').innerHTML = annHtml;
+                let annHtml = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    annHtml += `<p style="margin-bottom:12px; border-bottom:1px dashed #cbd5e1; padding-bottom:8px;"><b>📌 ${data.title || '公告'}</b><br>${data.content}</p>`;
+                });
+                if(annHtml) {
+                    document.getElementById('announcementModalContent').innerHTML = annHtml;
+                    document.getElementById('announcementModal').classList.remove('hidden');
+                }
             } catch(e) { console.error(e); }
         } else {
             document.getElementById('authPanel').classList.remove('hidden');
@@ -205,78 +274,185 @@
         }
     });
 
-    // 管理員功能：JSON 上傳
+    window.closeAnnouncementModal = () => {
+        document.getElementById('announcementModal').classList.add('hidden');
+    };
+
+    // JSON 題庫上傳
     window.uploadNewBank = async () => {
-        const code = document.getElementById('newBankCode').value.trim();
-        const data = JSON.parse(document.getElementById('jsonInput').value);
-        if(!code) return alert("請輸入代碼");
-        await setDoc(doc(db, "banks", code), data);
-        alert("JSON 題庫建立成功！");
+        try {
+            const code = document.getElementById('newBankCode').value.trim();
+            const data = JSON.parse(document.getElementById('jsonInput').value);
+            if(!code) return showAlert("提示", "請輸入自訂題庫代碼");
+            await setDoc(doc(db, "banks", code), data);
+            showAlert("成功", "JSON 題庫建立成功！", () => {
+                document.getElementById('newBankCode').value = '';
+                document.getElementById('jsonInput').value = '';
+            });
+        } catch(e) {
+            showAlert("格式錯誤", "JSON 解析失敗，請檢查語法格式：" + e.message);
+        }
     };
 
-    // 管理員功能：表單建題庫
+    // 表單建立：動態新增題目 (選項可加減、支援複選)
     window.addQuestionField = () => {
-        const div = document.createElement('div');
-        div.style.cssText = "background:#f8fafc; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid #cbd5e1;";
-        div.innerHTML = `
-            <input class="q-text" placeholder="輸入題目">
-            <input class="q-opt" placeholder="選項 (請用逗號隔開，例: A,B,C,D)">
-            <input class="q-ans" placeholder="正確答案索引 (第一選項填 0)">
+        const container = document.getElementById('questionFormArea');
+        const qCard = document.createElement('div');
+        qCard.className = 'q-builder-card';
+        qCard.innerHTML = `
+            <input class="q-text" placeholder="輸入題目內容" style="font-weight:600;">
+            <div class="options-container">
+                <label style="font-size:0.85rem; color:#64748b;">選項與正確答案勾選 (勾選代表正確答案，支援複選)：</label>
+                <div class="option-row">
+                    <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
+                    <input class="q-opt-input" placeholder="選項 1 內容" style="margin-bottom:0;">
+                </div>
+                <div class="option-row">
+                    <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
+                    <input class="q-opt-input" placeholder="選項 2 內容" style="margin-bottom:0;">
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <button onclick="addOptionRow(this)" class="btn-secondary" style="padding:4px 10px; font-size:0.85rem; width:auto;">+ 新增選項</button>
+                <button onclick="this.closest('.q-builder-card').remove()" class="btn-danger" style="padding:4px 10px; font-size:0.85rem; width:auto;">刪除此題</button>
+            </div>
         `;
-        document.getElementById('questionFormArea').appendChild(div);
+        container.appendChild(qCard);
     };
 
+    window.addOptionRow = (btn) => {
+        const optContainer = btn.previousElementSibling;
+        const row = document.createElement('div');
+        row.className = 'option-row';
+        row.innerHTML = `
+            <input type="checkbox" class="q-ans-checkbox" style="width:auto; margin:0;">
+            <input class="q-opt-input" placeholder="新選項內容" style="margin-bottom:0;">
+            <button onclick="this.closest('.option-row').remove()" style="background:none; color:var(--danger); border:none; cursor:pointer; font-weight:bold; width:auto; padding:0 5px;">✕</button>
+        `;
+        optContainer.appendChild(row);
+    };
+
+    // 儲存表單題庫
     window.saveFormBank = async () => {
         const code = document.getElementById('formBankCode').value.trim();
         const title = document.getElementById('formBankTitle').value.trim();
-        if(!code || !title) return alert("請填寫題庫代碼與考試名稱");
+        if(!code || !title) return showAlert("提示", "請填寫題庫代碼與正式考試名稱");
         
-        const questions = Array.from(document.querySelectorAll('#questionFormArea > div')).map(d => ({
-            q: d.querySelector('.q-text').value,
-            options: d.querySelector('.q-opt').value.split(',').map(s => s.trim()),
-            ans: parseInt(d.querySelector('.q-ans').value)
-        }));
+        const qCards = document.querySelectorAll('.q-builder-card');
+        if(qCards.length === 0) return showAlert("提示", "請至少新增一題測驗題目");
 
-        await setDoc(doc(db, "banks", code), { title, questions });
-        alert("表單題庫已成功儲存！");
+        const questions = [];
+        for(let card of qCards) {
+            const qText = card.querySelector('.q-text').value.trim();
+            const optRows = card.querySelectorAll('.option-row');
+            const options = [];
+            const ansList = [];
+
+            optRows.forEach((row, idx) => {
+                const optText = row.querySelector('.q-opt-input').value.trim();
+                const isChecked = row.querySelector('.q-ans-checkbox').checked;
+                if(optText) {
+                    options.push(optText);
+                    if(isChecked) ansList.push(idx);
+                }
+            });
+
+            if(!qText || options.length < 2) {
+                return showAlert("格式錯誤", "每個題目必須填寫題目內容，且至少包含 2 個有效選項！");
+            }
+            if(ansList.length === 0) {
+                return showAlert("格式錯誤", `題目「${qText}」尚未勾選任何正確答案！`);
+            }
+
+            // 支援單選相容或複選陣列
+            questions.push({
+                q: qText,
+                options: options,
+                ans: ansList.length === 1 ? ansList[0] : ansList 
+            });
+        }
+
+        try {
+            await setDoc(doc(db, "banks", code), { title, questions });
+            showAlert("成功", `表單題庫「${title}」已成功儲存並發布！`, () => {
+                document.getElementById('formBankCode').value = '';
+                document.getElementById('formBankTitle').value = '';
+                document.getElementById('questionFormArea').innerHTML = '';
+            });
+        } catch(e) {
+            showAlert("儲存失敗", e.message);
+        }
     };
 
-    // 查看考試成績
+    // 查看成績
     window.loadExamResults = async () => {
-        const snap = await getDocs(collection(db, "quiz_results"));
-        let html = "<table><tr><th>考生</th><th>考試名稱</th><th>分數</th></tr>";
-        snap.forEach(d => {
-            const data = d.data();
-            html += `<tr><td>${data.userEmail}</td><td>${data.bankTitle || '未命名'}</td><td>${data.score} 分</td></tr>`;
-        });
-        document.getElementById('resultsTable').innerHTML = html + "</table>";
+        try {
+            const snap = await getDocs(collection(db, "quiz_results"));
+            let html = "<table><tr><th>考生信箱</th><th>考試名稱</th><th>獲得分數</th></tr>";
+            let count = 0;
+            snap.forEach(d => {
+                count++;
+                const data = d.data();
+                html += `<tr><td>${data.userEmail}</td><td>${data.bankTitle || '未命名測驗'}</td><td><b>${data.score}</b> 分</td></tr>`;
+            });
+            if(count === 0) html = "<p style='color:#64748b; text-align:center; padding:15px;'>目前尚無任何考生測驗紀錄。</p>";
+            else html += "</table>";
+            document.getElementById('resultsTable').innerHTML = html;
+        } catch(e) {
+            showAlert("讀取失敗", e.message);
+        }
     };
 
     // 停權用戶
     window.suspendUser = async () => {
         const email = document.getElementById('targetEmail').value.trim();
-        if(!email) return alert("請輸入信箱");
-        await setDoc(doc(db, "users", email), { suspended: true }, { merge: true });
-        alert(email + " 已被停權");
+        if(!email) return showAlert("提示", "請輸入要停權的考生 Email");
+        try {
+            await setDoc(doc(db, "users", email), { suspended: true }, { merge: true });
+            showAlert("成功", `考生 ${email} 已成功被列入停權名單！`, () => {
+                document.getElementById('targetEmail').value = '';
+            });
+        } catch(e) {
+            showAlert("操作失敗", e.message);
+        }
     };
 
     // 發送公告
     window.sendAnnouncement = async () => {
         const title = document.getElementById('annTitle').value.trim();
         const content = document.getElementById('annContent').value.trim();
-        if(!title || !content) return alert("請填寫標題與內容");
-        await addDoc(collection(db, "announcements"), { title, content, timestamp: serverTimestamp() });
-        alert("公告已成功發送！");
+        if(!title || !content) return showAlert("提示", "請完整填寫公告標題與詳細內容");
+        try {
+            await addDoc(collection(db, "announcements"), { title, content, timestamp: serverTimestamp() });
+            showAlert("成功", "全站即時公告已順利發布！", () => {
+                document.getElementById('annTitle').value = '';
+                document.getElementById('annContent').value = '';
+            });
+        } catch(e) {
+            showAlert("發送失敗", e.message);
+        }
     };
 
     // 瀏覽開放題庫
     window.loadOpenBanks = async () => {
-        const snap = await getDocs(collection(db, "banks"));
-        let html = "<h4>📋 站內開放題庫清單：</h4>";
-        snap.forEach(d => {
-            html += `<div style="background:white; padding:8px; margin-bottom:5px; border-radius:4px; border:1px solid #cbd5e1;"><b>${d.data().title}</b> (代碼: <code>${d.id}</code>)</div>`;
-        });
-        document.getElementById('quizContainer').innerHTML = html;
+        try {
+            const snap = await getDocs(collection(db, "banks"));
+            let html = "<div class='panel' style='background:white;'><h4>📋 站內現正開放測驗清單：</h4>";
+            let count = 0;
+            snap.forEach(d => {
+                count++;
+                const data = d.data();
+                html += `<div style="background:#f8fafc; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                    <div><b>${data.title || '未命名測驗'}</b></div>
+                    <div>代碼: <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:bold; color:var(--primary);">${d.id}</code></div>
+                </div>`;
+            });
+            if(count === 0) html += "<p style='color:#64748b;'>目前尚無任何開放中的題庫。</p>";
+            html += "</div>";
+            document.getElementById('quizContainer').innerHTML = html;
+        } catch(e) {
+            showAlert("讀取失敗", e.message);
+        }
     };
 </script>
 </body>
