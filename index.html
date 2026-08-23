@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V5-Pro (Firebase 雲端版)</title>
+    <title>測驗系統-網頁版(Web ST) -V5-Pro</title>
 
     <script>
         window.MathJax = {
@@ -284,8 +284,69 @@
             color: #f8fafc;
         }
 
+        .pdf-wrong-card {
+            background: #0d1527;
+            border: 1px solid #1e293b;
+            border-left: 4px solid #ef4444;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        .pdf-page-break {
+            page-break-before: always;
+            break-before: page;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px dashed #334155;
+        }
+        .stamp-page-header {
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ef4444;
+            letter-spacing: 2px;
+        }
+
+        .stamp-container-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px 0;
+        }
+        .official-stamp {
+            border: 4px solid #ff3b30;
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #ff3b30;
+            padding: 12px 18px;
+            text-align: center;
+            font-family: "KaiTi", "DFKai-SB", "BiauKai", serif;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 0 6px rgba(255, 59, 48, 0.4);
+            display: inline-block;
+            transform: rotate(-2deg);
+            min-width: 200px;
+        }
+        .stamp-title { font-size: 0.95em; letter-spacing: 1px; }
+        .stamp-date { font-size: 0.85em; margin: 4px 0; border-top: 1px solid #ff3b30; border-bottom: 1px solid #ff3b30; padding: 2px 0; }
+        .stamp-body { font-size: 1.2em; font-weight: 900; letter-spacing: 2px; }
+
         .res-blue { color: #3b82f6; font-weight: bold; }
         .res-orange { color: #f97316; font-weight: bold; }
+        .res-green { color: #22c55e; font-weight: bold; }
+        .res-red { color: #ef4444; font-weight: bold; }
+        .res-yellow { color: #eab308; font-weight: bold; }
+        .res-black-pass { color: #ffffff; font-weight: bold; }
 
         .modal-overlay {
             position: fixed;
@@ -306,12 +367,29 @@
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
+        .stamp-checkbox-list {
+            text-align: left;
+            background: #0f172a;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+        .stamp-checkbox-list label {
+            display: block;
+            font-size: 0.9em;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .stamp-checkbox-list label:last-child { margin-bottom: 0; }
 
         .sub-view {
             text-align: left;
         }
         .sub-view h3 { color: #f8fafc; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 20px; }
 
+        /* 公開題庫滑動列表樣式 */
         .public-quizzes-box {
             max-height: 180px;
             overflow-y: auto;
@@ -334,7 +412,25 @@
         .public-quiz-item:last-child {
             border-bottom: none;
         }
+        .quiz-action-btns {
+            display: flex;
+            gap: 6px;
+        }
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.85em;
+            border-radius: 4px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-rank { background: #e74c3c; }
+        .btn-rank:hover { background: #c0392b; }
+        .btn-start-quiz { background: #27ae60; }
+        .btn-start-quiz:hover { background: #219653; }
 
+        /* 系統反饋 / 申訴回報專用介面樣式 */
         .feedback-system-container {
             background: #1e293b;
             border: 1px solid #334155;
@@ -343,7 +439,7 @@
             color: #f8fafc;
         }
         .feedback-list-box {
-            max-height: 350px;
+            max-height: 280px;
             overflow-y: auto;
             margin-top: 15px;
             display: flex;
@@ -374,52 +470,16 @@
             font-size: 0.92em;
         }
 
-        /* Admin 專用面板樣式 */
-        .admin-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 10px;
-        }
-        .admin-tab-btn {
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #cbd5e1;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .admin-tab-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-        .admin-panel-section {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            color: #f8fafc;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            background: #0f172a;
-            border-radius: 6px;
-            overflow: hidden;
-            font-size: 0.9em;
-        }
-        .data-table th, .data-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #1e293b;
-            text-align: left;
-        }
-        .data-table th {
-            background: #162032;
-            color: #38bdf8;
+        @media (max-width: 600px) {
+            body { padding: 10px; padding-top: 65px; }
+            .container { padding: 18px 15px; }
+            .result-container-dark { padding: 18px 12px; }
+            .report-table td { padding: 10px 8px; font-size: 0.88em; }
+            .tb-label { width: 40%; }
+            .tb-val { width: 60%; }
+            .action-btn-group { flex-direction: column; gap: 8px; }
+            .action-btn-group .main-btn { width: 100%; }
+            .stamp-container-wrapper { justify-content: center; }
         }
     </style>
 </head>
@@ -436,7 +496,7 @@
         <div class="dropdown-menu" id="dropdown-menu">
             <div class="dropdown-item" onclick="switchView('login')">測驗首頁</div>
             <div class="dropdown-item" onclick="switchView('account')">帳號管理</div>
-            <div class="dropdown-item" id="menu-lobby-item" onclick="switchView('chat')">問題反饋系統</div>
+            <div class="dropdown-item" id="menu-lobby-item" onclick="switchView('chat')">聊天大廳 / 問題反饋</div>
             <div class="dropdown-item" id="menu-admin-item" onclick="switchView('admin')" style="display:none;">管理面板</div>
             <div class="dropdown-item danger" onclick="openLogoutModal()">登出帳號</div>
         </div>
@@ -445,7 +505,7 @@
 
 <div class="container">
     <div id="login-screen">
-        <h2 class="text-center" id="auth-title">線上模擬評量系統 - 註冊與登入 (Firebase v12)</h2>
+        <h2 class="text-center" id="auth-title">線上模擬評量系統 - 註冊與登入</h2>
         <div class="input-group">
             <input type="email" id="auth-email" class="code-input" placeholder="電子郵件 (例如: admin@rms.com 或一般信箱)">
             <input type="password" id="auth-pass" class="code-input" placeholder="密碼">
@@ -475,7 +535,7 @@
                 </label>
             </div>
 
-            <div id="status-msg" style="color:var(--accent); font-size: 0.85em; margin: 10px 0; text-align: left;">等待連接 Firebase 雲端資料庫...</div>
+            <div id="status-msg" style="color:var(--accent); font-size: 0.85em; margin: 10px 0; text-align: left;">等待讀取伺服器題庫檔案...</div>
         </div>
         <button id="auth-submit-btn" class="main-btn" onclick="handleAuthSubmit()" style="background:#cbd5e1; color:#64748b;" disabled>註冊 / 登入並進入系統</button>
     </div>
@@ -543,20 +603,57 @@
                     <td class="tb-val" id="res-unanswered">0 題</td>
                 </tr>
                 <tr>
+                    <td class="tb-label">測驗結果判定</td>
+                    <td class="tb-val" id="res-pass-label">--</td>
+                </tr>
+                <tr>
                     <td class="tb-label">測試者姓名</td>
                     <td class="tb-val" id="res-username">--</td>
                 </tr>
                 <tr>
-                    <td class="tb-label">測驗時間 (GMT+8)</td>
+                    <td class="tb-label">測試時間 (GTM+8)</td>
                     <td class="tb-val">
                         開始：<span id="res-start-time">--</span> | 結束：<span id="res-end-time">--</span>
                     </td>
                 </tr>
                 <tr>
+                    <td class="tb-label">檢測到作弊行為</td>
+                    <td class="tb-val" id="res-cheated">否</td>
+                </tr>
+                <tr id="empty-paper-row" class="hidden">
+                    <td class="tb-label">異常警告</td>
+                    <td class="tb-val" style="color:#ef4444; font-weight:bold;">檢測到惡意繳交空白試卷</td>
+                </tr>
+                <tr>
                     <td class="tb-label">作答總耗時</td>
                     <td class="tb-val" id="res-duration">--</td>
                 </tr>
+                <tr>
+                    <td class="tb-label">作答者 IP / 載具</td>
+                    <td class="tb-val">
+                        <span id="res-ip" class="res-blue">--</span> (<span id="res-platform">--</span>)
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tb-label">平均答題速度</td>
+                    <td class="tb-val">每題約 <span id="res-avg-speed">0</span> 秒</td>
+                </tr>
+                <tr id="addon-code-row" class="hidden">
+                    <td class="tb-label">附加憑證代碼</td>
+                    <td class="tb-val" id="res-addon-code" style="color:#a855f7; font-weight:bold;">--</td>
+                </tr>
             </table>
+
+            <div id="pdf-wrong-list" class="hidden"></div>
+
+            <div id="stamp-page-section" class="pdf-page-break hidden">
+                <div class="stamp-page-header">成績證明章</div>
+                <div id="stamps-area" class="stamp-container-wrapper"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; color: #64748b; font-size: 0.85em;">
+                &copy;2026 著作權所有 仿冒必究
+            </div>
         </div>
 
         <div class="action-btn-group">
@@ -570,107 +667,195 @@
 
     <div id="account-screen" class="hidden sub-view" style="color:#333;">
         <h3>帳號管理中心</h3>
+        <p style="color:#64748b; font-size:0.95em;">在此管理您的考生身分、測驗歷史紀錄與安全偏好設定。</p>
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <p><strong>當前登入信箱：</strong> <span id="acc-email-display">尚未登入</span></p>
             <p><strong>當前登入姓名：</strong> <span id="acc-name-display">尚未設定</span></p>
+            <div style="margin: 15px 0;">
+                <label style="display:block; font-weight:bold; margin-bottom:5px;">修改考生姓名：</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="acc-name-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="請輸入新姓名">
+                    <button id="update-name-btn" class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="updateUserName()">儲存姓名</button>
+                </div>
+                <small id="name-lock-hint" style="color:#c0392b; display:none; margin-top:5px;">您的姓名已被管理員強制修改並鎖定，無法自行變更。</small>
+            </div>
+            <p><strong>系統識別碼 (UUID)：</strong> <span id="acc-uuid" style="font-family:monospace; color:#2980b9;">ST-2026-X99</span></p>
+            <p><strong>歷史測驗總次數：</strong> <span id="acc-total-tests">0</span> 次</p>
         </div>
     </div>
 
-    <!-- 完善過後的「問題反饋系統」視圖 -->
     <div id="chat-screen" class="hidden sub-view" style="color:#333;">
-        <h3>問題反饋與勘誤回報系統</h3>
-        <div class="feedback-system-container">
-            <p style="font-size: 0.9em; color: #94a3b8; margin-top:0;">如發現題庫錯漏或系統異常，請在此填寫，管理員收到後將會盡速於後台回覆。</p>
-            <textarea id="feedback-input" class="chat-textarea" placeholder="請詳細描述您遇到的問題或錯漏題內容..."></textarea>
-            <button class="main-btn btn-success" onclick="submitNormalFeedback()">提交回報問題</button>
+        <!-- 普通用戶問題反饋介面 -->
+        <div id="normal-feedback-view" class="hidden">
+            <h3>問題反饋系統</h3>
+            <p style="color:#64748b; font-size:0.95em;">若您在使用測驗系統時遇到任何技術問題或建議，歡迎透過下方回報（一天最多提交 3 次）。</p>
 
-            <h4 style="color:#f8fafc; margin-top:25px; border-bottom:1px solid #334155; padding-bottom:6px;">我的反饋與管理員回覆紀錄</h4>
-            <div class="feedback-list-box" id="my-feedback-list">
-                <div style="text-align:center; color:#94a3b8; padding:15px;">尚無反饋紀錄</div>
+            <div class="feedback-system-container">
+                <h4 style="margin-top:0; color:#38bdf8;">提交新問題</h4>
+                <textarea id="feedback-input" class="chat-textarea" placeholder="請詳細描述您遇到的問題..."></textarea>
+                <button class="main-btn btn-success" style="margin-top:0;" onclick="submitNormalFeedback()">提交問題</button>
+
+                <h4 style="margin-top:20px; color:#38bdf8; border-top:1px solid #334155; padding-top:15px;">我的回報紀錄與管理員回覆</h4>
+                <div class="feedback-list-box" id="normal-feedback-list">
+                    <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無反饋紀錄</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 被停用用戶申訴申請介面 -->
+        <div id="banned-appeal-view" class="hidden">
+            <h3 style="color:#ef4444;">帳戶遭停用 - 帳號恢復及申訴申請系統</h3>
+            <p style="color:#cbd5e1; font-size:0.95em;">您的帳戶目前處於停用狀態。系統僅開放此申訴功能（一天最多提交 2 次），請填寫恢復帳號原因：</p>
+
+            <div class="feedback-system-container" style="border-color:#c0392b;">
+                <h4 style="margin-top:0; color:#ef4444;">提交申訴申請</h4>
+                <textarea id="appeal-input" class="chat-textarea" placeholder="請填寫希望恢復帳號的理由或說明..."></textarea>
+                <button class="main-btn btn-danger" style="margin-top:0;" onclick="submitBannedAppeal()">提交申訴申請</button>
+
+                <h4 style="margin-top:20px; color:#ef4444; border-top:1px solid #334155; padding-top:15px;">我的申訴歷史與管理員審核回覆</h4>
+                <div class="feedback-list-box" id="banned-appeal-list">
+                    <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無申訴紀錄</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理員專用問題反饋與申訴檢視介面 (從選單聊天大廳進入) -->
+        <div id="admin-chat-view" class="hidden">
+            <h3>問題反饋與申訴審核中心 (管理員檢視)</h3>
+            <p style="color:#64748b; font-size:0.95em;">在此檢視所有普通用戶的回報與被停用用戶的申訴，進行留言回覆、刪除、是否處理標記，以及審核是否恢復帳戶。</p>
+
+            <div class="feedback-system-container">
+                <div class="feedback-list-box" id="admin-chat-feedback-list" style="max-height: 450px;">
+                    <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無任何反饋或申訴</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 完善過後的「管理員面板」視圖 -->
     <div id="admin-screen" class="hidden sub-view" style="color:#333;">
         <h3>系統管理面板 (Admin Console)</h3>
-        <div class="admin-tabs">
-            <button class="admin-tab-btn active" onclick="switchAdminTab('quizzes')">題庫管理</button>
-            <button class="admin-tab-btn" onclick="switchAdminTab('feedback')">反饋管理中心</button>
-            <button class="admin-tab-btn" onclick="switchAdminTab('users')">用戶控管</button>
-            <button class="admin-tab-btn" onclick="switchAdminTab('config')">系統設定</button>
-        </div>
+        <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
 
-        <!-- 1. 題庫管理頁籤 -->
-        <div id="admin-tab-quizzes" class="admin-panel-section">
-            <h4>公開題庫設定</h4>
-            <input type="text" id="adm-quiz-code" class="code-input" placeholder="題庫代碼 (例如: test01)">
-            <input type="text" id="adm-quiz-title" class="code-input" placeholder="題庫顯示名稱">
-            <button class="main-btn btn-success" onclick="adminSavePublicQuiz()">新增 / 更新公開題庫</button>
-            <div id="admin-public-quiz-list" style="margin-top:15px;"></div>
-        </div>
+        <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
+            <h4 style="margin-top:0; color:var(--primary);">1. 用戶帳戶停用管理</h4>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <select id="admin-user-select" class="code-input" style="margin-bottom:0; flex:1;">
+                    <option value="">載入中用戶...</option>
+                </select>
+                <input type="text" id="admin-ban-reason" class="code-input" placeholder="填寫停用原因..." style="margin-bottom:0; flex:2;">
+                <button class="main-btn btn-danger" style="width:auto; margin-top:0;" onclick="adminDisableUser()">停用帳戶</button>
+            </div>
 
-        <!-- 2. 反饋管理中心頁籤 -->
-        <div id="admin-tab-feedback" class="admin-panel-section hidden">
-            <h4>所有使用者反饋與回覆</h4>
-            <div id="admin-feedback-list" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
-                <div style="color:#94a3b8; text-align:center;">目前沒有反饋紀錄</div>
+            <h4 style="margin-top:20px; color:var(--primary);">2. 管理員強制改名與鎖定</h4>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <select id="admin-rename-user-select" class="code-input" style="margin-bottom:0; flex:1;">
+                    <option value="">選擇用戶...</option>
+                </select>
+                <input type="text" id="admin-new-name-input" class="code-input" placeholder="新名字..." style="margin-bottom:0; flex:1;">
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminForceRenameUser()">強制改名並鎖定</button>
+            </div>
+
+            <h4 style="margin-top:20px; color:var(--primary);">3. 重複註冊驗證碼設定</h4>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
+            </div>
+
+            <h4 style="margin-top:20px; color:var(--primary);">4. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
+            <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
+
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <input type="text" id="adminQuizCodeInput" class="code-input" placeholder="例如: Math 或 test01" style="margin-bottom:0; flex:1;">
+                <button class="main-btn btn-accent" id="adminCheckBtn" style="width:auto; margin-top:0;" onclick="checkAdminQuizStatus()">檢查狀態</button>
+            </div>
+
+            <div id="adminQuizStatusContainer" style="padding: 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; display: none;">
+                <div><strong>題庫代碼：</strong><span id="adminDisplayCode" style="color:var(--accent);"></span></div>
+                <div style="margin: 6px 0;"><strong>狀態：</strong><span id="adminStatusText">檢查中...</span></div>
+                <div id="adminQuizDetails" style="font-size: 13px; color: #555; margin-bottom: 10px;"></div>
+                <label style="cursor: pointer; font-weight: bold; color: var(--primary);">
+                    <input type="checkbox" id="adminPublicCheckbox" onchange="toggleAdminQuizPublic(this)"> 公開於首頁列表
+                </label>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- 3. 用戶控管頁籤 -->
-        <div id="admin-tab-users" class="admin-panel-section hidden">
-            <h4>註冊用戶清單與狀態</h4>
-            <div id="admin-users-list" style="overflow-x:auto;"></div>
+<div id="rank-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 550px;">
+        <h3 id="rank-modal-title" style="color:#ffffff; margin-bottom:15px;">題庫排行榜 (Top 1 - 30)</h3>
+        <div id="rank-modal-content" style="text-align:left; font-size:0.9em; background:#0f172a; padding:15px; border-radius:6px; color:#e2e8f0; margin-bottom:15px; max-height:350px; overflow-y:auto; line-height:1.6;">
+            載入中...
         </div>
+        <button class="main-btn btn-secondary" onclick="closeRankModal()">關閉</button>
+    </div>
+</div>
 
-        <!-- 4. 系統設定頁籤 -->
-        <div id="admin-tab-config" class="admin-panel-section hidden">
-            <h4>全域系統參數調整</h4>
-            <label style="font-size:0.9em; color:#cbd5e1; display:block; margin-bottom:5px;">重複註冊驗證碼：</label>
-            <input type="text" id="adm-sys-verify" class="code-input" placeholder="請輸入驗證碼">
-            <button class="main-btn btn-accent" onclick="adminSaveSystemConfig()">儲存系統設定</button>
+<div id="rank-detail-modal" class="modal-overlay hidden" style="z-index: 2005;">
+    <div class="modal-card" style="max-width: 420px;">
+        <h3 style="color:#ffffff; margin-bottom:15px;">成績詳細資訊</h3>
+        <div id="rank-detail-content" style="text-align:left; font-size:0.92em; background:#0f172a; padding:15px; border-radius:6px; color:#e2e8f0; margin-bottom:15px; line-height:1.8;">
+            載入中...
         </div>
+        <button class="main-btn btn-secondary" onclick="closeRankDetailModal()">關閉</button>
     </div>
 </div>
 
 <div id="logout-modal" class="modal-overlay hidden">
     <div class="modal-card">
         <h3 style="color:#ffffff; margin-bottom:15px;">安全登出驗證</h3>
+        <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:15px;">為確保帳號安全，請輸入當前帳號 (<span id="logout-modal-email" style="color:#38bdf8;"></span>) 的密碼以確認登出：</p>
         <input type="password" id="logout-password-input" class="code-input" placeholder="請輸入登入密碼">
         <button class="main-btn btn-danger" onclick="confirmLogout()">確認登出</button>
         <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closeLogoutModal()">取消</button>
     </div>
 </div>
 
-<!-- Firebase SDK v12.18.0 模組化整合 -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, getDocs, updateDoc, addDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+<div id="pdf-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div id="pdf-step-1">
+            <h3 style="color:#ffffff; margin-bottom:15px;">請選擇 PDF 匯出格式</h3>
+            <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">您希望下載的 PDF 是否包含錯題細節與答案解析？</p>
+            <button class="main-btn btn-accent" onclick="selectPdfFormat(false)">僅評量結果 (簡要版)</button>
+            <button class="main-btn btn-success" id="btn-pdf-with-wrong" onclick="selectPdfFormat(true)">評量結果 + 錯題解析</button>
+            <button class="main-btn btn-secondary" style="margin-top:10px;" onclick="closePdfModal()">取消</button>
+        </div>
 
-    // ---------------- FIREBASE 配置 (v12.18.0) ----------------
-    const firebaseConfig = {
-        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
-        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
-        databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "rms-quiz-system-dbserver",
-        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
-        messagingSenderId: "769519554299",
-        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
-        measurementId: "G-939JE1X57X"
-    };
+        <div id="pdf-step-2" class="hidden">
+            <h3 style="color:#ffffff; margin-bottom:15px;">附加元件驗證</h3>
+            <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">請問是否需要在此 PDF 加入「附加元件代碼/電子印章」？</p>
+            <div style="display:flex; gap:10px;">
+                <button class="main-btn btn-success" onclick="showAddonInput(true)">是</button>
+                <button class="main-btn btn-secondary" onclick="showAddonInput(false)">否 (直接下載)</button>
+            </div>
+        </div>
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
+        <div id="pdf-step-3" class="hidden">
+            <h3 style="color:#ffffff; margin-bottom:12px;">輸入附加元件與選擇印章</h3>
+            <p style="font-size:0.85em; color:#94a3b8; margin-bottom:12px;">請輸入代碼或勾選需附加之電子印章（可複選）：</p>
 
-    // 暴露至全域供後續函式使用
-    window.db = db;
-    window.fsModule = { collection, doc, getDoc, setDoc, getDocs, updateDoc, addDoc, deleteDoc, query, where };
+            <input type="text" id="addon-code-input" class="code-input" placeholder="請輸入附加元件代碼 (選填)" style="text-align:center; font-weight:bold;">
 
-    initializeAppState();
-</script>
+            <div class="stamp-checkbox-list">
+                <label>
+                    <input type="checkbox" class="stamp-option" value="valid" onchange="validateStampOption(this)"> 
+                    1. 測驗成績真實有效章
+                </label>
+                <label>
+                    <input type="checkbox" class="stamp-option" value="pass" onchange="validateStampOption(this)"> 
+                    2. 成績及格證明章 (≥60分)
+                </label>
+                <label>
+                    <input type="checkbox" class="stamp-option" value="excellent" onchange="validateStampOption(this)"> 
+                    3. 成績優良證明章 (≥80分)
+                </label>
+            </div>
+
+            <button class="main-btn btn-accent" onclick="confirmAddonAndDownload()">確定並下載 PDF</button>
+            <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closePdfModal()">取消</button>
+        </div>
+    </div>
+</div>
 
 <script>
     /* ---------------- 台北標準時鐘 (GMT+8) ---------------- */
@@ -693,60 +878,29 @@
     setInterval(updateTaipeiClock, 1000);
     updateTaipeiClock();
 
+    /* ---------------- 全域系統資料庫與狀態 ---------------- */
     let currentUser = null; 
-    let systemVerifyCode = '981103970120';
-    let publicQuizzesMap = {}; 
-    let globalUsersDB = [];
-    let feedbackDB = [];
-    let testHistoryRecords = [];
+    let globalUsersDB = JSON.parse(localStorage.getItem('rms_users_db')) || [];
+    let systemVerifyCode = localStorage.getItem('rms_verify_code') || '981103970120';
+    let publicQuizzesMap = JSON.parse(localStorage.getItem('rms_public_quizzes')) || {}; 
+    let testHistoryRecords = JSON.parse(localStorage.getItem('rms_test_history')) || []; 
+    let feedbackDB = JSON.parse(localStorage.getItem('rms_feedback_db')) || []; // 儲存問題反饋與申訴
 
-    async function initializeAppState() {
-        const db = window.db;
-        const { collection, getDocs, doc, getDoc } = window.fsModule;
-
-        try {
-            const configDoc = await getDoc(doc(db, 'system_config', 'main'));
-            if (configDoc.exists()) {
-                const data = configDoc.data();
-                systemVerifyCode = data.verifyCode || '981103970120';
-                publicQuizzesMap = data.publicQuizzes || {};
+    window.addEventListener('DOMContentLoaded', () => {
+        const registeredEmail = localStorage.getItem('rms_device_registered');
+        if (registeredEmail) {
+            const foundUser = globalUsersDB.find(u => u.email === registeredEmail);
+            if (foundUser) {
+                currentUser = foundUser;
+                postLoginSetup();
             }
-
-            const usersSnap = await getDocs(collection(db, 'users'));
-            globalUsersDB = [];
-            usersSnap.forEach(d => globalUsersDB.push(d.data()));
-
-            const fbSnap = await getDocs(collection(db, 'feedback'));
-            feedbackDB = [];
-            fbSnap.forEach(d => feedbackDB.push({ id: d.id, ...d.data() }));
-
-            const historySnap = await getDocs(collection(db, 'test_history'));
-            testHistoryRecords = [];
-            historySnap.forEach(d => testHistoryRecords.push(d.data()));
-
-            document.getElementById('status-msg').innerText = "雲端資料庫連線成功！";
-
-            const registeredEmail = localStorage.getItem('rms_device_registered');
-            if (registeredEmail) {
-                const foundUser = globalUsersDB.find(u => u.email === registeredEmail);
-                if (foundUser) {
-                    if (foundUser.disabled) {
-                        alert("此帳號已被管理員停權！");
-                        localStorage.removeItem('rms_device_registered');
-                        return;
-                    }
-                    currentUser = foundUser;
-                    postLoginSetup();
-                }
-            }
-        } catch (e) {
-            console.error("Firebase 初始化失敗：", e);
-            document.getElementById('status-msg').innerText = "雲端資料庫連線失敗，請檢查設定。";
         }
-    }
+    });
 
+    /* ---------------- 頂部 MENU 下拉選單控制 ---------------- */
     function toggleMenu() {
-        document.getElementById('dropdown-menu').classList.toggle('show');
+        const menu = document.getElementById('dropdown-menu');
+        menu.classList.toggle('show');
     }
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.menu-container')) {
@@ -754,6 +908,7 @@
         }
     });
 
+    /* ---------------- 登入與註冊授權邏輯 ---------------- */
     const authEmailInput = document.getElementById('auth-email');
     authEmailInput.addEventListener('input', (e) => {
         const email = e.target.value.trim();
@@ -763,10 +918,20 @@
         const existing = globalUsersDB.find(u => u.email === email);
         if (existing) {
             regFields.classList.add('hidden'); 
-            verifyArea.classList.toggle('hidden', !localStorage.getItem('rms_device_registered') || localStorage.getItem('rms_device_registered') === email);
+            const deviceRegistered = localStorage.getItem('rms_device_registered');
+            if (deviceRegistered && deviceRegistered !== email) {
+                verifyArea.classList.remove('hidden');
+            } else {
+                verifyArea.classList.add('hidden');
+            }
         } else {
             regFields.classList.remove('hidden'); 
-            verifyArea.classList.toggle('hidden', !localStorage.getItem('rms_device_registered'));
+            const deviceRegistered = localStorage.getItem('rms_device_registered');
+            if (deviceRegistered) {
+                verifyArea.classList.remove('hidden'); 
+            } else {
+                verifyArea.classList.add('hidden');
+            }
         }
     });
 
@@ -788,7 +953,7 @@
         }
     }
 
-    async function handleAuthSubmit() {
+    function handleAuthSubmit() {
         const email = document.getElementById('auth-email').value.trim();
         const pass = document.getElementById('auth-pass').value.trim();
         const nameInput = document.getElementById('auth-name').value.trim();
@@ -797,8 +962,10 @@
 
         if (!email || !pass) return alert("請填寫完整信箱與密碼！");
 
-        if (!verifyArea.classList.contains('hidden') && verifyInput !== systemVerifyCode) {
-            return alert("重複註冊驗證碼錯誤，無法進行註冊！");
+        if (!verifyArea.classList.contains('hidden')) {
+            if (verifyInput !== systemVerifyCode) {
+                return alert("重複註冊驗證碼錯誤，無法進行註冊！");
+            }
         }
 
         let role = 'user';
@@ -809,52 +976,102 @@
             userName = userName || '系統管理員';
         }
 
-        const db = window.db;
-        const { doc, setDoc } = window.fsModule;
-
         let user = globalUsersDB.find(u => u.email === email);
         if (user) {
-            if (user.disabled) return alert("此帳號已被管理員停權，無法登入！");
             if (user.pass !== pass) return alert("密碼錯誤！");
             currentUser = user;
         } else {
             if (!userName) return alert("新註冊用戶請填寫考生姓名！");
             user = { email, pass, name: userName, role, disabled: false, banReason: '', isNameLocked: false };
-            await setDoc(doc(db, 'users', email), user);
             globalUsersDB.push(user);
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
             currentUser = user;
         }
 
         localStorage.setItem('rms_device_registered', email);
-        alert("歡迎回來，" + currentUser.name + "！");
-        postLoginSetup();
+
+        if (currentUser.disabled && currentUser.role !== 'admin') {
+            alert("注意：您的帳號目前處於遭到停用狀態！系統將引導您進入申訴與帳號恢復系統。");
+            switchView('chat');
+        } else {
+            alert("歡迎回來，" + currentUser.name + "！");
+            postLoginSetup();
+        }
     }
 
     function postLoginSetup() {
         document.getElementById('login-screen').classList.add('hidden');
+        if (currentUser && currentUser.disabled && currentUser.role !== 'admin') {
+            switchView('chat');
+            return;
+        }
         document.getElementById('quiz-entry-area').classList.remove('hidden');
-        document.getElementById('menu-admin-item').style.display = (currentUser && currentUser.role === 'admin') ? 'block' : 'none';
+
+        const menuAdminItem = document.getElementById('menu-admin-item');
+        if (currentUser && currentUser.role === 'admin') {
+            menuAdminItem.style.display = 'block';
+        } else {
+            menuAdminItem.style.display = 'none';
+        }
+
         renderPublicQuizzesList();
     }
 
+    /* ---------------- 登出功能與互動 ---------------- */
     function openLogoutModal() {
         document.getElementById('dropdown-menu').classList.remove('show');
         if (!currentUser) return alert("目前尚未登入！");
+        document.getElementById('logout-modal-email').innerText = currentUser.email;
         document.getElementById('logout-password-input').value = '';
         document.getElementById('logout-modal').classList.remove('hidden');
     }
-    function closeLogoutModal() { document.getElementById('logout-modal').classList.add('hidden'); }
+
+    function closeLogoutModal() {
+        document.getElementById('logout-modal').classList.add('hidden');
+    }
+
     function confirmLogout() {
         const pass = document.getElementById('logout-password-input').value.trim();
-        if (pass !== currentUser.pass) return alert("密碼錯誤！");
+        if (!pass) return alert("請輸入密碼！");
+        if (pass !== currentUser.pass) return alert("密碼錯誤，無法登出！");
+
         currentUser = null;
         localStorage.removeItem('rms_device_registered');
         closeLogoutModal();
-        location.reload();
+
+        document.getElementById('quiz-entry-area').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('admin-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-pass').value = '';
+        document.getElementById('agree-terms').checked = false;
+        checkAuthUnlock();
+
+        alert("已成功安全登出！");
     }
 
+    /* ---------------- 多視圖切換 ---------------- */
     function switchView(viewName) {
         document.getElementById('dropdown-menu').classList.remove('show');
+
+        if (quizActive && viewName !== 'quiz') {
+            if (!confirm("測驗進行中，切換畫面將中斷當前作答或視為放棄，是否繼續？")) return;
+            quizActive = false;
+            clearInterval(timerInterval);
+            exitFullScreen();
+            setMenuDisabledState(false);
+        }
+
+        // 若帳號遭到停用且非管理員，強制只能訪問聊天大廳/申訴系統
+        if (currentUser && currentUser.disabled && viewName !== 'chat' && currentUser.role !== 'admin') {
+            alert("您的帳戶遭到停用，目前僅開放問題反饋與帳號申訴系統！");
+            viewName = 'chat';
+        }
+
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('quiz-entry-area').classList.add('hidden');
         document.getElementById('quiz-ui').classList.add('hidden');
@@ -864,269 +1081,1112 @@
         document.getElementById('admin-screen').classList.add('hidden');
 
         if (viewName === 'login') {
-            document.getElementById(currentUser ? 'quiz-entry-area' : 'login-screen').classList.remove('hidden');
+            if (currentUser) {
+                if (currentUser.disabled && currentUser.role !== 'admin') {
+                    switchView('chat');
+                } else {
+                    document.getElementById('quiz-entry-area').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+            }
         } else if (viewName === 'account') {
             document.getElementById('account-screen').classList.remove('hidden');
             document.getElementById('acc-email-display').innerText = currentUser ? currentUser.email : '未登入';
             document.getElementById('acc-name-display').innerText = currentUser ? currentUser.name : '尚未設定';
+            document.getElementById('acc-total-tests').innerText = localStorage.getItem('total_tests_run') || '0';
+
+            const nameInput = document.getElementById('acc-name-input');
+            const nameBtn = document.getElementById('update-name-btn');
+            const lockHint = document.getElementById('name-lock-hint');
+            nameInput.value = currentUser ? currentUser.name : '';
+
+            if (currentUser && currentUser.isNameLocked) {
+                nameInput.disabled = true;
+                nameBtn.disabled = true;
+                nameBtn.style.opacity = "0.5";
+                lockHint.style.display = "block";
+            } else {
+                nameInput.disabled = false;
+                nameBtn.disabled = false;
+                nameBtn.style.opacity = "1";
+                lockHint.style.display = "none";
+            }
+
         } else if (viewName === 'chat') {
             document.getElementById('chat-screen').classList.remove('hidden');
-            renderMyFeedbackList();
+            setupFeedbackSystemView();
         } else if (viewName === 'admin') {
             if (!currentUser || currentUser.role !== 'admin') {
-                alert("您沒有權限存取管理員面板！");
-                return switchView('login');
+                alert("您無權訪問管理面板！");
+                switchView('login');
+                return;
             }
             document.getElementById('admin-screen').classList.remove('hidden');
-            renderAdminDashboard();
+            setupAdminConsole();
         }
     }
 
-    function renderPublicQuizzesList() {
-        const box = document.getElementById('public-quizzes-list');
-        const keys = Object.keys(publicQuizzesMap);
-        if (keys.length === 0) {
-            box.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:10px;">目前尚無公開題庫</div>`;
-            return;
+    function updateUserName() {
+        if (!currentUser) return;
+        if (currentUser.isNameLocked) {
+            return alert("您的名字已被管理員鎖定，無法修改！");
         }
-        let html = '';
-        keys.forEach(code => {
-            const title = publicQuizzesMap[code];
-            html += `<div class="public-quiz-item">
-                <span><b>${title}</b> (代碼: ${code})</span>
-                <button class="btn-sm btn-success" onclick="selectQuizCode('${code}')">選擇此題庫</button>
-            </div>`;
-        });
-        box.innerHTML = html;
+        const newName = document.getElementById('acc-name-input').value.trim();
+        if (!newName) return alert("姓名不得為空！");
+
+        currentUser.name = newName;
+        const dbUser = globalUsersDB.find(u => u.email === currentUser.email);
+        if (dbUser) {
+            dbUser.name = newName;
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+        }
+        document.getElementById('acc-name-display').innerText = newName;
+        alert("個人姓名更新成功！");
     }
 
-    function selectQuizCode(code) {
-        document.getElementById('quiz-code').value = code;
+    /* ---------------- 聊天大廳轉換：問題反饋與申訴系統邏輯 ---------------- */
+    function setupFeedbackSystemView() {
+        const normalView = document.getElementById('normal-feedback-view');
+        const bannedView = document.getElementById('banned-appeal-view');
+        const adminChatView = document.getElementById('admin-chat-view');
+
+        if (currentUser && currentUser.role === 'admin') {
+            normalView.classList.add('hidden');
+            bannedView.classList.add('hidden');
+            adminChatView.classList.remove('hidden');
+            renderAdminChatFeedbackList();
+        } else if (currentUser && currentUser.disabled) {
+            normalView.classList.add('hidden');
+            adminChatView.classList.add('hidden');
+            bannedView.classList.remove('hidden');
+            renderBannedAppealList();
+        } else {
+            bannedView.classList.add('hidden');
+            adminChatView.classList.add('hidden');
+            normalView.classList.remove('hidden');
+            renderNormalFeedbackList();
+        }
     }
 
-    /* ---------------- 問題反饋系統功能 ---------------- */
-    async function submitNormalFeedback() {
-        const content = document.getElementById('feedback-input').value.trim();
-        if (!content) return alert("請填寫反饋內容！");
+    function getTodayDateString() {
+        const d = new Date();
+        return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
 
-        const db = window.db;
-        const { addDoc, collection } = window.fsModule;
+    /* 一般用戶問題反饋提交 (一天最多3次) */
+    function submitNormalFeedback() {
+        const text = document.getElementById('feedback-input').value.trim();
+        if (!text) return alert("請填寫問題內容！");
+
+        const today = getTodayDateString();
+        const userEmail = currentUser.email;
+
+        const todaySubmissions = feedbackDB.filter(item => item.email === userEmail && item.type === 'feedback' && item.date === today);
+        if (todaySubmissions.length >= 3) {
+            return alert("您今天已達到問題反饋上限（一天最多 3 次），請明天再來或靜候回覆！");
+        }
 
         const newFeedback = {
-            userEmail: currentUser.email,
-            userName: currentUser.name,
-            content: content,
-            time: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),
-            reply: ''
+            id: 'FB-' + Date.now(),
+            email: userEmail,
+            name: currentUser.name,
+            type: 'feedback',
+            content: text,
+            date: today,
+            timestamp: new Date().toLocaleString(),
+            isRead: false,
+            isProcessed: false,
+            adminReply: '',
+            appealResult: null
         };
 
-        try {
-            const docRef = await addDoc(collection(db, 'feedback'), newFeedback);
-            newFeedback.id = docRef.id;
-            feedbackDB.push(newFeedback);
-            document.getElementById('feedback-input').value = '';
-            alert("反饋送出成功！管理員將會盡快回覆您。");
-            renderMyFeedbackList();
-        } catch (e) {
-            console.error(e);
-            alert("送出失敗，請稍後再試。");
-        }
+        feedbackDB.push(newFeedback);
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        document.getElementById('feedback-input').value = '';
+        alert("問題回報提交成功！管理員將盡快審閱。");
+        renderNormalFeedbackList();
     }
 
-    function renderMyFeedbackList() {
-        const box = document.getElementById('my-feedback-list');
-        const myFeedbacks = feedbackDB.filter(f => f.userEmail === currentUser.email);
-        if (myFeedbacks.length === 0) {
-            box.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">尚無反饋紀錄</div>`;
+    function renderNormalFeedbackList() {
+        const container = document.getElementById('normal-feedback-list');
+        const userEmail = currentUser.email;
+        const userItems = feedbackDB.filter(item => item.email === userEmail && item.type === 'feedback');
+
+        if (userItems.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無反饋紀錄</div>`;
             return;
         }
+
         let html = '';
-        myFeedbacks.forEach(f => {
-            html += `<div class="feedback-card">
-                <div class="feedback-header">
-                    <span>回報時間：${f.time}</span>
+        userItems.reverse().forEach(item => {
+            const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308;">未讀</span>';
+            const processStatus = item.isProcessed ? '<span style="color:#22c55e;">[已處理]</span>' : '<span style="color:#f97316;">[未處理]</span>';
+            html += `
+                <div class="feedback-card">
+                    <div class="feedback-header">
+                        <span>提交時間：${item.timestamp} | 狀態：${readStatus} ${processStatus}</span>
+                    </div>
+                    <div style="font-size:0.95em; color:#f8fafc; margin-bottom:8px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
+                    ${item.adminReply ? `<div class="admin-reply-box"><b>管理員回覆：</b><br>${escapeHtml(item.adminReply)}</div>` : '<div style="font-size:0.85em; color:#64748b; font-style:italic;">等待管理員回覆中...</div>'}
                 </div>
-                <div style="font-size:0.95em; color:#f8fafc; white-space:pre-wrap;">${f.content}</div>
-                ${f.reply ? `<div class="admin-reply-box"><b>管理員回覆：</b>${f.reply}</div>` : `<div style="margin-top:8px; font-size:0.85em; color:#f97316;">等待管理員回覆中...</div>`}
-            </div>`;
+            `;
         });
-        box.innerHTML = html;
+        container.innerHTML = html;
     }
 
-    /* ---------------- 管理員面板完整功能 ---------------- */
-    function switchAdminTab(tabName) {
-        document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.admin-panel-section').forEach(s => s.classList.add('hidden'));
+    /* 停用用戶帳號恢復及申訴申請 (一天最多2次) */
+    function submitBannedAppeal() {
+        const text = document.getElementById('appeal-input').value.trim();
+        if (!text) return alert("請填寫申訴原因！");
 
-        if (tabName === 'quizzes') {
-            document.querySelectorAll('.admin-tab-btn')[0].classList.add('active');
-            document.getElementById('admin-tab-quizzes').classList.remove('hidden');
-        } else if (tabName === 'feedback') {
-            document.querySelectorAll('.admin-tab-btn')[1].classList.add('active');
-            document.getElementById('admin-tab-feedback').classList.remove('hidden');
-            renderAdminFeedbackList();
-        } else if (tabName === 'users') {
-            document.querySelectorAll('.admin-tab-btn')[2].classList.add('active');
-            document.getElementById('admin-tab-users').classList.remove('hidden');
-            renderAdminUsersList();
-        } else if (tabName === 'config') {
-            document.querySelectorAll('.admin-tab-btn')[3].classList.add('active');
-            document.getElementById('admin-tab-config').classList.remove('hidden');
-            document.getElementById('adm-sys-verify').value = systemVerifyCode;
+        const today = getTodayDateString();
+        const userEmail = currentUser.email;
+
+        const todaySubmissions = feedbackDB.filter(item => item.email === userEmail && item.type === 'appeal' && item.date === today);
+        if (todaySubmissions.length >= 2) {
+            return alert("您今天已達到申訴申請上限（一天最多 2 次），請等待審核！");
         }
+
+        const newAppeal = {
+            id: 'AP-' + Date.now(),
+            email: userEmail,
+            name: currentUser.name,
+            type: 'appeal',
+            content: text,
+            date: today,
+            timestamp: new Date().toLocaleString(),
+            isRead: false,
+            isProcessed: false,
+            adminReply: '',
+            appealResult: null // null, 'approved', 'rejected'
+        };
+
+        feedbackDB.push(newAppeal);
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        document.getElementById('appeal-input').value = '';
+        alert("帳號申訴申請已成功送出！請靜候管理員審核與回覆。");
+        renderBannedAppealList();
     }
 
-    function renderAdminDashboard() {
-        renderAdminPublicQuizList();
-    }
+    function renderBannedAppealList() {
+        const container = document.getElementById('banned-appeal-list');
+        const userEmail = currentUser.email;
+        const userItems = feedbackDB.filter(item => item.email === userEmail && item.type === 'appeal');
 
-    function renderAdminPublicQuizList() {
-        const box = document.getElementById('admin-public-quiz-list');
-        const keys = Object.keys(publicQuizzesMap);
-        if (keys.length === 0) {
-            box.innerHTML = `<div style="color:#94a3b8; font-size:0.9em;">尚無公開題庫</div>`;
+        if (userItems.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無申訴紀錄</div>`;
             return;
         }
-        let html = `<table class="data-table"><tr><th>代碼</th><th>標題</th><th>操作</th></tr>`;
-        keys.forEach(code => {
-            html += `<tr><td>${code}</td><td>${publicQuizzesMap[code]}</td><td><button class="btn-sm btn-danger" onclick="adminDeleteQuiz('${code}')">刪除</button></td></tr>`;
+
+        let html = '';
+        userItems.reverse().forEach(item => {
+            const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308;">未讀</span>';
+            let resultHtml = '';
+            if (item.appealResult === 'rejected') {
+                resultHtml = '<div style="color:#ef4444; font-weight:bold; margin-top:8px; font-size:1.05em;">審核結果：此案不允受理</div>';
+            } else if (item.appealResult === 'approved') {
+                resultHtml = '<div style="color:#22c55e; font-weight:bold; margin-top:8px; font-size:1.05em;">審核結果：已核准恢復帳戶，請重新登入或重新整理頁面</div>';
+            }
+
+            html += `
+                <div class="feedback-card" style="border-color:#c0392b;">
+                    <div class="feedback-header">
+                        <span>申訴時間：${item.timestamp} | 狀態：${readStatus}</span>
+                    </div>
+                    <div style="font-size:0.95em; color:#f8fafc; margin-bottom:8px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
+                    ${resultHtml}
+                    ${item.adminReply ? `<div class="admin-reply-box" style="border-left-color:#ef4444;"><b>管理員審核回覆：</b><br>${escapeHtml(item.adminReply)}</div>` : '<div style="font-size:0.85em; color:#64748b; font-style:italic;">等待管理員審核中...</div>'}
+                </div>
+            `;
         });
-        html += `</table>`;
-        box.innerHTML = html;
+        container.innerHTML = html;
     }
 
-    async function adminSavePublicQuiz() {
-        const code = document.getElementById('adm-quiz-code').value.trim();
-        const title = document.getElementById('adm-quiz-title').value.trim();
-        if (!code || !title) return alert("請填寫題庫代碼與標題！");
-
-        publicQuizzesMap[code] = title;
-        const db = window.db;
-        const { doc, setDoc } = window.fsModule;
-
-        try {
-            await setDoc(doc(db, 'system_config', 'main'), { verifyCode: systemVerifyCode, publicQuizzes: publicQuizzesMap }, { merge: true });
-            alert("公開題庫更新成功！");
-            document.getElementById('adm-quiz-code').value = '';
-            document.getElementById('adm-quiz-title').value = '';
-            renderAdminPublicQuizList();
-            renderPublicQuizzesList();
-        } catch (e) {
-            console.error(e);
-            alert("更新失敗！");
-        }
-    }
-
-    async function adminDeleteQuiz(code) {
-        if (!confirm(`確定要刪除公開題庫 ${code} 嗎？`)) return;
-        delete publicQuizzesMap[code];
-        const db = window.db;
-        const { doc, setDoc } = window.fsModule;
-        await setDoc(doc(db, 'system_config', 'main'), { verifyCode: systemVerifyCode, publicQuizzes: publicQuizzesMap }, { merge: true });
-        renderAdminPublicQuizList();
-        renderPublicQuizzesList();
-    }
-
-    function renderAdminFeedbackList() {
-        const box = document.getElementById('admin-feedback-list');
+    /* 管理員在聊天大廳選單中檢視所有回報與申訴，並具備刪除、是否處理、回覆及恢復帳戶功能 */
+    function renderAdminChatFeedbackList() {
+        const container = document.getElementById('admin-chat-feedback-list');
         if (feedbackDB.length === 0) {
-            box.innerHTML = `<div style="color:#94a3b8; text-align:center;">目前沒有反饋紀錄</div>`;
+            container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無任何反饋或申訴</div>`;
             return;
         }
+
         let html = '';
-        feedbackDB.forEach(f => {
-            html += `<div class="feedback-card">
-                <div class="feedback-header">
-                    <span><b>用戶：</b>${f.userName} (${f.userEmail})</span>
-                    <span>${f.time}</span>
+        const sorted = [...feedbackDB].reverse();
+        sorted.forEach((item, index) => {
+            const realIndex = feedbackDB.length - 1 - index;
+            const typeLabel = item.type === 'feedback' ? '<span style="color:#38bdf8;">[問題反饋]</span>' : '<span style="color:#ef4444;">[帳號申訴]</span>';
+            const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308; font-weight:bold;">未讀</span>';
+            const processStatusText = item.isProcessed ? '<span style="color:#22c55e; font-weight:bold;">已處理</span>' : '<span style="color:#f97316; font-weight:bold;">未處理</span>';
+
+            let appealActionHtml = '';
+            if (item.type === 'appeal') {
+                let statusBadge = '';
+                if (item.appealResult === 'approved') statusBadge = '<span style="color:#22c55e; font-weight:bold;">[已恢復帳戶]</span>';
+                else if (item.appealResult === 'rejected') statusBadge = '<span style="color:#ef4444; font-weight:bold;">[已判定: 此案不允受理]</span>';
+                else statusBadge = '<span style="color:#eab308;">[尚未審核帳戶恢復]</span>';
+
+                appealActionHtml = `
+                    <div style="margin-top:10px; background:#0f172a; padding:10px; border-radius:4px; border:1px solid #334155;">
+                        <div style="margin-bottom:6px; font-size:0.9em;">帳戶恢復審核狀態：${statusBadge}</div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span style="font-size:0.9em; font-weight:bold;">是否恢復帳戶：</span>
+                            <button class="btn-sm btn-success" onclick="adminRecoverAccountStep1(${realIndex})">是 (恢復)</button>
+                            <button class="btn-sm btn-danger" onclick="adminRejectAppeal(${realIndex})">否 (此案不允受理)</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="feedback-card" style="margin-bottom:12px;">
+                    <div class="feedback-header">
+                        <span>${typeLabel} 提交者：<b>${escapeHtml(item.name)}</b> (${item.email}) | 時間：${item.timestamp}</span>
+                        <span>狀態：${readStatus} | 處理狀態：${processStatusText}</span>
+                    </div>
+                    <div style="font-size:0.95em; color:#f8fafc; margin-bottom:10px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
+                    ${appealActionHtml}
+                    <div style="display:flex; gap:8px; align-items:center; margin-top:10px;">
+                        <input type="text" id="admin-chat-reply-input-${realIndex}" class="code-input" style="margin-bottom:0; flex:1; font-size:0.9em;" placeholder="輸入管理員回覆 / 原因..." value="${escapeHtml(item.adminReply || '')}">
+                        <button class="btn-sm btn-accent" style="padding:8px 12px;" onclick="adminSaveChatReply(${realIndex})">送出回覆</button>
+                        <button class="btn-sm ${item.isProcessed ? 'btn-secondary' : 'btn-success'}" style="padding:8px 12px;" onclick="adminToggleProcessed(${realIndex})">${item.isProcessed ? '標記未處理' : '標記已處理'}</button>
+                        <button class="btn-sm btn-danger" style="padding:8px 12px;" onclick="adminDeleteFeedback(${realIndex})">刪除</button>
+                    </div>
                 </div>
-                <div style="font-size:0.95em; color:#f8fafc; margin-bottom:10px;">${f.content}</div>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="admin-reply-${f.id}" class="code-input" style="margin-bottom:0;" placeholder="輸入回覆內容..." value="${f.reply || ''}">
-                    <button class="btn-sm btn-success" style="padding:0 15px;" onclick="adminSendReply('${f.id}')">送出回覆</button>
-                </div>
-            </div>`;
+            `;
         });
-        box.innerHTML = html;
+        container.innerHTML = html;
     }
 
-    async function adminSendReply(fbId) {
-        const replyText = document.getElementById(`admin-reply-${fbId}`).value.trim();
-        if (!replyText) return alert("請輸入回覆內容！");
+    function adminSaveChatReply(index) {
+        const replyText = document.getElementById(`admin-chat-reply-input-${index}`).value.trim();
+        feedbackDB[index].adminReply = replyText;
+        feedbackDB[index].isRead = true;
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("管理員回覆已成功送出！");
+        renderAdminChatFeedbackList();
+    }
 
-        const db = window.db;
-        const { doc, updateDoc } = window.fsModule;
+    function adminToggleProcessed(index) {
+        feedbackDB[index].isProcessed = !feedbackDB[index].isProcessed;
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        renderAdminChatFeedbackList();
+    }
 
-        try {
-            await updateDoc(doc(db, 'feedback', fbId), { reply: replyText });
-            const item = feedbackDB.find(f => f.id === fbId);
-            if (item) item.reply = replyText;
-            alert("回覆送出成功！");
-            renderAdminFeedbackList();
-        } catch (e) {
-            console.error(e);
-            alert("回覆送出失敗！");
+    function adminDeleteFeedback(index) {
+        if (!confirm("確定要刪除這筆訊息紀錄嗎？")) return;
+        feedbackDB.splice(index, 1);
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("已成功刪除訊息！");
+        renderAdminChatFeedbackList();
+    }
+
+    /* 被停用用戶申訴：按「是」恢復帳戶（2步確認） */
+    function adminRecoverAccountStep1(index) {
+        const item = feedbackDB[index];
+        if (!confirm("第一步確認：您確定要恢復用戶 " + item.email + " 的帳戶嗎？")) return;
+        if (!confirm("第二步確認：執行後該用戶將立刻解除停用並可正常登入系統，是否確定？")) return;
+
+        const targetUser = globalUsersDB.find(u => u.email === item.email);
+        if (targetUser) {
+            targetUser.disabled = false;
+            targetUser.banReason = "";
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
         }
+        feedbackDB[index].appealResult = 'approved';
+        feedbackDB[index].isProcessed = true;
+        feedbackDB[index].adminReply = (feedbackDB[index].adminReply || "") + "\n[系統公告：您的帳戶已審核通過並恢復]";
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("已成功恢復該用戶帳戶！");
+        renderAdminChatFeedbackList();
     }
 
-    function renderAdminUsersList() {
-        const box = document.getElementById('admin-users-list');
-        if (globalUsersDB.length === 0) {
-            box.innerHTML = `<div style="color:#94a3b8; text-align:center;">無註冊用戶</div>`;
+    /* 被停用用戶申訴：按「否」在用戶端顯示此案不允受理且可繼續留言原因 */
+    function adminRejectAppeal(index) {
+        feedbackDB[index].appealResult = 'rejected';
+        feedbackDB[index].isProcessed = true;
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("已設定為此案不允受理。您可以在下方輸入框填寫原因並送出回覆給用戶。");
+        renderAdminChatFeedbackList();
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    /* ---------------- 管理面板詳細功能 ---------------- */
+    function setupAdminConsole() {
+        const userSelect = document.getElementById('admin-user-select');
+        userSelect.innerHTML = '';
+        globalUsersDB.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.email;
+            opt.innerText = `${u.name} (${u.email}) ${u.disabled ? '[已停用]' : ''}`;
+            userSelect.appendChild(opt);
+        });
+
+        const renameUserSelect = document.getElementById('admin-rename-user-select');
+        renameUserSelect.innerHTML = '';
+        globalUsersDB.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.email;
+            opt.innerText = `${u.name} (${u.email}) ${u.isNameLocked ? '[已鎖定]' : ''}`;
+            renameUserSelect.appendChild(opt);
+        });
+
+        document.getElementById('adminQuizCodeInput').value = '';
+        document.getElementById('adminQuizStatusContainer').style.display = 'none';
+    }
+
+    /* 管理員即時檢查題庫代碼狀態 */
+    function checkAdminQuizStatus() {
+        const code = document.getElementById('adminQuizCodeInput').value.trim();
+        const container = document.getElementById('adminQuizStatusContainer');
+        const statusText = document.getElementById('adminStatusText');
+        const displayCode = document.getElementById('adminDisplayCode');
+        const quizDetails = document.getElementById('adminQuizDetails');
+        const publicCheckbox = document.getElementById('adminPublicCheckbox');
+
+        if (!code) {
+            alert('請先輸入題庫代碼！');
             return;
         }
-        let html = `<table class="data-table"><tr><th>信箱</th><th>姓名</th><th>權限</th><th>狀態</th><th>操作</th></tr>`;
-        globalUsersDB.forEach(u => {
-            html += `<tr>
-                <td>${u.email}</td>
-                <td>${u.name}</td>
-                <td>${u.role}</td>
-                <td>${u.disabled ? '<span style="color:#ef4444;">已停權</span>' : '<span style="color:#27ae60;">正常</span>'}</td>
-                <td>
-                    <button class="btn-sm ${u.disabled ? 'btn-success' : 'btn-danger'}" onclick="toggleUserBan('${u.email}', ${!u.disabled})">
-                        ${u.disabled ? '解除停權' : '停權'}
-                    </button>
-                </td>
-            </tr>`;
-        });
-        html += `</table>`;
-        box.innerHTML = html;
+
+        displayCode.textContent = code;
+        container.style.display = 'block';
+        statusText.textContent = '檢查中...';
+        statusText.style.color = '#f97316';
+        quizDetails.textContent = '';
+        publicCheckbox.checked = !!publicQuizzesMap[code];
+
+        const oldScript = document.getElementById('temp-admin-check-script');
+        if (oldScript) oldScript.remove();
+
+        window.currentQuiz = null;
+        const script = document.createElement('script');
+        script.id = 'temp-admin-check-script';
+        script.src = `${code}.js?t=` + new Date().getTime();
+
+        script.onload = () => {
+            if (window.currentQuiz && window.currentQuiz.name) {
+                statusText.textContent = '題庫檔案正常';
+                statusText.style.color = '#22c55e';
+                quizDetails.innerHTML = `題庫名稱 (JS name)：<b>${window.currentQuiz.name}</b><br>題目數量：<b>${window.currentQuiz.data ? window.currentQuiz.data.length : 0}</b> 題`;
+            } else {
+                statusText.textContent = '檔案格式不符（缺少 currentQuiz 物件或 name 屬性）';
+                statusText.style.color = '#ef4444';
+                quizDetails.textContent = '';
+            }
+        };
+
+        script.onerror = () => {
+            statusText.textContent = '找不到該題庫檔案（請確認檔案是否存在於同層目錄）';
+            statusText.style.color = '#ef4444';
+            quizDetails.textContent = '';
+        };
+
+        document.head.appendChild(script);
     }
 
-    async function toggleUserBan(email, shouldDisable) {
-        if (!confirm(`確定要${shouldDisable ? '停權' : '解除停權'}用戶 ${email} 嗎？`)) return;
+    /* 管理員勾選/取消公開狀態 */
+    function toggleAdminQuizPublic(checkbox) {
+        const code = document.getElementById('adminQuizCodeInput').value.trim();
+        if (!code) return;
 
-        const db = window.db;
-        const { doc, updateDoc } = window.fsModule;
+        publicQuizzesMap[code] = checkbox.checked;
+        localStorage.setItem('rms_public_quizzes', JSON.stringify(publicQuizzesMap));
+        renderPublicQuizzesList();
+        alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
+    }
 
-        try {
-            await updateDoc(doc(db, 'users', email), { disabled: shouldDisable });
-            const user = globalUsersDB.find(u => u.email === email);
-            if (user) user.disabled = shouldDisable;
-            alert("操作成功！");
-            renderAdminUsersList();
-        } catch (e) {
-            console.error(e);
-            alert("操作失敗！");
+    function adminDisableUser() {
+        const targetEmail = document.getElementById('admin-user-select').value;
+        const reason = document.getElementById('admin-ban-reason').value.trim() || '違反使用規範';
+        if (!targetEmail) return alert("請選擇要停用的用戶！");
+
+        const target = globalUsersDB.find(u => u.email === targetEmail);
+        if (target) {
+            if (target.role === 'admin') return alert("無法停用管理員帳戶！");
+            target.disabled = true;
+            target.banReason = reason;
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+            alert("已成功停用帳戶：" + targetEmail + "，原因：" + reason);
+            setupAdminConsole();
         }
     }
 
-    async function adminSaveSystemConfig() {
-        const newCode = document.getElementById('adm-sys-verify').value.trim();
-        if (!newCode) return alert("驗證碼不能為空！");
+    function adminForceRenameUser() {
+        const targetEmail = document.getElementById('admin-rename-user-select').value;
+        const newName = document.getElementById('admin-new-name-input').value.trim();
+        if (!targetEmail) return alert("請選擇目標用戶！");
+        if (!newName) return alert("請輸入要強制修改的新名字！");
 
+        const target = globalUsersDB.find(u => u.email === targetEmail);
+        if (target) {
+            target.name = newName;
+            target.isNameLocked = true;
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+
+            if (currentUser && currentUser.email === targetEmail) {
+                currentUser.name = newName;
+                currentUser.isNameLocked = true;
+            }
+
+            alert("已成功將用戶 " + targetEmail + " 強制改名為「" + newName + "」並封鎖其後續自行修改權限！");
+            document.getElementById('admin-new-name-input').value = '';
+            setupAdminConsole();
+        }
+    }
+
+    function adminUpdateVerifyCode() {
+        const newCode = document.getElementById('admin-verify-code-input').value.trim();
+        if (!newCode) return alert("驗證碼不得為空！");
         systemVerifyCode = newCode;
-        const db = window.db;
-        const { doc, setDoc } = window.fsModule;
+        localStorage.setItem('rms_verify_code', systemVerifyCode);
+        alert("重複註冊驗證碼更新成功！");
+    }
 
-        try {
-            await setDoc(doc(db, 'system_config', 'main'), { verifyCode: systemVerifyCode, publicQuizzes: publicQuizzesMap }, { merge: true });
-            alert("系統設定儲存成功！");
-        } catch (e) {
-            console.error(e);
-            alert("儲存失敗！");
+    /* 渲染首頁公開題庫列表：嚴格顯示 JS 中的 name 項目而非代碼 */
+    function renderPublicQuizzesList() {
+        const listContainer = document.getElementById('public-quizzes-list');
+        listContainer.innerHTML = '';
+
+        const publicCodes = Object.keys(publicQuizzesMap).filter(code => publicQuizzesMap[code]);
+        if (publicCodes.length === 0) {
+            listContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:10px;">目前尚無公開題庫</div>`;
+            return;
+        }
+
+        publicCodes.forEach(code => {
+            const scriptId = `preload-quiz-${code}`;
+            if (!document.getElementById(scriptId)) {
+                const s = document.createElement('script');
+                s.id = scriptId;
+                s.src = `${code}.js`;
+                s.onload = () => {
+                    renderPublicQuizzesList(); 
+                };
+                document.head.appendChild(s);
+            }
+
+            const displayName = (window.currentQuiz && window.currentQuiz.name) ? window.currentQuiz.name : `載入中 (${code})...`;
+
+            const item = document.createElement('div');
+            item.className = 'public-quiz-item';
+            item.innerHTML = `
+                <span><b>${displayName}</b></span>
+                <div class="quiz-action-btns">
+                    <button class="btn-sm btn-rank" onclick="openRankModalForQuiz('${code}')">排行榜</button>
+                    <button class="btn-sm btn-start-quiz" onclick="quickStartQuiz('${code}')">進入考試</button>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+
+    /* ---------------- 排行榜與 1-30 名清單、詳細資訊 Modal ---------------- */
+    let currentRankRecords = [];
+
+    function openRankModalForQuiz(quizCode) {
+        const modal = document.getElementById('rank-modal');
+        const contentDiv = document.getElementById('rank-modal-content');
+        document.getElementById('rank-modal-title').innerText = `題庫排行榜 (1-30名)`;
+
+        const validRecords = testHistoryRecords.filter(r => r.quizCode === quizCode && !r.isCheated);
+        if (validRecords.length === 0) {
+            contentDiv.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">尚無此題庫的有效測驗成績紀錄</div>`;
+            modal.classList.remove('hidden');
+            return;
+        }
+
+        validRecords.sort((a, b) => b.score - a.score);
+        currentRankRecords = validRecords.slice(0, 30);
+
+        let html = '<table style="width:100%; border-collapse: collapse;">';
+        html += '<tr style="border-bottom:1px solid #334155; color:#94a3b8; font-size:0.85em;"><th style="padding:6px; text-align:center; width:15%;">名次</th><th style="padding:6px; text-align:left; width:45%;">考生姓名</th><th style="padding:6px; text-align:center; width:20%;">得分</th><th style="padding:6px; text-align:center; width:20%;">詳細</th></tr>';
+
+        currentRankRecords.forEach((rec, idx) => {
+            const rankNum = idx + 1;
+            let rankColor = "#f8fafc";
+            if(rankNum === 1) rankColor = "#facc15"; 
+            if(rankNum === 2) rankColor = "#e2e8f0"; 
+            if(rankNum === 3) rankColor = "#fb923c"; 
+
+            html += `
+                <tr style="border-bottom:1px solid #1e293b;">
+                    <td style="padding:8px; text-align:center; font-weight:bold; color:${rankColor};">#${rankNum}</td>
+                    <td style="padding:8px; text-align:left; color:#f8fafc; font-weight:600;">${escapeHtml(rec.userName)}</td>
+                    <td style="padding:8px; text-align:center; color:#22c55e; font-weight:bold;">${rec.score} 分</td>
+                    <td style="padding:8px; text-align:center;">
+                        <button class="btn-sm btn-accent" style="padding:3px 8px; font-size:0.8em;" onclick="openRankDetailModal(${idx})">詳細資訊</button>
+                    </td>
+                </tr>
+            `;
+        });
+        html += '</table>';
+
+        contentDiv.innerHTML = html;
+        modal.classList.remove('hidden');
+    }
+
+    function closeRankModal() {
+        document.getElementById('rank-modal').classList.add('hidden');
+    }
+
+    function openRankDetailModal(index) {
+        const rec = currentRankRecords[index];
+        if (!rec) return;
+        const detailContent = document.getElementById('rank-detail-content');
+        detailContent.innerHTML = `
+            <p><b>考生姓名：</b> <span style="color:#38bdf8;">${escapeHtml(rec.userName)}</span></p>
+            <p><b>獲得分數：</b> <span style="color:#22c55e; font-weight:bold;">${rec.score} 分</span></p>
+            <p><b>開始時間：</b> ${rec.startTime}</p>
+            <p><b>結束時間：</b> ${rec.endTime}</p>
+            <p><b>作答總耗時：</b> ${rec.duration}</p>
+            <p><b>平均答題速度：</b> 每題約 ${rec.avgSpeed} 秒</p>
+        `;
+        document.getElementById('rank-detail-modal').classList.remove('hidden');
+    }
+
+    function closeRankDetailModal() {
+        document.getElementById('rank-detail-modal').classList.add('hidden');
+    }
+
+    function quickStartQuiz(quizCode) {
+        document.getElementById('quiz-code').value = quizCode;
+        loadQuizScript(quizCode, () => {
+            checkAndStart();
+        });
+    }
+
+    function loadQuizScript(code, callback) {
+        const old = document.getElementById('q-script'); if(old) old.remove();
+        const s = document.createElement('script');
+        s.id = 'q-script'; s.src = `${code}.js`; 
+        s.onload = () => {
+            if(window.currentQuiz) {
+                document.getElementById('status-msg').innerText = `已成功讀取題庫：${window.currentQuiz.name}`;
+                if(window.currentQuiz.password) document.getElementById('password-area').classList.remove('hidden');
+                checkUnlockStatus();
+                if(callback) callback();
+            }
+        };
+        s.onerror = () => {
+            document.getElementById('status-msg').innerText = `找不到題庫檔案：${code}.js`;
+        };
+        document.head.appendChild(s);
+    }
+
+    document.getElementById('quiz-code').addEventListener('input', (e) => {
+        const code = e.target.value.trim();
+        if(code) {
+            loadQuizScript(code);
+        }
+    });
+
+    function checkUnlockStatus() {
+        const loaded = !!window.currentQuiz;
+        const btn = document.getElementById('start-btn');
+        if(loaded) {
+            btn.disabled = false;
+            btn.style.background = "var(--accent)";
+            btn.style.color = "#ffffff";
+        } else {
+            btn.disabled = true;
+            btn.style.background = "#cbd5e1";
+            btn.style.color = "#64748b";
         }
     }
+
+    /* ---------------- 測驗核心控制與防誤觸 ---------------- */
+    let quizActive = false;
+    let currentQuestions = [], userAnswers = {}, timerInterval, totalSeconds = 0;
+    let currentActiveIndex = 0;
+    let isWrongQuestionsMode = false;
+    let originalWrongQuestions = [];
+    let warningCount = 0;
+    let calculatedScore = 0;
+    let selectedPdfIncludeWrong = false;
+    let startTimeObj, endTimeObj;
+    let userIP = "未知IP";
+
+    fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => { userIP = data.ip; })
+        .catch(() => { userIP = "127.0.0.1"; });
+
+    function getPlatform() {
+        const ua = navigator.userAgent;
+        const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+        const isTablet = /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle)/i.test(ua) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isTablet) return "平板";
+        if (isMobile) return "手機";
+        return "電腦";
+    }
+
+    function setMenuDisabledState(disabled) {
+        const menuBtn = document.getElementById('top-menu-btn');
+        if (disabled) {
+            menuBtn.classList.add('disabled-menu');
+            document.getElementById('dropdown-menu').classList.remove('show');
+        } else {
+            menuBtn.classList.remove('disabled-menu');
+        }
+    }
+
+    function requestFullScreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen().catch(() => {});
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen().catch(() => {});
+        }
+    }
+
+    function exitFullScreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen().catch(() => {});
+        }
+    }
+
+    function checkAndStart() {
+        if(!window.currentQuiz) return alert("請先載入有效題庫！");
+        if(window.currentQuiz.password && document.getElementById('quiz-pass').value !== window.currentQuiz.password) {
+            return alert("密碼有誤！");
+        }
+
+        requestFullScreen();
+        setMenuDisabledState(true); 
+        isWrongQuestionsMode = false;
+        beginQuiz(JSON.parse(JSON.stringify(window.currentQuiz.data)).sort(() => Math.random() - 0.5));
+    }
+
+    function beginQuiz(questionsDataset) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('quiz-entry-area').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.remove('hidden');
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('admin-screen').classList.add('hidden');
+
+        const quiz = window.currentQuiz;
+        document.getElementById('quiz-header').innerText = isWrongQuestionsMode ? `${quiz.name} (錯題重測)` : quiz.name;
+
+        currentQuestions = questionsDataset;
+        userAnswers = {};
+        currentActiveIndex = 0;
+        warningCount = 0;
+        startTimeObj = new Date();
+
+        totalSeconds = (quiz.time || 20) * 60;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            totalSeconds--;
+            const mins = Math.floor(totalSeconds / 60), secs = totalSeconds % 60;
+            document.getElementById('time-left').innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
+            if (totalSeconds <= 0) evalQuiz();
+        }, 1000);
+
+        quizActive = true;
+        renderQuiz();
+    }
+
+    function handleViolation() {
+        if (!quizActive) return;
+        warningCount++;
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && quizActive) handleViolation();
+    });
+    window.addEventListener("blur", () => {
+        if (quizActive) handleViolation();
+    });
+    document.addEventListener("fullscreenchange", () => {
+        if (!document.fullscreenElement && quizActive) handleViolation();
+    });
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+
+        currentQuestions.forEach((q, i) => {
+            const card = document.createElement('div'); 
+            card.className = `question-card ${i === currentActiveIndex ? '' : 'hidden'}`;
+            card.id = `q-card-${i}`;
+            card.innerHTML = `<div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題<br>${q.q}</div><div id="opts-${i}"></div>`;
+            container.appendChild(card);
+
+            q.o.forEach(opt => {
+                const b = document.createElement('button'); 
+                b.className = 'opt-btn'; 
+                b.innerText = opt;
+
+                const optLetter = opt.match(/\(([A-D])\)/)[1];
+                if(userAnswers[i] === optLetter) b.classList.add('selected');
+
+                b.onclick = () => {
+                    userAnswers[i] = optLetter;
+                    Array.from(b.parentElement.children).forEach(x => x.classList.remove('selected'));
+                    b.classList.add('selected');
+
+                    setTimeout(() => {
+                        if (currentActiveIndex < currentQuestions.length - 1) {
+                            navigateQuestion(1);
+                        }
+                    }, 300);
+                };
+                document.getElementById(`opts-${i}`).appendChild(b);
+            });
+        });
+        if (window.MathJax) MathJax.typesetPromise([container]);
+    }
+
+    function navigateQuestion(direction) {
+        const newIndex = currentActiveIndex + direction;
+        if(newIndex >= 0 && newIndex < currentQuestions.length) {
+            document.getElementById(`q-card-${currentActiveIndex}`).classList.add('hidden');
+            currentActiveIndex = newIndex;
+            document.getElementById(`q-card-${currentActiveIndex}`).classList.remove('hidden');
+        }
+    }
+
+    function confirmSubmit() { 
+        const answeredCount = Object.keys(userAnswers).length;
+        if(answeredCount < currentQuestions.length) {
+            if(!confirm(`尚有 ${currentQuestions.length - answeredCount} 題未作答，確定要提早提交？`)) return;
+        } else {
+            if(!confirm("確定提交作答評量？")) return;
+        }
+        evalQuiz(); 
+    }
+
+    function evalQuiz() {
+        quizActive = false;
+        clearInterval(timerInterval);
+        endTimeObj = new Date();
+
+        exitFullScreen();
+        setMenuDisabledState(false); 
+
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+
+        let correctCount = 0;
+        let reviewHTML = '<h3 style="color:#ffffff; margin-top:20px;">詳細解析評估 (正確答案已標註)</h3>';
+        originalWrongQuestions = [];
+
+        currentQuestions.forEach((q, i) => {
+            const correctContent = q.o.find(str => str.trim().startsWith(`(${q.a})`));
+            const isRight = userAnswers[i] === q.a;
+            if(isRight) {
+                correctCount++;
+            } else {
+                originalWrongQuestions.push({
+                    index: i,
+                    qObj: q,
+                    userAns: userAnswers[i] || ''
+                });
+            }
+
+            reviewHTML += `
+                <div class="review-card" style="border-left: 4px solid ${isRight ? 'var(--success)' : 'var(--error)'}">
+                    <p><b>題目 ${i+1}: ${q.q}</b></p>
+                    <p>您的作答：${userAnswers[i] || '未填答'} | 
+                    <span style="color:var(--success); font-weight:bold;">正確答案：${correctContent}</span></p>
+                </div>`;
+        });
+
+        const totalQ = currentQuestions.length;
+        const answeredCount = Object.keys(userAnswers).length;
+        const unansweredCount = totalQ - answeredCount;
+        const wrongCount = totalQ - correctCount - unansweredCount;
+
+        calculatedScore = Math.round(correctCount * (100 / totalQ));
+
+        let testCountKey = `test_count_${window.currentQuiz.name}`;
+        let localCount = (parseInt(localStorage.getItem(testCountKey)) || 0) + 1;
+        localStorage.setItem(testCountKey, localCount);
+
+        let totalTestsRun = (parseInt(localStorage.getItem('total_tests_run')) || 0) + 1;
+        localStorage.setItem('total_tests_run', totalTestsRun);
+
+        const formatTimeFull = (date) => {
+            const y = date.getFullYear() - 1911;
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `民國${y}年${m}月${d}日 ${h}:${min}`;
+        };
+
+        const durationSec = Math.max(1, Math.floor((endTimeObj - startTimeObj) / 1000));
+        const hours = String(Math.floor(durationSec / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((durationSec % 3600) / 60)).padStart(2, '0');
+        const secs = String(durationSec % 60).padStart(2, '0');
+        const avgSpeed = (durationSec / totalQ).toFixed(1);
+
+        const currentQuizCode = document.getElementById('quiz-code').value.trim() || 'test01';
+        const isCheated = warningCount > 0;
+
+        if (!isWrongQuestionsMode && !isCheated) {
+            const recordObj = {
+                quizCode: currentQuizCode,
+                userName: currentUser ? currentUser.name : '訪客',
+                score: calculatedScore,
+                startTime: formatTimeFull(startTimeObj),
+                endTime: formatTimeFull(endTimeObj),
+                duration: `${hours}時${mins}分${secs}秒`,
+                avgSpeed: avgSpeed,
+                isCheated: false
+            };
+            testHistoryRecords.push(recordObj);
+            localStorage.setItem('rms_test_history', JSON.stringify(testHistoryRecords));
+        }
+
+        document.getElementById('res-subject').innerText = window.currentQuiz.name;
+        document.getElementById('res-test-count').innerText = localCount;
+        document.getElementById('res-score').innerText = calculatedScore;
+        document.getElementById('res-correct').innerText = correctCount;
+        document.getElementById('res-orange').innerText = wrongCount;
+
+        const unAnsElem = document.getElementById('res-unanswered');
+        unAnsElem.innerText = `${unansweredCount} 題`;
+        unAnsElem.className = unansweredCount === 0 ? "tb-val res-green" : "tb-val res-red";
+
+        const passLabel = document.getElementById('res-pass-label');
+        if (isCheated) {
+            passLabel.innerText = "因作弊不記錄成績";
+            passLabel.className = "tb-val res-red";
+        } else if (calculatedScore >= 60) {
+            passLabel.innerText = "及格 論";
+            passLabel.className = "tb-val res-black-pass";
+        } else {
+            passLabel.innerText = "不及格 論";
+            passLabel.className = "tb-val res-red";
+        }
+
+        document.getElementById('res-username').innerText = currentUser ? currentUser.name : '訪客';
+        document.getElementById('res-start-time').innerText = formatTimeFull(startTimeObj);
+        document.getElementById('res-end-time').innerText = formatTimeFull(endTimeObj);
+
+        const cheatElem = document.getElementById('res-cheated');
+        if (isCheated) {
+            cheatElem.innerText = `檢測到離開畫面 ${warningCount} 次`;
+            cheatElem.className = "tb-val res-red";
+        } else {
+            cheatElem.innerText = "否";
+            cheatElem.className = "tb-val res-yellow";
+        }
+
+        const emptyRow = document.getElementById('empty-paper-row');
+        if (answeredCount === 0) {
+            emptyRow.classList.remove('hidden');
+        } else {
+            emptyRow.classList.add('hidden');
+        }
+
+        document.getElementById('res-duration').innerText = `${hours}時${mins}分${secs}秒`;
+        document.getElementById('res-ip').innerText = userIP;
+        document.getElementById('res-platform').innerText = getPlatform();
+        document.getElementById('res-avg-speed').innerText = avgSpeed;
+
+        document.getElementById('review-area').innerHTML = reviewHTML;
+
+        const retryBtn = document.getElementById('retry-failed-btn');
+        if(originalWrongQuestions.length > 0) {
+            retryBtn.classList.remove('hidden');
+        } else {
+            retryBtn.classList.add('hidden');
+        }
+
+        if (window.MathJax) MathJax.typesetPromise([document.getElementById('review-area')]);
+    }
+
+    function startWrongQuestionsQuiz() {
+        if(originalWrongQuestions.length === 0) return;
+        requestFullScreen();
+        setMenuDisabledState(true);
+        isWrongQuestionsMode = true;
+        const wrongDataset = originalWrongQuestions.map(item => item.qObj).sort(() => Math.random() - 0.5);
+        beginQuiz(wrongDataset);
+    }
+
+    function validateStampOption(chk) {
+        if (!chk.checked) return;
+        const val = chk.value;
+        const answeredCount = Object.keys(userAnswers).length;
+        if (val === 'valid') {
+            if (warningCount > 0 || answeredCount === 0) {
+                alert("【無法勾選】檢測到測驗過程中存在作弊行為或惡意交白卷，無法開立「測驗成績真實有效章」！");
+                chk.checked = false;
+            }
+        } else if (val === 'pass') {
+            if (calculatedScore < 60 || warningCount > 0) {
+                alert("【無法勾選】成績未達及格標準 (60分) 或成績無效，無法開立「成績及格證明章」！");
+                chk.checked = false;
+            }
+        } else if (val === 'excellent') {
+            if (calculatedScore < 80 || warningCount > 0) {
+                alert("【無法勾選】成績未達優良標準 (80分) 或成績無效，無法開立「成績優良證明章」！");
+                chk.checked = false;
+            }
+        }
+    }
+
+    function openPdfModal() {
+        const pdfModal = document.getElementById('pdf-modal');
+        const btnWithWrong = document.getElementById('btn-pdf-with-wrong');
+        document.getElementById('pdf-step-1').classList.remove('hidden');
+        document.getElementById('pdf-step-2').classList.add('hidden');
+        document.getElementById('pdf-step-3').classList.add('hidden');
+        document.getElementById('addon-code-input').value = '';
+        document.querySelectorAll('.stamp-option').forEach(chk => chk.checked = false);
+
+        if (originalWrongQuestions.length === 0) {
+            btnWithWrong.disabled = true;
+            btnWithWrong.style.opacity = "0.5";
+            btnWithWrong.innerText = "評量結果 + 錯題解析 (無錯題)";
+        } else {
+            btnWithWrong.disabled = false;
+            btnWithWrong.style.opacity = "1";
+            btnWithWrong.innerText = "評量結果 + 錯題解析";
+        }
+        pdfModal.classList.remove('hidden');
+    }
+
+    function closePdfModal() {
+        document.getElementById('pdf-modal').classList.add('hidden');
+    }
+
+    function selectPdfFormat(includeWrong) {
+        selectedPdfIncludeWrong = includeWrong;
+        document.getElementById('pdf-step-1').classList.add('hidden');
+        document.getElementById('pdf-step-2').classList.remove('hidden');
+    }
+
+    function showAddonInput(wantAddon) {
+        if (wantAddon) {
+            document.getElementById('pdf-step-2').classList.add('hidden');
+            document.getElementById('pdf-step-3').classList.remove('hidden');
+        } else {
+            processPDFDownload(selectedPdfIncludeWrong, null, []);
+        }
+    }
+
+    function confirmAddonAndDownload() {
+        const code = document.getElementById('addon-code-input').value.trim();
+        const selectedStamps = [];
+        document.querySelectorAll('.stamp-option:checked').forEach(chk => {
+            selectedStamps.push(chk.value);
+        });
+        if (!code && selectedStamps.length === 0) {
+            return alert("請輸入附加元件代碼或至少勾選一項印章！");
+        }
+        processPDFDownload(selectedPdfIncludeWrong, code, selectedStamps);
+    }
+
+    function getRocDateString() {
+        const d = new Date();
+        const year = d.getFullYear() - 1911;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `民國${year}年${month}月${day}日`;
+    }
+
+    function processPDFDownload(includeWrong, addonCode, selectedStamps) {
+        closePdfModal();
+        const element = document.getElementById('report-card');
+        const pdfWrongList = document.getElementById('pdf-wrong-list');
+        const stampPageSection = document.getElementById('stamp-page-section');
+        const addonRow = document.getElementById('addon-code-row');
+        const addonVal = document.getElementById('res-addon-code');
+        const stampsArea = document.getElementById('stamps-area');
+        const username = currentUser ? currentUser.name : '考生';
+        const subject = window.currentQuiz ? window.currentQuiz.name : '測驗報告';
+        const answeredCount = Object.keys(userAnswers).length;
+
+        if (addonCode) {
+            addonVal.innerText = addonCode;
+            addonRow.classList.remove('hidden');
+        } else {
+            addonRow.classList.add('hidden');
+        }
+
+        let stampsHtml = '';
+        const rocDate = getRocDateString();
+
+        if (warningCount > 0 || answeredCount === 0) {
+            stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">因作答或成績異常取消此次成績</div></div>`;
+        } else {
+            if (selectedStamps.includes('valid')) stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">成績真實有效</div></div>`;
+            if (selectedStamps.includes('pass')) stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">成績及格證明</div></div>`;
+            if (selectedStamps.includes('excellent')) stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">成績優良證明</div></div>`;
+        }
+
+        if (stampsHtml !== '') {
+            stampsArea.innerHTML = stampsHtml;
+            stampPageSection.classList.remove('hidden');
+        } else {
+            stampPageSection.classList.add('hidden');
+        }
+
+        if (includeWrong && originalWrongQuestions.length > 0) {
+            let html = '<div style="margin-top:25px; border-top:1px solid #334155; padding-top:15px;"><h3 style="color:#ef4444; margin-bottom:15px;">錯題解析與參考答案</h3>';
+            originalWrongQuestions.forEach((item) => {
+                const correctContent = item.qObj.o.find(str => str.trim().startsWith(`(${item.qObj.a})`));
+                const userAnsText = item.userAns ? `(${item.userAns})` : '未填答';
+                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${item.qObj.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${item.qObj.o.join(' | ')}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${userAnsText}</span> | 正確答案：<span style="color:#22c55e; font-weight:bold;">${correctContent}</span></div></div>`;
+            });
+            html += '</div>';
+            pdfWrongList.innerHTML = html;
+            pdfWrongList.classList.remove('hidden');
+        } else {
+            pdfWrongList.innerHTML = '';
+            pdfWrongList.classList.add('hidden');
+        }
+
+        element.scrollIntoView();
+        const opt = {
+            margin: [8, 8, 8, 8],
+            filename: `${username}_${subject}_${includeWrong ? '完整' : '簡要'}測驗結果.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, backgroundColor: '#000000', logging: false, scrollY: 0, scrollX: 0, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            pdfWrongList.classList.add('hidden');
+            addonRow.classList.add('hidden');
+            stampPageSection.classList.add('hidden');
+        });
+    }
+</script>
+
+<!-- Firebase SDK 模組初始化 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
+        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
+        databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "rms-quiz-system-dbserver",
+        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
+        messagingSenderId: "769519554299",
+        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
+        measurementId: "G-939JE1X57X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
 </script>
 </body>
 </html>
