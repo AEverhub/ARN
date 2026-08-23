@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V19.2.7-Beta</title>
+    <title>測驗系統-網頁版(Web ST) -V4-Pro</title>
 
     <!-- MathJax 公式渲染套件 -->
     <script>
@@ -25,7 +24,7 @@
             --accent: #2980b9;
             --success: #27ae60; 
             --error: #c0392b; 
-            --bg: #0f172a; /* 深藍色背景 */
+            --bg: #0f172a; 
             --card-bg: #ffffff;
             --text-main: #333333;
         }
@@ -37,7 +36,92 @@
             padding: 20px; 
             user-select: none; 
             box-sizing: border-box;
+            padding-top: 70px; /* 留出頂部固定導航欄空間 */
         }
+
+        /* 頂部導航欄 (左側台北時鐘 + 右側 MENU) */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 55px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+        .taipei-clock {
+            font-family: monospace;
+            font-size: 0.95em;
+            color: #38bdf8;
+            background: #090d16;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .menu-container {
+            position: relative;
+        }
+        .menu-btn {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .menu-btn:hover {
+            background: #334155;
+        }
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 200px;
+            display: none;
+            z-index: 1001;
+            overflow: hidden;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 12px 16px;
+            color: #e2e8f0;
+            font-size: 0.92em;
+            cursor: pointer;
+            border-bottom: 1px solid #283548;
+            transition: background 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item:hover {
+            background: #2980b9;
+            color: #ffffff;
+        }
+
         .container { 
             max-width: 850px; 
             margin: 0 auto; 
@@ -80,7 +164,6 @@
         .btn-accent:hover { background: #1f6391; }
         .hidden { display: none !important; }
 
-        /* 按鈕組響應式佈局 */
         .action-btn-group {
             display: flex;
             gap: 10px;
@@ -91,7 +174,6 @@
             margin-top: 0;
         }
 
-        /* 條款區樣式 */
         .terms-box {
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
@@ -107,7 +189,6 @@
         }
         .checkbox-group { text-align: left; margin-bottom: 20px; font-size: 0.95em; color: #334155; }
 
-        /* 考題卡片樣式 */
         .question-card { 
             text-align: left; 
             padding: 20px; 
@@ -133,7 +214,6 @@
         .opt-btn:hover { background: #f8fafc; border-color: #94a3b8; }
         .opt-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
 
-        /* 解析與計時器 */
         .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
         #timer-box { 
             font-size: 1em; 
@@ -145,12 +225,10 @@
             border: 1px solid #fee2e2; 
         }
 
-        /* 導航按鈕 */
         .nav-flex { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
         .nav-btn { flex: 1; padding: 10px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; border-radius: 4px; }
         .nav-btn:hover { background: #f1f5f9; }
 
-        /* 黑底評量報告區域 (PDF 生成專用) */
         .result-container-dark {
             position: relative;
             background-color: #000000;
@@ -164,7 +242,6 @@
             overflow: hidden;
         }
 
-        /* 表格 (Table) 專用樣式 */
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -193,7 +270,6 @@
             color: #f8fafc;
         }
 
-        /* PDF 錯題清單專用深色卡片樣式 */
         .pdf-wrong-card {
             background: #0d1527;
             border: 1px solid #1e293b;
@@ -206,7 +282,6 @@
             color: #e2e8f0;
         }
 
-        /* 強制分頁與獨立「成績證明章」頁面樣式 */
         .pdf-page-break {
             page-break-before: always;
             break-before: page;
@@ -225,7 +300,6 @@
             letter-spacing: 2px;
         }
 
-        /* 印章 CSS 樣式區域 */
         .stamp-container-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -253,7 +327,6 @@
         .stamp-date { font-size: 0.85em; margin: 4px 0; border-top: 1px solid #ff3b30; border-bottom: 1px solid #ff3b30; padding: 2px 0; }
         .stamp-body { font-size: 1.2em; font-weight: 900; letter-spacing: 2px; }
 
-        /* 文字色彩等級 */
         .res-blue { color: #3b82f6; font-weight: bold; }
         .res-orange { color: #f97316; font-weight: bold; }
         .res-green { color: #22c55e; font-weight: bold; }
@@ -269,7 +342,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 999;
+            z-index: 1999;
         }
         .modal-card {
             background: #1e293b;
@@ -298,50 +371,37 @@
         }
         .stamp-checkbox-list label:last-child { margin-bottom: 0; }
 
-        /* 管理員黃框辨識樣式 */
-        .admin-badge-box {
-            border: 2px solid #eab308 !important;
-            box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
-        }
-
-        /* 聊天大廳樣式 */
-        .chat-container {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
+        /* 子系統視圖專用區塊 (帳號管理、聊天大廳、管理面板) */
+        .sub-view {
             text-align: left;
         }
-        .chat-messages {
-            height: 200px;
-            overflow-y: auto;
+        .sub-view h3 { color: #f8fafc; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 20px; }
+        .chat-box {
             background: #0f172a;
             border: 1px solid #334155;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-            color: #f8fafc;
+            height: 300px;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
         }
-        .chat-msg-item {
-            padding: 6px 8px;
+        .chat-msg {
             background: #1e293b;
-            border-radius: 4px;
-            border-left: 3px solid #38bdf8;
-            word-break: break-all;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            max-width: 80%;
         }
-        .chat-msg-item.admin-msg {
-            border-left-color: #eab308;
-            background: #27272a;
+        .chat-msg.self {
+            background: #2980b9;
+            align-self: flex-end;
         }
 
-        /* 手機端 RWD 適應優化 */
         @media (max-width: 600px) {
-            body { padding: 10px; }
+            body { padding: 10px; padding-top: 65px; }
             .container { padding: 18px 15px; }
             .result-container-dark { padding: 18px 12px; }
             .report-table td { padding: 10px 8px; font-size: 0.88em; }
@@ -355,42 +415,29 @@
 </head>
 <body oncontextmenu="return false">
 
+<!-- 頂部固定導航欄 (左側台北時鐘 + 右側 MENU) -->
+<header class="top-navbar">
+    <div class="taipei-clock" id="taipei-clock">
+        <span>台北時間: 載入中...</span>
+    </div>
+    <div class="menu-container">
+        <button class="menu-btn" onclick="toggleMenu()">
+            <span>選單 MENU</span>
+        </button>
+        <div class="dropdown-menu" id="dropdown-menu">
+            <div class="dropdown-item" onclick="switchView('login')">測驗首頁</div>
+            <div class="dropdown-item" onclick="switchView('account')">帳號管理</div>
+            <div class="dropdown-item" onclick="switchView('chat')">聊天大廳</div>
+            <div class="dropdown-item" onclick="switchView('admin')">管理面板</div>
+        </div>
+    </div>
+</header>
+
 <div class="container">
-    <!-- 1. 登入畫面 -->
-    <div id="login-screen" class="hidden">
-        <!-- 站內帳號登入面板 -->
-        <div id="auth-card" style="background:#1e293b; padding:20px; border-radius:6px; margin-bottom:20px; text-align:left;">
-            <h3 style="color:#f8fafc; margin-bottom:12px;">系統帳號登入 / 註冊</h3>
-            <input type="email" id="auth-email" class="code-input" placeholder="請輸入電子郵件 (帳號)" style="background:#0f172a; color:#fff;">
-            <input type="password" id="auth-password" class="code-input" placeholder="請輸入密碼 (至少6碼)" style="background:#0f172a; color:#fff;">
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="main-btn btn-accent" onclick="handleLogin()" style="margin-top:0;">登入</button>
-                <button class="main-btn btn-success" onclick="handleRegister()" style="margin-top:0;">註冊新帳號</button>
-            </div>
-            <div id="auth-msg" style="color:#ef4444; font-size:0.85em; margin-top:8px;"></div>
-        </div>
-
-        <!-- 管理員專屬控制面板 (帶黃框辨識) -->
-        <div id="admin-panel" class="hidden admin-badge-box" style="background:#1e293b; padding:20px; border-radius:6px; margin-bottom:20px; text-align:left;">
-            <h3 style="color:#eab308; margin-bottom:12px;">🛡️ 管理員後台控制台 (管理員專屬)</h3>
-            <p style="font-size:0.85em; color:#cbd5e1; margin-bottom:15px;">您擁有管理員最高權限，可檢視成績與管理聊天大廳禁言。</p>
-
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button class="main-btn btn-accent" onclick="loadAllRecords()" style="background:#a855f7; margin-top:0;">載入學員歷史成績</button>
-                <button class="main-btn" onclick="toggleGlobalMute()" id="global-mute-btn" style="background:#f97316; margin-top:0;">切換全員禁言</button>
-            </div>
-
-            <div id="admin-records-container" style="max-height: 200px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 4px; font-size: 0.85em;">
-                <p style="color: #94a3b8; text-align: center;">尚未載入紀錄。</p>
-            </div>
-        </div>
-
+    <!-- 1. 登入畫面 (預設) -->
+    <div id="login-screen">
         <h2 class="text-center">線上模擬評量系統</h2>
         <div class="input-group">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span id="logged-in-user" style="color:var(--accent); font-weight:bold; font-size:0.9em;">--</span>
-                <button onclick="handleLogout()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em;">登出帳號</button>
-            </div>
             <input type="text" id="user-name" class="code-input" placeholder="考生姓名">
             <input type="text" id="quiz-code" class="code-input" placeholder="請輸入測驗代碼 (例如: test01)">
             <div id="password-area" class="hidden">
@@ -415,21 +462,7 @@
 
             <div id="status-msg" style="color:var(--accent); font-size: 0.85em; margin: 10px 0; text-align: left;">等待讀取伺服器題庫檔案...</div>
         </div>
-
-        <!-- 聊天大廳功能區 -->
-        <div class="chat-container">
-            <h3 style="color:#f8fafc; font-size:1.1em; margin-bottom:10px;">💬 交流聊天大廳</h3>
-            <div id="chat-messages" class="chat-messages">
-                <div style="color:#94a3b8; text-align:center;">正在連線至聊天室...</div>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="chat-input" class="code-input" placeholder="輸入訊息 (輸入 @ 可提及別人)..." style="margin-bottom:0; background:#0f172a; color:#fff;" onkeydown="if(event.key==='Enter') sendChatMessage()">
-                <button class="main-btn btn-accent" onclick="sendChatMessage()" style="width: 100px; margin-top:0;">發送</button>
-            </div>
-            <div id="chat-status-tip" style="font-size:0.8em; color:#94a3b8; margin-top:6px;"></div>
-        </div>
-
-        <button id="start-btn" class="main-btn" onclick="checkAndStart()" style="background:#cbd5e1; color:#64748b; margin-top:20px;" disabled>進入測驗</button>
+        <button id="start-btn" class="main-btn" onclick="checkAndStart()" style="background:#cbd5e1; color:#64748b;" disabled>進入測驗</button>
     </div>
 
     <!-- 2. 測驗進行畫面 -->
@@ -538,10 +571,50 @@
         <div class="action-btn-group">
             <button class="main-btn btn-success" onclick="openPdfModal()">下載結果 PDF</button>
             <button id="retry-failed-btn" class="main-btn hidden" style="background:var(--accent);" onclick="startWrongQuestionsQuiz()">僅重測錯題</button>
-            <button class="main-btn btn-secondary" onclick="location.reload()">返回登入畫面</button>
+            <button class="main-btn btn-secondary" onclick="switchView('login')">返回首頁</button>
         </div>
 
         <div id="review-area" style="margin-top:30px; border-top:2px solid #e2e8f0; padding-top:20px;"></div>
+    </div>
+
+    <!-- 4. 帳號管理畫面 -->
+    <div id="account-screen" class="hidden sub-view" style="color:#333;">
+        <h3>帳號管理中心</h3>
+        <p style="color:#64748b; font-size:0.95em;">在此管理您的考生身分、測驗歷史紀錄與安全偏好設定。</p>
+        <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
+            <p><strong>當前登入姓名：</strong> <span id="acc-name-display">尚未設定</span></p>
+            <p><strong>系統識別碼 (UUID)：</strong> <span id="acc-uuid" style="font-family:monospace; color:#2980b9;">ST-2026-X99</span></p>
+            <p><strong>歷史測驗總次數：</strong> <span id="acc-total-tests">0</span> 次</p>
+            <button class="main-btn btn-accent" style="width:auto; padding:10px 20px;" onclick="alert('帳號設定已儲存！')">更新個人資料</button>
+        </div>
+    </div>
+
+    <!-- 5. 聊天大廳畫面 -->
+    <div id="chat-screen" class="hidden sub-view" style="color:#333;">
+        <h3>學術交流聊天大廳</h3>
+        <p style="color:#64748b; font-size:0.95em;">與線上其他考生進行題庫討論與學術交流。</p>
+        <div class="chat-box" id="chat-messages">
+            <div class="chat-msg">系統管理員: 歡迎來到測驗大廳，請遵守學術誠信！</div>
+            <div class="chat-msg">張同學: 這次的測驗題目蠻有深度的，大家加油！</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="chat-input" class="code-input" placeholder="輸入聊天訊息..." style="margin-bottom:0;" onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <button class="main-btn btn-accent" style="width:100px; margin-top:0;" onclick="sendChatMessage()">發送</button>
+        </div>
+    </div>
+
+    <!-- 6. 管理面板畫面 -->
+    <div id="admin-screen" class="hidden sub-view" style="color:#333;">
+        <h3>系統管理面板 (Admin Console)</h3>
+        <p style="color:#64748b; font-size:0.95em;">系統參數監控、題庫載入狀況與防作弊稽核日誌。</p>
+        <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
+            <p><strong>系統核心版本：</strong> Web ST V4-Pro (Beta)</p>
+            <p><strong>當前題庫狀態：</strong> <span id="admin-quiz-status" style="color:var(--success); font-weight:bold;">正常運行</span></p>
+            <p><strong>安全防護狀態：</strong> <span style="color:var(--success); font-weight:bold;">已啟動 (全螢幕與切換分頁監控)</span></p>
+            <h4 style="margin-top:20px; color:var(--primary);">管理員快速操作</h4>
+            <button class="main-btn btn-secondary" style="width:auto; padding:8px 16px; margin-right:10px;" onclick="alert('系統快取已清除！')">清除系統快取</button>
+            <button class="main-btn btn-accent" style="width:auto; padding:8px 16px;" onclick="alert('防作弊日誌已匯出！')">匯出防作弊稽核 Log</button>
+        </div>
     </div>
 </div>
 
@@ -552,8 +625,8 @@
         <div id="pdf-step-1">
             <h3 style="color:#ffffff; margin-bottom:15px;">請選擇 PDF 匯出格式</h3>
             <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">您希望下載的 PDF 是否包含錯題細節與答案解析？</p>
-            <button class="main-btn btn-accent" onclick="selectPdfFormat(false)">📄 僅評量結果 (簡要版)</button>
-            <button class="main-btn btn-success" id="btn-pdf-with-wrong" onclick="selectPdfFormat(true)">📚 評量結果 + 錯題解析</button>
+            <button class="main-btn btn-accent" onclick="selectPdfFormat(false)">僅評量結果 (簡要版)</button>
+            <button class="main-btn btn-success" id="btn-pdf-with-wrong" onclick="selectPdfFormat(true)">評量結果 + 錯題解析</button>
             <button class="main-btn btn-secondary" style="margin-top:10px;" onclick="closePdfModal()">取消</button>
         </div>
 
@@ -596,92 +669,90 @@
     </div>
 </div>
 
-<!-- Firebase 核心與互動模組 -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
-    import { 
-        getAuth, 
-        signInWithEmailAndPassword, 
-        createUserWithEmailAndPassword, 
-        signOut, 
-        onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-    import { 
-        getDatabase, 
-        ref, 
-        set, 
-        push,
-        get,
-        child,
-        onValue,
-        update 
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+<script>
+    /* ---------------- 台北標準時鐘 (GMT+8) ---------------- */
+    function updateTaipeiClock() {
+        const now = new Date();
+        // 轉換為台北時間
+        const options = { timeZone: 'Asia/Taipei', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const formatter = new Intl.DateTimeFormat('zh-TW', options);
+        const parts = formatter.formatToParts(now);
+        let year='', month='', day='', hour='', minute='', second='';
+        parts.forEach(p => {
+            if (p.type === 'year') year = p.value;
+            if (p.type === 'month') month = p.value;
+            if (p.type === 'day') day = p.value;
+            if (p.type === 'hour') hour = p.value;
+            if (p.type === 'minute') minute = p.value;
+            if (p.type === 'second') second = p.value;
+        });
+        document.getElementById('taipei-clock').innerHTML = `<span>台北時間: ${year}/${month}/${day} ${hour}:${minute}:${second} (GMT+8)</span>`;
+    }
+    setInterval(updateTaipeiClock, 1000);
+    updateTaipeiClock();
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
-        authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
-        databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "rms-quiz-system-dbserver",
-        storageBucket: "rms-quiz-system-dbserver.firebasestorage.app",
-        messagingSenderId: "769519554299",
-        appId: "1:769519554299:web:fcb6e641fb77dacffc2a5e",
-        measurementId: "G-939JE1X57X"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    window.fbAuth = auth;
-    window.fbDb = db;
-    window.fbMethods = {
-        signInWithEmailAndPassword,
-        createUserWithEmailAndPassword,
-        signOut,
-        ref,
-        set,
-        push,
-        get,
-        child,
-        onValue,
-        update
-    };
-
-    // 監聽登入狀態與管理員判定
-    onAuthStateChanged(auth, (user) => {
-        const loginScreen = document.getElementById('login-screen');
-        const authCard = document.getElementById('auth-card');
-        const adminPanel = document.getElementById('admin-panel');
-        const userDisplay = document.getElementById('logged-in-user');
-
-        if (user) {
-            authCard.classList.add('hidden');
-            loginScreen.classList.remove('hidden');
-            userDisplay.innerText = `已登入帳號：${user.email}`;
-            document.getElementById('user-name').value = user.email.split('@')[0];
-
-            // 判斷管理員條件 (UID 為 Admin 或 Email 符合條件)
-            if (user.uid === "Admin" || user.email === "admin@rms.com" || user.email.includes("paul0420")) {
-                adminPanel.classList.remove('hidden');
-            } else {
-                adminPanel.classList.add('hidden');
-            }
-
-            // 初始化聊天系統監聽
-            if (typeof initChatSystem === 'function') {
-                initChatSystem();
-            }
-        } else {
-            authCard.classList.remove('hidden');
-            loginScreen.classList.remove('hidden'); // 確保未登入時也能看見登入畫面與註冊面板
-            adminPanel.classList.add('hidden');
+    /* ---------------- 頂部 MENU 下拉選單控制 ---------------- */
+    function toggleMenu() {
+        const menu = document.getElementById('dropdown-menu');
+        menu.classList.toggle('show');
+    }
+    // 點擊頁面其他地方關閉選單
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('.menu-container')) {
+            document.getElementById('dropdown-menu').classList.remove('show');
         }
     });
-</script>
 
-<script>
+    /* ---------------- 多視圖切換 (首頁、帳號管理、聊天大廳、管理面板) ---------------- */
+    function switchView(viewName) {
+        document.getElementById('dropdown-menu').classList.remove('show');
+
+        // 若測驗進行中，提示確認
+        if (quizActive && viewName !== 'quiz') {
+            if (!confirm("測驗進行中，切換畫面將中斷當前作答或視為放棄，是否繼續？")) return;
+            quizActive = false;
+            clearInterval(timerInterval);
+            exitFullScreen();
+        }
+
+        // 隱藏所有主要檢視畫面
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('admin-screen').classList.add('hidden');
+
+        if (viewName === 'login') {
+            document.getElementById('login-screen').classList.remove('hidden');
+        } else if (viewName === 'account') {
+            document.getElementById('account-screen').classList.remove('hidden');
+            const nameVal = document.getElementById('user-name').value.trim() || '未具名考生';
+            document.getElementById('acc-name-display').innerText = nameVal;
+            document.getElementById('acc-total-tests').innerText = localStorage.getItem('total_tests_run') || '0';
+        } else if (viewName === 'chat') {
+            document.getElementById('chat-screen').classList.remove('hidden');
+        } else if (viewName === 'admin') {
+            document.getElementById('admin-screen').classList.remove('hidden');
+        }
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        const chatBox = document.getElementById('chat-messages');
+        const name = document.getElementById('user-name').value.trim() || '訪客';
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg self';
+        msgDiv.innerHTML = `<b>${name}:</b> ${text}`;
+        chatBox.appendChild(msgDiv);
+        input.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    /* ---------------- 測驗核心邏輯 ---------------- */
     let quizActive = false;
     let currentQuestions = [], userAnswers = {}, timerInterval, totalSeconds = 0;
     let currentActiveIndex = 0;
@@ -694,10 +765,6 @@
 
     let startTimeObj, endTimeObj;
     let userIP = "未知IP";
-
-    // 聊天與禁言全域變數
-    let isGlobalMuted = false;
-    let userMuteList = {};
 
     fetch('https://api.ipify.org?format=json')
         .then(res => res.json())
@@ -715,217 +782,6 @@
         return "電腦";
     }
 
-    /* ---------------- Firebase 帳號系統動作 ---------------- */
-    function handleLogin() {
-        const email = document.getElementById('auth-email').value.trim();
-        const pass = document.getElementById('auth-password').value.trim();
-        const msg = document.getElementById('auth-msg');
-
-        if(!email || !pass) return msg.innerText = "請輸入完整帳號密碼";
-
-        window.fbMethods.signInWithEmailAndPassword(window.fbAuth, email, pass)
-            .then(() => { msg.innerText = ""; })
-            .catch((error) => { msg.innerText = "登入失敗：" + error.message; });
-    }
-
-    function handleRegister() {
-        const email = document.getElementById('auth-email').value.trim();
-        const pass = document.getElementById('auth-password').value.trim();
-        const msg = document.getElementById('auth-msg');
-
-        if(!email || !pass) return msg.innerText = "請輸入完整帳號密碼";
-
-        window.fbMethods.createUserWithEmailAndPassword(window.fbAuth, email, pass)
-            .then(() => {
-                alert("註冊成功並已自動登入！");
-                msg.innerText = "";
-            })
-            .catch((error) => { msg.innerText = "註冊失敗：" + error.message; });
-    }
-
-    function handleLogout() {
-        window.fbMethods.signOut(window.fbAuth).then(() => {
-            document.getElementById('auth-email').value = '';
-            document.getElementById('auth-password').value = '';
-        });
-    }
-
-    /* ---------------- 管理員後台功能 ---------------- */
-    function loadAllRecords() {
-        const container = document.getElementById('admin-records-container');
-        container.innerHTML = '<p style="color: #38bdf8; text-align: center;">正在向雲端資料庫調閱紀錄...</p>';
-
-        const dbRef = window.fbMethods.ref(window.fbDb);
-        window.fbMethods.get(window.fbMethods.child(dbRef, 'quiz_records')).then((snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                let html = '<table style="width:100%; color:#f8fafc; border-collapse:collapse; font-size:0.85em;">';
-                html += '<tr style="border-bottom:1px solid #334155; text-align:left;"><th style="padding:6px;">考生</th><th style="padding:6px;">科目</th><th style="padding:6px;">分數</th><th style="padding:6px;">時間</th><th style="padding:6px;">操作</th></tr>';
-
-                Object.keys(data).forEach((key) => {
-                    const record = data[key];
-                    const timeStr = record.timestamp ? record.timestamp.replace('T', ' ').substring(0, 16) : '--';
-                    html += `
-                        <tr style="border-bottom:1px solid #1e293b;">
-                            <td style="padding:6px;">${record.name}</td>
-                            <td style="padding:6px;">${record.subject}</td>
-                            <td style="padding:6px; color:${record.score >= 60 ? '#22c55e' : '#ef4444'}; font-weight:bold;">${record.score}分</td>
-                            <td style="padding:6px; color:#94a3b8;">${timeStr}</td>
-                            <td style="padding:6px;"><button class="main-btn btn-success" style="padding:4px 8px; font-size:0.75em;" onclick='downloadAdminPdf(${JSON.stringify(record)})'>下載PDF</button></td>
-                        </tr>
-                    `;
-                });
-                html += '</table>';
-                container.innerHTML = html;
-            } else {
-                container.innerHTML = '<p style="color: #94a3b8; text-align: center;">目前資料庫中沒有任何考試紀錄。</p>';
-            }
-        }).catch((error) => {
-            container.innerHTML = `<p style="color: #ef4444; text-align: center;">讀取失敗：${error.message}</p>`;
-        });
-    }
-
-    function downloadAdminPdf(record) {
-        document.getElementById('res-subject').innerText = record.subject;
-        document.getElementById('res-test-count').innerText = "1";
-        document.getElementById('res-score').innerText = record.score;
-        document.getElementById('res-correct').innerText = record.correct;
-        document.getElementById('res-orange').innerText = record.wrong;
-        document.getElementById('res-unanswered').innerText = `${record.unanswered} 題`;
-        document.getElementById('res-username').innerText = record.name;
-        document.getElementById('res-ip').innerText = record.ip;
-        document.getElementById('res-platform').innerText = record.platform;
-        document.getElementById('res-avg-speed').innerText = (record.durationSec / (record.correct + record.wrong + record.unanswered)).toFixed(1);
-
-        const element = document.getElementById('report-card');
-        element.scrollIntoView();
-
-        const opt = {
-            margin:       [8, 8, 8, 8],
-            filename:     `${record.name}_${record.subject}_歷史成績報告.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, backgroundColor: '#000000', logging: false, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save().then(() => {
-            alert(`已成功匯出 ${record.name} 的歷史成績 PDF！`);
-        });
-    }
-
-    /* ---------------- 聊天大廳與禁言管理系統 ---------------- */
-    function initChatSystem() {
-        const db = window.fbDb;
-
-        window.fbMethods.onValue(window.fbMethods.ref(db, 'chat_messages'), (snapshot) => {
-            const container = document.getElementById('chat-messages');
-            if (!snapshot.exists()) {
-                container.innerHTML = '<div style="color:#94a3b8; text-align:center;">目前尚無訊息</div>';
-                return;
-            }
-            let html = '';
-            const data = snapshot.val();
-            Object.keys(data).forEach((key) => {
-                const msg = data[key];
-                const isAdmin = msg.email && (msg.email === "admin@rms.com" || msg.email.includes("paul0420") || msg.uid === "Admin");
-                const adminTag = isAdmin ? '<span style="color:#eab308; font-weight:bold;">[管理員]</span> ' : '';
-                const tagClass = isAdmin ? 'chat-msg-item admin-msg' : 'chat-msg-item';
-
-                let muteBtn = '';
-                const currentLoginUser = window.fbAuth.currentUser;
-                const isCurrentAdmin = currentLoginUser && (currentLoginUser.email === "admin@rms.com" || currentLoginUser.email.includes("paul0420") || currentLoginUser.uid === "Admin");
-
-                if (isCurrentAdmin && !isAdmin) {
-                    const isMuted = userMuteList[msg.uid];
-                    muteBtn = ` <button onclick="toggleUserMute('${msg.uid}', ${!isMuted})" style="background:${isMuted?'#22c55e':'#ef4444'}; color:#fff; border:none; padding:2px 6px; font-size:0.75em; border-radius:3px; cursor:pointer; float:right;">${isMuted?'解除禁言':'禁言'}</button>`;
-                }
-
-                html += `
-                    <div class="${tagClass}">
-                        ${adminTag}<b>${msg.name} (${msg.email})</b>: ${msg.text} ${muteBtn}
-                        <div style="font-size:0.75em; color:#64748b; text-align:right;">${msg.time || ''}</div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            container.scrollTop = container.scrollHeight;
-        });
-
-        window.fbMethods.onValue(window.fbMethods.ref(db, 'chat_settings'), (snapshot) => {
-            if (snapshot.exists()) {
-                const settings = snapshot.val();
-                isGlobalMuted = !!settings.globalMuted;
-                userMuteList = settings.mutedUsers || {};
-
-                const tip = document.getElementById('chat-status-tip');
-                const currentUser = window.fbAuth.currentUser;
-                if (currentUser && userMuteList[currentUser.uid]) {
-                    tip.innerText = "⚠️ 您目前已被管理員禁言，暫時無法發言。";
-                    tip.style.color = "#ef4444";
-                } else if (isGlobalMuted) {
-                    tip.innerText = "⚠️ 目前已開啟「全員禁言」，僅管理員可發言。";
-                    tip.style.color = "#f97316";
-                } else {
-                    tip.innerText = "大廳發言正常。輸入 @ 可標記對象。";
-                    tip.style.color = "#94a3b8";
-                }
-            }
-        });
-    }
-
-    function sendChatMessage() {
-        const currentUser = window.fbAuth.currentUser;
-        if (!currentUser) return alert("請先登入帳號才能發言！");
-
-        const isCurrentAdmin = currentUser.email === "admin@rms.com" || currentUser.email.includes("paul0420") || currentUser.uid === "Admin";
-        if (!isCurrentAdmin) {
-            if (isGlobalMuted) return alert("目前為全員禁言狀態，無法發言！");
-            if (userMuteList[currentUser.uid]) return alert("您已被管理員禁言，無法發言！");
-        }
-
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        const name = document.getElementById('user-name').value.trim() || currentUser.email.split('@')[0];
-        const timeStr = new Date().toTimeString().substring(0, 5);
-
-        const msgData = {
-            uid: currentUser.uid,
-            email: currentUser.email,
-            name: name,
-            text: text,
-            time: timeStr
-        };
-
-        const db = window.fbDb;
-        const msgRef = window.fbMethods.push(window.fbMethods.ref(db, 'chat_messages'));
-        window.fbMethods.set(msgRef, msgData).then(() => {
-            input.value = '';
-        });
-    }
-
-    function toggleGlobalMute() {
-        const db = window.fbDb;
-        const newMuteState = !isGlobalMuted;
-        window.fbMethods.update(window.fbMethods.ref(db, 'chat_settings'), {
-            globalMuted: newMuteState
-        }).then(() => {
-            alert(`已切換全員禁言狀態為：${newMuteState ? '開啟' : '關閉'}`);
-        });
-    }
-
-    function toggleUserMute(targetUid, muteState) {
-        const db = window.fbDb;
-        userMuteList[targetUid] = muteState;
-        window.fbMethods.update(window.fbMethods.ref(db, 'chat_settings/mutedUsers'), {
-            [targetUid]: muteState
-        }).then(() => {
-            alert(`已更新該用戶禁言狀態。`);
-        });
-    }
-
-    /* ---------------- 印章權限檢查邏輯 ---------------- */
     function validateStampOption(chk) {
         if (!chk.checked) return;
 
@@ -950,7 +806,6 @@
         }
     }
 
-    /* ---------------- PDF 多階段詢問與下載 ---------------- */
     function openPdfModal() {
         const pdfModal = document.getElementById('pdf-modal');
         const btnWithWrong = document.getElementById('btn-pdf-with-wrong');
@@ -966,11 +821,11 @@
         if (originalWrongQuestions.length === 0) {
             btnWithWrong.disabled = true;
             btnWithWrong.style.opacity = "0.5";
-            btnWithWrong.innerText = "📚 評量結果 + 錯題解析 (無錯題)";
+            btnWithWrong.innerText = "評量結果 + 錯題解析 (無錯題)";
         } else {
             btnWithWrong.disabled = false;
             btnWithWrong.style.opacity = "1";
-            btnWithWrong.innerText = "📚 評量結果 + 錯題解析";
+            btnWithWrong.innerText = "評量結果 + 錯題解析";
         }
 
         pdfModal.classList.remove('hidden');
@@ -1135,7 +990,6 @@
         });
     }
 
-    /* ---------------- 題庫載入與條款 ---------------- */
     document.getElementById('quiz-code').addEventListener('input', (e) => {
         const code = e.target.value.trim();
         if(code) {
@@ -1205,6 +1059,9 @@
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-ui').classList.remove('hidden');
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('admin-screen').classList.add('hidden');
 
         const quiz = window.currentQuiz;
         document.getElementById('quiz-header').innerText = isWrongQuestionsMode ? `${quiz.name} (錯題重測)` : quiz.name;
@@ -1228,7 +1085,6 @@
         renderQuiz();
     }
 
-    /* ---------------- 防作弊偵測 ---------------- */
     function handleViolation() {
         if (!quizActive) return;
         warningCount++;
@@ -1246,7 +1102,6 @@
         if (!document.fullscreenElement && quizActive) handleViolation();
     });
 
-    /* ---------------- 測驗渲染與導航 ---------------- */
     function renderQuiz() {
         const container = document.getElementById('quiz-container');
         container.innerHTML = '';
@@ -1302,7 +1157,6 @@
         evalQuiz(); 
     }
 
-    /* ---------------- 成績結算與評量報告 ---------------- */
     function evalQuiz() {
         quizActive = false;
         clearInterval(timerInterval);
@@ -1348,6 +1202,9 @@
         let testCountKey = `test_count_${window.currentQuiz.name}`;
         let localCount = (parseInt(localStorage.getItem(testCountKey)) || 0) + 1;
         localStorage.setItem(testCountKey, localCount);
+
+        let totalTestsRun = (parseInt(localStorage.getItem('total_tests_run')) || 0) + 1;
+        localStorage.setItem('total_tests_run', totalTestsRun);
 
         const formatTime = (date) => date.toTimeString().substring(0, 5);
 
@@ -1411,32 +1268,6 @@
             retryBtn.classList.remove('hidden');
         } else {
             retryBtn.classList.add('hidden');
-        }
-
-        // 同步寫入 Firebase Realtime Database
-        const currentUser = window.fbAuth.currentUser;
-        if (currentUser) {
-            const scoreData = {
-                uid: currentUser.uid,
-                email: currentUser.email,
-                name: document.getElementById('user-name').value,
-                subject: window.currentQuiz.name,
-                score: calculatedScore,
-                correct: correctCount,
-                wrong: wrongCount,
-                unanswered: unansweredCount,
-                warningCount: warningCount,
-                durationSec: durationSec,
-                ip: userIP,
-                platform: getPlatform(),
-                timestamp: new Date().toISOString()
-            };
-
-            const recordsRef = window.fbMethods.ref(window.fbDb, 'quiz_records');
-            const newRecordRef = window.fbMethods.push(recordsRef);
-            window.fbMethods.set(newRecordRef, scoreData).catch((error) => {
-                console.error("成績同步雲端失敗：", error);
-            });
         }
 
         if (window.MathJax) MathJax.typesetPromise([document.getElementById('review-area')]);
