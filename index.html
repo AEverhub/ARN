@@ -609,7 +609,7 @@
                     <td class="tb-val" id="res-username">--</td>
                 </tr>
                 <tr>
-                    <td class="tb-label">測試時間 (GTM+8)</td>
+                    <td class="tb-label">測試時間 (GMT+8)</td>
                     <td class="tb-val">
                         開始：<span id="res-start-time">--</span> | 結束：<span id="res-end-time">--</span>
                     </td>
@@ -855,10 +855,9 @@
 <!-- Firebase SDK (v9 Modular) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, getDocs, updateCode, addDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, getDocs, updateDoc, addDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // ---------------- FIREBASE 配置 ----------------
-    // 請替換為你從 Firebase 控制台取得的專案設定
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -871,9 +870,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 將 db 暴露到全域供後續函式使用
+    // 將 db 及模組暴露到全域供後續函式使用
     window.db = db;
-    window.fsModule = { collection, doc, getDoc, setDoc, getDocs, updateDoc: updateCode || window.updateDoc, addDoc, deleteDoc, query, where };
+    window.fsModule = { collection, doc, getDoc, setDoc, getDocs, updateDoc, addDoc, deleteDoc, query, where };
 
     // 啟動應用程式初始化
     initializeAppState();
