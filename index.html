@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V3-Beta</title>
+    <title>測驗系統-網頁版(Web ST) -V19.2.7-Beta</title>
 
     <!-- MathJax 公式渲染套件 -->
     <script>
@@ -374,12 +374,12 @@
         <div id="admin-panel" class="hidden admin-badge-box" style="background:#1e293b; padding:20px; border-radius:6px; margin-bottom:20px; text-align:left;">
             <h3 style="color:#eab308; margin-bottom:12px;">🛡️ 管理員後台控制台 (管理員專屬)</h3>
             <p style="font-size:0.85em; color:#cbd5e1; margin-bottom:15px;">您擁有管理員最高權限，可檢視成績與管理聊天大廳禁言。</p>
-            
+
             <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <button class="main-btn btn-accent" onclick="loadAllRecords()" style="background:#a855f7; margin-top:0;">載入學員歷史成績</button>
                 <button class="main-btn" onclick="toggleGlobalMute()" id="global-mute-btn" style="background:#f97316; margin-top:0;">切換全員禁言</button>
             </div>
-            
+
             <div id="admin-records-container" style="max-height: 200px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 4px; font-size: 0.85em;">
                 <p style="color: #94a3b8; text-align: center;">尚未載入紀錄。</p>
             </div>
@@ -675,7 +675,7 @@
             }
         } else {
             authCard.classList.remove('hidden');
-            loginScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden'); // 確保未登入時也能看見登入畫面與註冊面板
             adminPanel.classList.add('hidden');
         }
     });
@@ -796,7 +796,7 @@
         document.getElementById('res-ip').innerText = record.ip;
         document.getElementById('res-platform').innerText = record.platform;
         document.getElementById('res-avg-speed').innerText = (record.durationSec / (record.correct + record.wrong + record.unanswered)).toFixed(1);
-        
+
         const element = document.getElementById('report-card');
         element.scrollIntoView();
 
@@ -816,7 +816,7 @@
     /* ---------------- 聊天大廳與禁言管理系統 ---------------- */
     function initChatSystem() {
         const db = window.fbDb;
-        
+
         window.fbMethods.onValue(window.fbMethods.ref(db, 'chat_messages'), (snapshot) => {
             const container = document.getElementById('chat-messages');
             if (!snapshot.exists()) {
@@ -834,7 +834,7 @@
                 let muteBtn = '';
                 const currentLoginUser = window.fbAuth.currentUser;
                 const isCurrentAdmin = currentLoginUser && (currentLoginUser.email === "admin@rms.com" || currentLoginUser.email.includes("paul0420") || currentLoginUser.uid === "Admin");
-                
+
                 if (isCurrentAdmin && !isAdmin) {
                     const isMuted = userMuteList[msg.uid];
                     muteBtn = ` <button onclick="toggleUserMute('${msg.uid}', ${!isMuted})" style="background:${isMuted?'#22c55e':'#ef4444'}; color:#fff; border:none; padding:2px 6px; font-size:0.75em; border-radius:3px; cursor:pointer; float:right;">${isMuted?'解除禁言':'禁言'}</button>`;
