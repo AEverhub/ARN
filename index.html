@@ -878,15 +878,33 @@
     setInterval(updateTaipeiClock, 1000);
     updateTaipeiClock();
 
-    /* ---------------- 全域系統資料庫與狀態 ---------------- */
+    /* ---------------- 全域系統資料庫與狀態 (Firebase 同步介面) ---------------- */
     let currentUser = null; 
-    let globalUsersDB = JSON.parse(localStorage.getItem('rms_users_db')) || [];
-    let systemVerifyCode = localStorage.getItem('rms_verify_code') || '981103970120';
-    let publicQuizzesMap = JSON.parse(localStorage.getItem('rms_public_quizzes')) || {}; 
-    let testHistoryRecords = JSON.parse(localStorage.getItem('rms_test_history')) || []; 
-    let feedbackDB = JSON.parse(localStorage.getItem('rms_feedback_db')) || []; // 儲存問題反饋與申訴
+    let globalUsersDB = [];
+    let systemVerifyCode = '981103970120';
+    let publicQuizzesMap = {}; 
+    let testHistoryRecords = []; 
+    let feedbackDB = []; 
 
-    window.addEventListener('DOMContentLoaded', () => {
+    // Firebase 資料載入回呼
+    window.initFirebaseData = function(data) {
+        if (data) {
+            globalUsersDB = data.users || [];
+            systemVerifyCode = data.verifyCode || '981103970120';
+            publicQuizzesMap = data.publicQuizzes || {};
+            testHistoryRecords = data.testHistory || [];
+            feedbackDB = data.feedback || [];
+        }
+        checkAutoLogin();
+    };
+
+    function saveToFirebase(path, value) {
+        if (window.fbSetData) {
+            window.fbSetData(path, value);
+        }
+    }
+
+    function checkAutoLogin() {
         const registeredEmail = localStorage.getItem('rms_device_registered');
         if (registeredEmail) {
             const foundUser = globalUsersDB.find(u => u.email === registeredEmail);
@@ -895,7 +913,7 @@
                 postLoginSetup();
             }
         }
-    });
+    }
 
     /* ---------------- 頂部 MENU 下拉選單控制 ---------------- */
     function toggleMenu() {
@@ -984,7 +1002,7 @@
             if (!userName) return alert("新註冊用戶請填寫考生姓名！");
             user = { email, pass, name: userName, role, disabled: false, banReason: '', isNameLocked: false };
             globalUsersDB.push(user);
-            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+            saveToFirebase('users', globalUsersDB);
             currentUser = user;
         }
 
@@ -1066,7 +1084,6 @@
             setMenuDisabledState(false);
         }
 
-        // 若帳號遭到停用且非管理員，強制只能訪問聊天大廳/申訴系統
         if (currentUser && currentUser.disabled && viewName !== 'chat' && currentUser.role !== 'admin') {
             alert("您的帳戶遭到停用，目前僅開放問題反饋與帳號申訴系統！");
             viewName = 'chat';
@@ -1139,7 +1156,7 @@
         const dbUser = globalUsersDB.find(u => u.email === currentUser.email);
         if (dbUser) {
             dbUser.name = newName;
-            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+            saveToFirebase('users', globalUsersDB);
         }
         document.getElementById('acc-name-display').innerText = newName;
         alert("個人姓名更新成功！");
@@ -1174,7 +1191,6 @@
         return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
     }
 
-    /* 一般用戶問題反饋提交 (一天最多3次) */
     function submitNormalFeedback() {
         const text = document.getElementById('feedback-input').value.trim();
         if (!text) return alert("請填寫問題內容！");
@@ -1202,7 +1218,7 @@
         };
 
         feedbackDB.push(newFeedback);
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         document.getElementById('feedback-input').value = '';
         alert("問題回報提交成功！管理員將盡快審閱。");
         renderNormalFeedbackList();
@@ -1219,7 +1235,7 @@
         }
 
         let html = '';
-        userItems.reverse().forEach(item => {
+        [...userItems].reverse().forEach(item => {
             const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308;">未讀</span>';
             const processStatus = item.isProcessed ? '<span style="color:#22c55e;">[已處理]</span>' : '<span style="color:#f97316;">[未處理]</span>';
             html += `
@@ -1235,7 +1251,6 @@
         container.innerHTML = html;
     }
 
-    /* 停用用戶帳號恢復及申訴申請 (一天最多2次) */
     function submitBannedAppeal() {
         const text = document.getElementById('appeal-input').value.trim();
         if (!text) return alert("請填寫申訴原因！");
@@ -1259,11 +1274,11 @@
             isRead: false,
             isProcessed: false,
             adminReply: '',
-            appealResult: null // null, 'approved', 'rejected'
+            appealResult: null
         };
 
         feedbackDB.push(newAppeal);
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         document.getElementById('appeal-input').value = '';
         alert("帳號申訴申請已成功送出！請靜候管理員審核與回覆。");
         renderBannedAppealList();
@@ -1280,7 +1295,7 @@
         }
 
         let html = '';
-        userItems.reverse().forEach(item => {
+        [...userItems].reverse().forEach(item => {
             const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308;">未讀</span>';
             let resultHtml = '';
             if (item.appealResult === 'rejected') {
@@ -1303,7 +1318,6 @@
         container.innerHTML = html;
     }
 
-    /* 管理員在聊天大廳選單中檢視所有回報與申訴，並具備刪除、是否處理、回覆及恢復帳戶功能 */
     function renderAdminChatFeedbackList() {
         const container = document.getElementById('admin-chat-feedback-list');
         if (feedbackDB.length === 0) {
@@ -1362,26 +1376,25 @@
         const replyText = document.getElementById(`admin-chat-reply-input-${index}`).value.trim();
         feedbackDB[index].adminReply = replyText;
         feedbackDB[index].isRead = true;
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         alert("管理員回覆已成功送出！");
         renderAdminChatFeedbackList();
     }
 
     function adminToggleProcessed(index) {
         feedbackDB[index].isProcessed = !feedbackDB[index].isProcessed;
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         renderAdminChatFeedbackList();
     }
 
     function adminDeleteFeedback(index) {
         if (!confirm("確定要刪除這筆訊息紀錄嗎？")) return;
         feedbackDB.splice(index, 1);
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         alert("已成功刪除訊息！");
         renderAdminChatFeedbackList();
     }
 
-    /* 被停用用戶申訴：按「是」恢復帳戶（2步確認） */
     function adminRecoverAccountStep1(index) {
         const item = feedbackDB[index];
         if (!confirm("第一步確認：您確定要恢復用戶 " + item.email + " 的帳戶嗎？")) return;
@@ -1391,21 +1404,20 @@
         if (targetUser) {
             targetUser.disabled = false;
             targetUser.banReason = "";
-            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+            saveToFirebase('users', globalUsersDB);
         }
         feedbackDB[index].appealResult = 'approved';
         feedbackDB[index].isProcessed = true;
         feedbackDB[index].adminReply = (feedbackDB[index].adminReply || "") + "\n[系統公告：您的帳戶已審核通過並恢復]";
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         alert("已成功恢復該用戶帳戶！");
         renderAdminChatFeedbackList();
     }
 
-    /* 被停用用戶申訴：按「否」在用戶端顯示此案不允受理且可繼續留言原因 */
     function adminRejectAppeal(index) {
         feedbackDB[index].appealResult = 'rejected';
         feedbackDB[index].isProcessed = true;
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        saveToFirebase('feedback', feedbackDB);
         alert("已設定為此案不允受理。您可以在下方輸入框填寫原因並送出回覆給用戶。");
         renderAdminChatFeedbackList();
     }
@@ -1438,7 +1450,6 @@
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
     }
 
-    /* 管理員即時檢查題庫代碼狀態 */
     function checkAdminQuizStatus() {
         const code = document.getElementById('adminQuizCodeInput').value.trim();
         const container = document.getElementById('adminQuizStatusContainer');
@@ -1488,13 +1499,12 @@
         document.head.appendChild(script);
     }
 
-    /* 管理員勾選/取消公開狀態 */
     function toggleAdminQuizPublic(checkbox) {
         const code = document.getElementById('adminQuizCodeInput').value.trim();
         if (!code) return;
 
         publicQuizzesMap[code] = checkbox.checked;
-        localStorage.setItem('rms_public_quizzes', JSON.stringify(publicQuizzesMap));
+        saveToFirebase('publicQuizzes', publicQuizzesMap);
         renderPublicQuizzesList();
         alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
     }
@@ -1509,7 +1519,7 @@
             if (target.role === 'admin') return alert("無法停用管理員帳戶！");
             target.disabled = true;
             target.banReason = reason;
-            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+            saveToFirebase('users', globalUsersDB);
             alert("已成功停用帳戶：" + targetEmail + "，原因：" + reason);
             setupAdminConsole();
         }
@@ -1525,7 +1535,7 @@
         if (target) {
             target.name = newName;
             target.isNameLocked = true;
-            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+            saveToFirebase('users', globalUsersDB);
 
             if (currentUser && currentUser.email === targetEmail) {
                 currentUser.name = newName;
@@ -1542,11 +1552,10 @@
         const newCode = document.getElementById('admin-verify-code-input').value.trim();
         if (!newCode) return alert("驗證碼不得為空！");
         systemVerifyCode = newCode;
-        localStorage.setItem('rms_verify_code', systemVerifyCode);
+        saveToFirebase('verifyCode', systemVerifyCode);
         alert("重複註冊驗證碼更新成功！");
     }
 
-    /* 渲染首頁公開題庫列表：嚴格顯示 JS 中的 name 項目而非代碼 */
     function renderPublicQuizzesList() {
         const listContainer = document.getElementById('public-quizzes-list');
         listContainer.innerHTML = '';
@@ -1947,7 +1956,7 @@
                 isCheated: false
             };
             testHistoryRecords.push(recordObj);
-            localStorage.setItem('rms_test_history', JSON.stringify(testHistoryRecords));
+            saveToFirebase('testHistory', testHistoryRecords);
         }
 
         document.getElementById('res-subject').innerText = window.currentQuiz.name;
@@ -2169,10 +2178,11 @@
     }
 </script>
 
-<!-- Firebase SDK 模組初始化 -->
+<!-- Firebase SDK 模組初始化與資料同步 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
@@ -2187,6 +2197,37 @@
 
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    // 定義資料寫入 Firebase 的輔助函式
+    window.fbSetData = function(path, value) {
+        set(ref(db, 'system_data/' + path), value).catch(err => {
+            console.error("Firebase 寫入失敗: ", err);
+        });
+    };
+
+    // 從 Firebase 載入整體系統資料
+    const dbRef = ref(db);
+    get(child(dbRef, 'system_data')).then((snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            window.initFirebaseData(data);
+        } else {
+            // 若雲端尚無資料，則初始化預設空結構
+            const initialData = {
+                users: [],
+                verifyCode: '981103970120',
+                publicQuizzes: {},
+                testHistory: [],
+                feedback: []
+            };
+            set(ref(db, 'system_data'), initialData);
+            window.initFirebaseData(initialData);
+        }
+    }).catch((error) => {
+        console.error("Firebase 讀取失敗，降級使用空資料: ", error);
+        window.initFirebaseData(null);
+    });
 </script>
 </body>
 </html>
