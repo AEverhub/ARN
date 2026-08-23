@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V4-Pro</title>
+    <title>測驗系統-網頁版(Web ST) -V7-Pro</title>
 
     <!-- MathJax 公式渲染套件 -->
     <script>
@@ -122,6 +122,13 @@
         }
         .dropdown-item:hover {
             background: #2980b9;
+            color: #ffffff;
+        }
+        .dropdown-item.danger {
+            color: #ef4444;
+        }
+        .dropdown-item.danger:hover {
+            background: #c0392b;
             color: #ffffff;
         }
 
@@ -472,6 +479,7 @@
             <div class="dropdown-item" onclick="switchView('account')">帳號管理</div>
             <div class="dropdown-item" onclick="switchView('chat')">聊天大廳</div>
             <div class="dropdown-item" id="menu-admin-item" onclick="switchView('admin')" style="display:none;">管理面板</div>
+            <div class="dropdown-item danger" onclick="openLogoutModal()">登出帳號</div>
         </div>
     </div>
 </header>
@@ -512,9 +520,12 @@
             <div id="status-msg" style="color:var(--accent); font-size: 0.85em; margin: 10px 0; text-align: left;">等待讀取伺服器題庫檔案...</div>
         </div>
         <button id="auth-submit-btn" class="main-btn" onclick="handleAuthSubmit()" style="background:#cbd5e1; color:#64748b;" disabled>註冊 / 登入並進入系統</button>
+    </div>
 
-        <!-- 普通用戶代碼輸入與公開題庫列表 -->
-        <div id="quiz-entry-area" class="hidden" style="margin-top:25px; border-top:1px solid #e2e8f0; padding-top:20px;">
+    <!-- 普通用戶代碼輸入與公開題庫列表 (獨立區塊，登入後顯示於首頁) -->
+    <div id="quiz-entry-area" class="hidden" style="margin-top:0;">
+        <h2 class="text-center">測驗首頁 - 題庫選擇中心</h2>
+        <div style="margin-top:20px;">
             <h3>選擇或輸入測驗題庫</h3>
             <input type="text" id="quiz-code" class="code-input" placeholder="請輸入測驗代碼 (例如: test01)">
             <div id="password-area" class="hidden">
@@ -723,6 +734,17 @@
     </div>
 </div>
 
+<!-- 登出驗證密碼 Modal -->
+<div id="logout-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3 style="color:#ffffff; margin-bottom:15px;">安全登出驗證</h3>
+        <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:15px;">為確保帳號安全，請輸入當前帳號 (<span id="logout-modal-email" style="color:#38bdf8;"></span>) 的密碼以確認登出：</p>
+        <input type="password" id="logout-password-input" class="code-input" placeholder="請輸入登入密碼">
+        <button class="main-btn btn-danger" onclick="confirmLogout()">確認登出</button>
+        <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closeLogoutModal()">取消</button>
+    </div>
+</div>
+
 <!-- 彈出視窗 PDF Modal -->
 <div id="pdf-modal" class="modal-overlay hidden">
     <div class="modal-card">
@@ -797,6 +819,18 @@
     let systemVerifyCode = localStorage.getItem('rms_verify_code') || '981103970120';
     let publicQuizzesMap = JSON.parse(localStorage.getItem('rms_public_quizzes')) || {}; 
     let testHistoryRecords = JSON.parse(localStorage.getItem('rms_test_history')) || []; 
+
+    // 頁面載入時檢查本地是否已有登入紀錄（如果有記錄就不隨便登出）
+    window.addEventListener('DOMContentLoaded', () => {
+        const registeredEmail = localStorage.getItem('rms_device_registered');
+        if (registeredEmail) {
+            const foundUser = globalUsersDB.find(u => u.email === registeredEmail);
+            if (foundUser && !foundUser.disabled) {
+                currentUser = foundUser;
+                postLoginSetup();
+            }
+        }
+    });
 
     /* ---------------- 頂部 MENU 下拉選單控制 ---------------- */
     function toggleMenu() {
@@ -892,9 +926,7 @@
             currentUser = user;
         }
 
-        if (!localStorage.getItem('rms_device_registered')) {
-            localStorage.setItem('rms_device_registered', email);
-        }
+        localStorage.setItem('rms_device_registered', email);
 
         alert(`歡迎回來，${currentUser.name}！`);
         postLoginSetup();
@@ -905,13 +937,52 @@
         document.getElementById('quiz-entry-area').classList.remove('hidden');
         
         const menuAdminItem = document.getElementById('menu-admin-item');
-        if (currentUser.role === 'admin') {
+        if (currentUser && currentUser.role === 'admin') {
             menuAdminItem.style.display = 'block';
         } else {
             menuAdminItem.style.display = 'none';
         }
 
         renderPublicQuizzesList();
+    }
+
+    /* ---------------- 登出功能與互動 ---------------- */
+    function openLogoutModal() {
+        document.getElementById('dropdown-menu').classList.remove('show');
+        if (!currentUser) return alert("目前尚未登入！");
+        document.getElementById('logout-modal-email').innerText = currentUser.email;
+        document.getElementById('logout-password-input').value = '';
+        document.getElementById('logout-modal').classList.remove('hidden');
+    }
+
+    function closeLogoutModal() {
+        document.getElementById('logout-modal').classList.add('hidden');
+    }
+
+    function confirmLogout() {
+        const pass = document.getElementById('logout-password-input').value.trim();
+        if (!pass) return alert("請輸入密碼！");
+        if (pass !== currentUser.pass) return alert("密碼錯誤，無法登出！");
+
+        // 清除登入狀態與本地裝置註冊紀錄
+        currentUser = null;
+        localStorage.removeItem('rms_device_registered');
+        closeLogoutModal();
+
+        // 重置畫面
+        document.getElementById('quiz-entry-area').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('admin-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-pass').value = '';
+        document.getElementById('agree-terms').checked = false;
+        checkAuthUnlock();
+
+        alert("已成功安全登出！");
     }
 
     /* ---------------- 多視圖切換 ---------------- */
@@ -927,6 +998,7 @@
         }
 
         document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('quiz-entry-area').classList.add('hidden');
         document.getElementById('quiz-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('account-screen').classList.add('hidden');
@@ -945,7 +1017,6 @@
             document.getElementById('acc-name-display').innerText = currentUser ? currentUser.name : '尚未設定';
             document.getElementById('acc-total-tests').innerText = localStorage.getItem('total_tests_run') || '0';
             
-            // 姓名變更與鎖定狀態處理
             const nameInput = document.getElementById('acc-name-input');
             const nameBtn = document.getElementById('update-name-btn');
             const lockHint = document.getElementById('name-lock-hint');
@@ -986,7 +1057,6 @@
         if (!newName) return alert("姓名不得為空！");
 
         currentUser.name = newName;
-        // 同步更新 DB
         const dbUser = globalUsersDB.find(u => u.email === currentUser.email);
         if (dbUser) {
             dbUser.name = newName;
@@ -1013,7 +1083,6 @@
 
     /* ---------------- 管理面板詳細功能 ---------------- */
     function setupAdminConsole() {
-        // 1. 用戶停用清單下拉選單
         const userSelect = document.getElementById('admin-user-select');
         userSelect.innerHTML = '';
         globalUsersDB.forEach(u => {
@@ -1023,7 +1092,6 @@
             userSelect.appendChild(opt);
         });
 
-        // 2. 管理員強制改名下拉選單
         const renameUserSelect = document.getElementById('admin-rename-user-select');
         renameUserSelect.innerHTML = '';
         globalUsersDB.forEach(u => {
@@ -1033,7 +1101,6 @@
             renameUserSelect.appendChild(opt);
         });
 
-        // 3. 題庫公開配置清單
         const configList = document.getElementById('admin-quiz-config-list');
         configList.innerHTML = '';
         
@@ -1067,7 +1134,6 @@
         }
     }
 
-    /* 管理員強制改名並禁止再次改名功能 */
     function adminForceRenameUser() {
         const targetEmail = document.getElementById('admin-rename-user-select').value;
         const newName = document.getElementById('admin-new-name-input').value.trim();
@@ -1077,10 +1143,9 @@
         const target = globalUsersDB.find(u => u.email === targetEmail);
         if (target) {
             target.name = newName;
-            target.isNameLocked = true; // 禁止別人再次改名
+            target.isNameLocked = true;
             localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
 
-            // 如果目前剛好是當事人登入，同步更新
             if (currentUser && currentUser.email === targetEmail) {
                 currentUser.name = newName;
                 currentUser.isNameLocked = true;
