@@ -389,7 +389,6 @@
         }
         .sub-view h3 { color: #f8fafc; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 20px; }
 
-        /* 公開題庫滑動列表樣式 */
         .public-quizzes-box {
             max-height: 180px;
             overflow-y: auto;
@@ -430,7 +429,6 @@
         .btn-start-quiz { background: #27ae60; }
         .btn-start-quiz:hover { background: #219653; }
 
-        /* 系統反饋 / 申訴回報專用介面樣式 */
         .feedback-system-container {
             background: #1e293b;
             border: 1px solid #334155;
@@ -705,6 +703,13 @@
         <!-- 被停用用戶申訴申請介面 -->
         <div id="banned-appeal-view" class="hidden">
             <h3 style="color:#ef4444;">帳戶遭停用 - 帳號恢復及申訴申請系統</h3>
+            
+            <!-- 停用原因顯示區塊 -->
+            <div id="banned-reason-box" style="background:#450a0a; border:1px solid #ef4444; padding:15px; border-radius:6px; margin-bottom:15px; color:#fca5a5;">
+                <h4 style="margin-top:0; color:#ef4444;">🚨 您的帳戶目前已被停用</h4>
+                <p><strong>管理員停用原因：</strong> <span id="display-ban-reason" style="color:#fff;">無</span></p>
+            </div>
+
             <p style="color:#cbd5e1; font-size:0.95em;">您的帳戶目前處於停用狀態。系統僅開放此申訴功能（一天最多提交 2 次），請填寫恢復帳號原因：</p>
 
             <div class="feedback-system-container" style="border-color:#c0392b;">
@@ -737,16 +742,24 @@
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
 
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
-            <h4 style="margin-top:0; color:var(--primary);">1. 用戶帳戶停用管理</h4>
+            <h4 style="margin-top:0; color:var(--primary);">1. 用戶帳戶停用與啟用管理</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <select id="admin-user-select" class="code-input" style="margin-bottom:0; flex:1;">
+                <select id="admin-user-select" class="code-input" style="margin-bottom:0; flex:1;" onchange="onAdminUserSelectChange()">
                     <option value="">載入中用戶...</option>
                 </select>
                 <input type="text" id="admin-ban-reason" class="code-input" placeholder="填寫停用原因..." style="margin-bottom:0; flex:2;">
-                <button class="main-btn btn-danger" style="width:auto; margin-top:0;" onclick="adminDisableUser()">停用帳戶</button>
+                <button id="admin-ban-action-btn" class="main-btn btn-danger" style="width:auto; margin-top:0;" onclick="adminToggleUserStatus()">停用帳戶</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">2. 管理員強制改名與鎖定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">2. 考生歷史成績查詢</h4>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <select id="admin-history-user-select" class="code-input" style="margin-bottom:0; flex:1;">
+                    <option value="">選擇要查詢的考生...</option>
+                </select>
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminViewUserHistory()">查詢成績紀錄</button>
+            </div>
+
+            <h4 style="margin-top:20px; color:var(--primary);">3. 管理員強制改名與鎖定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-rename-user-select" class="code-input" style="margin-bottom:0; flex:1;">
                     <option value="">選擇用戶...</option>
@@ -755,13 +768,13 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminForceRenameUser()">強制改名並鎖定</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">3. 重複註冊驗證碼設定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">4. 重複註冊驗證碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">4. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">5. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
             <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
 
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -778,6 +791,17 @@
                 </label>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- 考生歷史成績檢視 Modal -->
+<div id="admin-history-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 600px;">
+        <h3 id="admin-history-modal-title" style="color:#ffffff; margin-bottom:15px;">考生歷史成績紀錄</h3>
+        <div id="admin-history-modal-content" style="text-align:left; font-size:0.9em; background:#0f172a; padding:15px; border-radius:6px; color:#e2e8f0; margin-bottom:15px; max-height:350px; overflow-y:auto; line-height:1.6;">
+            載入中...
+        </div>
+        <button class="main-btn btn-secondary" onclick="closeAdminHistoryModal()">關閉</button>
     </div>
 </div>
 
@@ -858,7 +882,6 @@
 </div>
 
 <script>
-    /* ---------------- 台北標準時鐘 (GMT+8) ---------------- */
     function updateTaipeiClock() {
         const now = new Date();
         const options = { timeZone: 'Asia/Taipei', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -878,7 +901,6 @@
     setInterval(updateTaipeiClock, 1000);
     updateTaipeiClock();
 
-    /* ---------------- 全域系統資料庫與狀態 (Firebase 同步介面) ---------------- */
     let currentUser = null; 
     let globalUsersDB = [];
     let systemVerifyCode = '981103970120';
@@ -886,7 +908,6 @@
     let testHistoryRecords = []; 
     let feedbackDB = []; 
 
-    // Firebase 資料載入回呼
     window.initFirebaseData = function(data) {
         if (data) {
             globalUsersDB = data.users || [];
@@ -915,7 +936,6 @@
         }
     }
 
-    /* ---------------- 頂部 MENU 下拉選單控制 ---------------- */
     function toggleMenu() {
         const menu = document.getElementById('dropdown-menu');
         menu.classList.toggle('show');
@@ -926,7 +946,6 @@
         }
     });
 
-    /* ---------------- 登入與註冊授權邏輯 ---------------- */
     const authEmailInput = document.getElementById('auth-email');
     authEmailInput.addEventListener('input', (e) => {
         const email = e.target.value.trim();
@@ -1035,7 +1054,6 @@
         renderPublicQuizzesList();
     }
 
-    /* ---------------- 登出功能與互動 ---------------- */
     function openLogoutModal() {
         document.getElementById('dropdown-menu').classList.remove('show');
         if (!currentUser) return alert("目前尚未登入！");
@@ -1072,7 +1090,6 @@
         alert("已成功安全登出！");
     }
 
-    /* ---------------- 多視圖切換 ---------------- */
     function switchView(viewName) {
         document.getElementById('dropdown-menu').classList.remove('show');
 
@@ -1162,7 +1179,6 @@
         alert("個人姓名更新成功！");
     }
 
-    /* ---------------- 聊天大廳轉換：問題反饋與申訴系統邏輯 ---------------- */
     function setupFeedbackSystemView() {
         const normalView = document.getElementById('normal-feedback-view');
         const bannedView = document.getElementById('banned-appeal-view');
@@ -1177,6 +1193,10 @@
             normalView.classList.add('hidden');
             adminChatView.classList.add('hidden');
             bannedView.classList.remove('hidden');
+            
+            // 顯示管理員設定的停用原因
+            document.getElementById('display-ban-reason').innerText = currentUser.banReason || "管理員未特別填寫原因";
+            
             renderBannedAppealList();
         } else {
             bannedView.classList.add('hidden');
@@ -1426,7 +1446,7 @@
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    /* ---------------- 管理面板詳細功能 ---------------- */
+    /* ---------------- 管理面板詳細功能更新 ---------------- */
     function setupAdminConsole() {
         const userSelect = document.getElementById('admin-user-select');
         userSelect.innerHTML = '';
@@ -1435,6 +1455,16 @@
             opt.value = u.email;
             opt.innerText = `${u.name} (${u.email}) ${u.disabled ? '[已停用]' : ''}`;
             userSelect.appendChild(opt);
+        });
+        onAdminUserSelectChange();
+
+        const historyUserSelect = document.getElementById('admin-history-user-select');
+        historyUserSelect.innerHTML = '';
+        globalUsersDB.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.name;
+            opt.innerText = `${u.name} (${u.email})`;
+            historyUserSelect.appendChild(opt);
         });
 
         const renameUserSelect = document.getElementById('admin-rename-user-select');
@@ -1448,6 +1478,93 @@
 
         document.getElementById('adminQuizCodeInput').value = '';
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
+    }
+
+    // 當停用區塊的下拉選單變更時，自動切換按鈕文字與樣式
+    function onAdminUserSelectChange() {
+        const targetEmail = document.getElementById('admin-user-select').value;
+        const target = globalUsersDB.find(u => u.email === targetEmail);
+        const actionBtn = document.getElementById('admin-ban-action-btn');
+        const reasonInput = document.getElementById('admin-ban-reason');
+
+        if (target && target.disabled) {
+            actionBtn.innerText = "解除停用 (啟用)";
+            actionBtn.className = "main-btn btn-success";
+            reasonInput.value = target.banReason || "";
+            reasonInput.disabled = true;
+        } else {
+            actionBtn.innerText = "停用帳戶";
+            actionBtn.className = "main-btn btn-danger";
+            reasonInput.value = "";
+            reasonInput.disabled = false;
+        }
+    }
+
+    function adminToggleUserStatus() {
+        const targetEmail = document.getElementById('admin-user-select').value;
+        if (!targetEmail) return alert("請選擇目標用戶！");
+
+        const target = globalUsersDB.find(u => u.email === targetEmail);
+        if (!target) return;
+
+        if (target.role === 'admin') return alert("無法對管理員帳戶進行此操作！");
+
+        if (target.disabled) {
+            // 執行啟用
+            if (!confirm(`確定要解除停用並啟用帳戶：${targetEmail} 嗎？`)) return;
+            target.disabled = false;
+            target.banReason = "";
+            saveToFirebase('users', globalUsersDB);
+            alert("已成功啟用帳戶：" + targetEmail);
+        } else {
+            // 執行停用
+            const reason = document.getElementById('admin-ban-reason').value.trim() || '違反使用規範';
+            if (!confirm(`確定要停用帳戶：${targetEmail} 嗎？`)) return;
+            target.disabled = true;
+            target.banReason = reason;
+            saveToFirebase('users', globalUsersDB);
+            alert("已成功停用帳戶：" + targetEmail + "，原因：" + reason);
+        }
+        setupAdminConsole();
+    }
+
+    // 查詢特定考生的歷史成績
+    function adminViewUserHistory() {
+        const targetName = document.getElementById('admin-history-user-select').value;
+        if (!targetName) return alert("請選擇要查詢的考生！");
+
+        const modal = document.getElementById('admin-history-modal');
+        const contentDiv = document.getElementById('admin-history-modal-content');
+        document.getElementById('admin-history-modal-title').innerText = `考生 [${targetName}] 的歷史成績紀錄`;
+
+        const userRecords = testHistoryRecords.filter(r => r.userName === targetName);
+        if (userRecords.length === 0) {
+            contentDiv.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">此考生尚無任何測驗歷史成績紀錄</div>`;
+            modal.classList.remove('hidden');
+            return;
+        }
+
+        let html = '<table style="width:100%; border-collapse: collapse;">';
+        html += '<tr style="border-bottom:1px solid #334155; color:#94a3b8; font-size:0.85em;"><th style="padding:8px; text-align:center;">題庫代碼</th><th style="padding:8px; text-align:center;">得分</th><th style="padding:8px; text-align:center;">總耗時</th><th style="padding:8px; text-align:center;">測驗結束時間</th></tr>';
+
+        userRecords.forEach(rec => {
+            html += `
+                <tr style="border-bottom:1px solid #1e293b; font-size:0.9em;">
+                    <td style="padding:8px; text-align:center; color:#38bdf8;">${escapeHtml(rec.quizCode)}</td>
+                    <td style="padding:8px; text-align:center; color:#22c55e; font-weight:bold;">${rec.score} 分</td>
+                    <td style="padding:8px; text-align:center; color:#e2e8f0;">${escapeHtml(rec.duration)}</td>
+                    <td style="padding:8px; text-align:center; color:#94a3b8;">${escapeHtml(rec.endTime)}</td>
+                </tr>
+            `;
+        });
+        html += '</table>';
+
+        contentDiv.innerHTML = html;
+        modal.classList.remove('hidden');
+    }
+
+    function closeAdminHistoryModal() {
+        document.getElementById('admin-history-modal').classList.add('hidden');
     }
 
     function checkAdminQuizStatus() {
@@ -1507,22 +1624,6 @@
         saveToFirebase('publicQuizzes', publicQuizzesMap);
         renderPublicQuizzesList();
         alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
-    }
-
-    function adminDisableUser() {
-        const targetEmail = document.getElementById('admin-user-select').value;
-        const reason = document.getElementById('admin-ban-reason').value.trim() || '違反使用規範';
-        if (!targetEmail) return alert("請選擇要停用的用戶！");
-
-        const target = globalUsersDB.find(u => u.email === targetEmail);
-        if (target) {
-            if (target.role === 'admin') return alert("無法停用管理員帳戶！");
-            target.disabled = true;
-            target.banReason = reason;
-            saveToFirebase('users', globalUsersDB);
-            alert("已成功停用帳戶：" + targetEmail + "，原因：" + reason);
-            setupAdminConsole();
-        }
     }
 
     function adminForceRenameUser() {
@@ -1593,7 +1694,6 @@
         });
     }
 
-    /* ---------------- 排行榜與 1-30 名清單、詳細資訊 Modal ---------------- */
     let currentRankRecords = [];
 
     function openRankModalForQuiz(quizCode) {
@@ -1707,7 +1807,6 @@
         }
     }
 
-    /* ---------------- 測驗核心控制與防誤觸 ---------------- */
     let quizActive = false;
     let currentQuestions = [], userAnswers = {}, timerInterval, totalSeconds = 0;
     let currentActiveIndex = 0;
@@ -2199,21 +2298,18 @@
     const analytics = getAnalytics(app);
     const db = getDatabase(app);
 
-    // 定義資料寫入 Firebase 的輔助函式
     window.fbSetData = function(path, value) {
         set(ref(db, 'system_data/' + path), value).catch(err => {
             console.error("Firebase 寫入失敗: ", err);
         });
     };
 
-    // 從 Firebase 載入整體系統資料
     const dbRef = ref(db);
     get(child(dbRef, 'system_data')).then((snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
             window.initFirebaseData(data);
         } else {
-            // 若雲端尚無資料，則初始化預設空結構
             const initialData = {
                 users: [],
                 verifyCode: '981103970120',
