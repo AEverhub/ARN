@@ -1041,7 +1041,7 @@
         } else {
             if (!userName) return alert("新註冊用戶請填寫考生姓名！");
             user = { email, pass, name: userName, role, disabled: false, banReason: '', isNameLocked: false };
-            
+
             // 寫入 Firestore
             await setDoc(doc(db, 'users', email), user);
             globalUsersDB.push(user);
