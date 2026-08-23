@@ -1,6 +1,5 @@
 window.currentQuiz = {
     name: "系統測試與資訊基礎科目",
-    password: "", // 若不需要密碼驗證可留空，若需密碼可填入字串如 "1234"
     time: 15,    // 測驗時間 (分鐘)
     data: [
         {
