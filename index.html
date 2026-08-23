@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>測驗系統-網頁版(Web ST) -V4-Pro</title>
 
-    <!-- MathJax 公式渲染套件 -->
     <script>
         window.MathJax = {
             tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']], processEscapes: true },
@@ -14,7 +13,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
-    <!-- html2pdf.js 套件 (用於產生與下載 PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -563,7 +561,6 @@
 </header>
 
 <div class="container">
-    <!-- 1. 登入/註冊畫面 -->
     <div id="login-screen">
         <h2 class="text-center" id="auth-title">線上模擬評量系統 - 註冊與登入</h2>
         <div class="input-group">
@@ -600,7 +597,6 @@
         <button id="auth-submit-btn" class="main-btn" onclick="handleAuthSubmit()" style="background:#cbd5e1; color:#64748b;" disabled>註冊 / 登入並進入系統</button>
     </div>
 
-    <!-- 普通用戶代碼輸入與公開題庫列表 (獨立區塊，登入後顯示於首頁) -->
     <div id="quiz-entry-area" class="hidden" style="margin-top:0;">
         <h2 class="text-center">測驗首頁 - 題庫選擇中心</h2>
         <div style="margin-top:20px;">
@@ -619,7 +615,6 @@
         </div>
     </div>
 
-    <!-- 2. 測驗進行畫面 -->
     <div id="quiz-ui" class="hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #f1f5f9;">
             <span id="quiz-header" style="font-weight:bold; color:var(--primary); font-size:1.1em;">載入中...</span>
@@ -636,7 +631,6 @@
         <button class="main-btn" style="background:var(--primary); margin-top: 25px;" onclick="confirmSubmit()">提交作答</button>
     </div>
 
-    <!-- 3. 結果與報告畫面 -->
     <div id="result-screen" class="hidden">
         <div class="result-container-dark" id="report-card">
             <h2 style="text-align: center; color: #ffffff; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">線上評量結果報告</h2>
@@ -728,7 +722,6 @@
         <div id="review-area" style="margin-top:30px; border-top:2px solid #e2e8f0; padding-top:20px;"></div>
     </div>
 
-    <!-- 4. 帳號管理畫面 -->
     <div id="account-screen" class="hidden sub-view" style="color:#333;">
         <h3>帳號管理中心</h3>
         <p style="color:#64748b; font-size:0.95em;">在此管理您的考生身分、測驗歷史紀錄與安全偏好設定。</p>
@@ -748,7 +741,6 @@
         </div>
     </div>
 
-    <!-- 5. 聊天大廳畫面 (LINE風格) -->
     <div id="chat-screen" class="hidden sub-view" style="color:#333;">
         <h3>學術交流聊天大廳</h3>
         <p style="color:#64748b; font-size:0.95em;">與線上其他考生進行題庫討論與學術交流。</p>
@@ -783,7 +775,6 @@
         </div>
     </div>
 
-    <!-- 6. 管理面板畫面 (管理員專用) -->
     <div id="admin-screen" class="hidden sub-view" style="color:#333;">
         <h3>系統管理面板 (Admin Console)</h3>
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理與題庫公開設定。</p>
@@ -813,16 +804,26 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">4. 題庫公開快捷管理</h4>
-            <p style="font-size:0.88em; color:#64748b;">勾選後會顯示於普通用戶的快速選擇列表中：</p>
-            <div id="admin-quiz-config-list" style="background:#ffffff; border:1px solid #cbd5e1; padding:10px; border-radius:4px; max-height:150px; overflow-y:auto;">
-                <!-- 動態載入題庫勾選 -->
+            <h4 style="margin-top:20px; color:var(--primary);">4. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
+            <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表：</p>
+            
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <input type="text" id="adminQuizCodeInput" class="code-input" placeholder="例如: Math 或 test01" style="margin-bottom:0; flex:1;">
+                <button class="main-btn btn-accent" id="adminCheckBtn" style="width:auto; margin-top:0;" onclick="checkAdminQuizStatus()">檢查狀態</button>
+            </div>
+
+            <div id="adminQuizStatusContainer" style="padding: 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; display: none;">
+                <div><strong>題庫代碼：</strong><span id="adminDisplayCode" style="color:var(--accent);"></span></div>
+                <div style="margin: 6px 0;"><strong>狀態：</strong><span id="adminStatusText">檢查中...</span></div>
+                <div id="adminQuizDetails" style="font-size: 13px; color: #555; margin-bottom: 10px;"></div>
+                <label style="cursor: pointer; font-weight: bold; color: var(--primary);">
+                    <input type="checkbox" id="adminPublicCheckbox" onchange="toggleAdminQuizPublic(this)"> 公開於首頁列表
+                </label>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 排行榜檢視 Modal (僅顯示1-30名，含詳細資訊按鈕) -->
 <div id="rank-modal" class="modal-overlay hidden">
     <div class="modal-card" style="max-width: 550px;">
         <h3 id="rank-modal-title" style="color:#ffffff; margin-bottom:15px;">題庫排行榜 (Top 1 - 30)</h3>
@@ -833,7 +834,6 @@
     </div>
 </div>
 
-<!-- 詳細資訊檢視 Modal -->
 <div id="rank-detail-modal" class="modal-overlay hidden" style="z-index: 2005;">
     <div class="modal-card" style="max-width: 420px;">
         <h3 style="color:#ffffff; margin-bottom:15px;">成績詳細資訊</h3>
@@ -844,7 +844,6 @@
     </div>
 </div>
 
-<!-- 登出驗證密碼 Modal -->
 <div id="logout-modal" class="modal-overlay hidden">
     <div class="modal-card">
         <h3 style="color:#ffffff; margin-bottom:15px;">安全登出驗證</h3>
@@ -855,7 +854,6 @@
     </div>
 </div>
 
-<!-- 彈出視窗 PDF Modal -->
 <div id="pdf-modal" class="modal-overlay hidden">
     <div class="modal-card">
         <div id="pdf-step-1">
@@ -1225,21 +1223,71 @@
             renameUserSelect.appendChild(opt);
         });
 
-        const configList = document.getElementById('admin-quiz-config-list');
-        configList.innerHTML = '';
+        // 重設第四項題庫即時檢查介面
+        document.getElementById('adminQuizCodeInput').value = '';
+        document.getElementById('adminQuizStatusContainer').style.display = 'none';
+    }
+
+    /* 管理員即時檢查題庫代碼狀態 */
+    function checkAdminQuizStatus() {
+        const code = document.getElementById('adminQuizCodeInput').value.trim();
+        const container = document.getElementById('adminQuizStatusContainer');
+        const statusText = document.getElementById('adminStatusText');
+        const displayCode = document.getElementById('adminDisplayCode');
+        const quizDetails = document.getElementById('adminQuizDetails');
+        const publicCheckbox = document.getElementById('adminPublicCheckbox');
+
+        if (!code) {
+            alert('請先輸入題庫代碼！');
+            return;
+        }
+
+        displayCode.textContent = code;
+        container.style.display = 'block';
+        statusText.textContent = '檢查中...';
+        statusText.style.color = '#f97316';
+        quizDetails.textContent = '';
+        publicCheckbox.checked = !!publicQuizzesMap[code];
+
+        // 動態載入並測試該 JS 檔
+        const oldScript = document.getElementById('temp-admin-check-script');
+        if (oldScript) oldScript.remove();
+
+        window.currentQuiz = null;
+        const script = document.createElement('script');
+        script.id = 'temp-admin-check-script';
+        script.src = `${code}.js?t=` + new Date().getTime();
         
-        let knownQuizzes = window.currentQuiz ? [document.getElementById('quiz-code').value.trim() || 'test01'] : ['test01'];
-        knownQuizzes.forEach(qCode => {
-            if(!qCode) return;
-            const isChecked = publicQuizzesMap[qCode] ? 'checked' : '';
-            const div = document.createElement('div');
-            div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f1f5f9;";
-            div.innerHTML = `
-                <span>題庫代碼：<b>${qCode}</b></span>
-                <label><input type="checkbox" data-quizcode="${qCode}" class="admin-quiz-chk" ${isChecked} onchange="togglePublicQuiz('${qCode}', this.checked)"> 公開於首頁列表</label>
-            `;
-            configList.appendChild(div);
-        });
+        script.onload = () => {
+            if (window.currentQuiz && window.currentQuiz.name) {
+                statusText.textContent = '✅ 題庫檔案正常';
+                statusText.style.color = '#22c55e';
+                quizDetails.innerHTML = `題庫標題：<b>${window.currentQuiz.name}</b><br>題目數量：<b>${window.currentQuiz.data ? window.currentQuiz.data.length : 0}</b> 題`;
+            } else {
+                statusText.textContent = '❌ 檔案格式不符（缺少 currentQuiz 物件或名稱）';
+                statusText.style.color = '#ef4444';
+                quizDetails.textContent = '';
+            }
+        };
+
+        script.onerror = () => {
+            statusText.textContent = '❌ 找不到該題庫檔案（請確認檔案是否存在於同層目錄）';
+            statusText.style.color = '#ef4444';
+            quizDetails.textContent = '';
+        };
+
+        document.head.appendChild(script);
+    }
+
+    /* 管理員勾選/取消公開狀態 */
+    function toggleAdminQuizPublic(checkbox) {
+        const code = document.getElementById('adminQuizCodeInput').value.trim();
+        if (!code) return;
+
+        publicQuizzesMap[code] = checkbox.checked;
+        localStorage.setItem('rms_public_quizzes', JSON.stringify(publicQuizzesMap));
+        renderPublicQuizzesList();
+        alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
     }
 
     function adminDisableUser() {
@@ -1289,12 +1337,6 @@
         alert("重複註冊驗證碼更新成功！");
     }
 
-    function togglePublicQuiz(quizCode, isPublic) {
-        publicQuizzesMap[quizCode] = isPublic;
-        localStorage.setItem('rms_public_quizzes', JSON.stringify(publicQuizzesMap));
-        renderPublicQuizzesList();
-    }
-
     function renderPublicQuizzesList() {
         const listContainer = document.getElementById('public-quizzes-list');
         listContainer.innerHTML = '';
@@ -1308,7 +1350,7 @@
         publicCodes.forEach(code => {
             const item = document.createElement('div');
             item.className = 'public-quiz-item';
-            // 需求 1: 公開列表只顯示題庫名稱
+            // 公開列表只顯示題庫名稱
             item.innerHTML = `
                 <span>題庫名稱：<b>${code}</b></span>
                 <div class="quiz-action-btns">
