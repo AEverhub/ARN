@@ -509,7 +509,7 @@
         <div class="input-group">
             <input type="email" id="auth-email" class="code-input" placeholder="電子郵件 (例如: admin@rms.com 或一般信箱)">
             <input type="password" id="auth-pass" class="code-input" placeholder="密碼">
-            
+
             <div id="register-extra-fields">
                 <input type="text" id="auth-name" class="code-input" placeholder="考生姓名 (僅註冊時需要)">
             </div>
@@ -548,7 +548,7 @@
             <div id="password-area" class="hidden">
                 <input type="password" id="quiz-pass" class="code-input" placeholder="請輸入題庫驗證密碼">
             </div>
-            
+
             <p style="font-size:0.9em; color:#64748b; margin-bottom:5px;">管理員已公開的題庫列表：</p>
             <div class="public-quizzes-box" id="public-quizzes-list">
                 <div style="text-align:center; color:#94a3b8; padding:10px;">目前尚無公開題庫</div>
@@ -685,34 +685,48 @@
     </div>
 
     <div id="chat-screen" class="hidden sub-view" style="color:#333;">
+        <!-- 普通用戶問題反饋介面 -->
         <div id="normal-feedback-view" class="hidden">
             <h3>問題反饋系統</h3>
             <p style="color:#64748b; font-size:0.95em;">若您在使用測驗系統時遇到任何技術問題或建議，歡迎透過下方回報（一天最多提交 3 次）。</p>
-            
+
             <div class="feedback-system-container">
-                <h4 style="margin-top:0; color:#38bdf8;">📝 提交新問題</h4>
+                <h4 style="margin-top:0; color:#38bdf8;">提交新問題</h4>
                 <textarea id="feedback-input" class="chat-textarea" placeholder="請詳細描述您遇到的問題..."></textarea>
                 <button class="main-btn btn-success" style="margin-top:0;" onclick="submitNormalFeedback()">提交問題</button>
 
-                <h4 style="margin-top:20px; color:#38bdf8; border-top:1px solid #334155; padding-top:15px;">📋 我的回報紀錄與管理員回覆</h4>
+                <h4 style="margin-top:20px; color:#38bdf8; border-top:1px solid #334155; padding-top:15px;">我的回報紀錄與管理員回覆</h4>
                 <div class="feedback-list-box" id="normal-feedback-list">
                     <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無反饋紀錄</div>
                 </div>
             </div>
         </div>
 
+        <!-- 被停用用戶申訴申請介面 -->
         <div id="banned-appeal-view" class="hidden">
-            <h3 style="color:#ef4444;">⚠️ 帳戶遭停用 - 帳號恢復及申訴申請系統</h3>
+            <h3 style="color:#ef4444;">帳戶遭停用 - 帳號恢復及申訴申請系統</h3>
             <p style="color:#cbd5e1; font-size:0.95em;">您的帳戶目前處於停用狀態。系統僅開放此申訴功能（一天最多提交 2 次），請填寫恢復帳號原因：</p>
-            
+
             <div class="feedback-system-container" style="border-color:#c0392b;">
-                <h4 style="margin-top:0; color:#ef4444;">🛡️ 提交申訴申請</h4>
+                <h4 style="margin-top:0; color:#ef4444;">提交申訴申請</h4>
                 <textarea id="appeal-input" class="chat-textarea" placeholder="請填寫希望恢復帳號的理由或說明..."></textarea>
                 <button class="main-btn btn-danger" style="margin-top:0;" onclick="submitBannedAppeal()">提交申訴申請</button>
 
-                <h4 style="margin-top:20px; color:#ef4444; border-top:1px solid #334155; padding-top:15px;">📋 我的申訴歷史與管理員審核回覆</h4>
+                <h4 style="margin-top:20px; color:#ef4444; border-top:1px solid #334155; padding-top:15px;">我的申訴歷史與管理員審核回覆</h4>
                 <div class="feedback-list-box" id="banned-appeal-list">
                     <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無申訴紀錄</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理員專用問題反饋與申訴檢視介面 (從選單聊天大廳進入) -->
+        <div id="admin-chat-view" class="hidden">
+            <h3>問題反饋與申訴審核中心 (管理員檢視)</h3>
+            <p style="color:#64748b; font-size:0.95em;">在此檢視所有普通用戶的回報與被停用用戶的申訴，進行留言回覆、刪除、是否處理標記，以及審核是否恢復帳戶。</p>
+
+            <div class="feedback-system-container">
+                <div class="feedback-list-box" id="admin-chat-feedback-list" style="max-height: 450px;">
+                    <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無任何反饋或申訴</div>
                 </div>
             </div>
         </div>
@@ -721,7 +735,7 @@
     <div id="admin-screen" class="hidden sub-view" style="color:#333;">
         <h3>系統管理面板 (Admin Console)</h3>
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
-        
+
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <h4 style="margin-top:0; color:var(--primary);">1. 用戶帳戶停用管理</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -749,7 +763,7 @@
 
             <h4 style="margin-top:20px; color:var(--primary);">4. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
             <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
-            
+
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="adminQuizCodeInput" class="code-input" placeholder="例如: Math 或 test01" style="margin-bottom:0; flex:1;">
                 <button class="main-btn btn-accent" id="adminCheckBtn" style="width:auto; margin-top:0;" onclick="checkAdminQuizStatus()">檢查狀態</button>
@@ -762,11 +776,6 @@
                 <label style="cursor: pointer; font-weight: bold; color: var(--primary);">
                     <input type="checkbox" id="adminPublicCheckbox" onchange="toggleAdminQuizPublic(this)"> 公開於首頁列表
                 </label>
-            </div>
-
-            <h4 style="margin-top:25px; color:var(--primary); border-top:1px solid #cbd5e1; padding-top:15px;">5. 用戶問題反饋與申訴審核管理</h4>
-            <div class="feedback-list-box" id="admin-feedback-list" style="max-height: 350px;">
-                <div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無任何反饋或申訴</div>
             </div>
         </div>
     </div>
@@ -905,7 +914,7 @@
         const email = e.target.value.trim();
         const regFields = document.getElementById('register-extra-fields');
         const verifyArea = document.getElementById('verification-code-area');
-        
+
         const existing = globalUsersDB.find(u => u.email === email);
         if (existing) {
             regFields.classList.add('hidden'); 
@@ -981,23 +990,23 @@
 
         localStorage.setItem('rms_device_registered', email);
 
-        if (currentUser.disabled) {
-            alert(`注意：您的帳號目前處於【遭到停用】狀態！系統將引導您進入申訴與帳號恢復系統。`);
+        if (currentUser.disabled && currentUser.role !== 'admin') {
+            alert("注意：您的帳號目前處於遭到停用狀態！系統將引導您進入申訴與帳號恢復系統。");
             switchView('chat');
         } else {
-            alert(`歡迎回來，${currentUser.name}！`);
+            alert("歡迎回來，" + currentUser.name + "！");
             postLoginSetup();
         }
     }
 
     function postLoginSetup() {
         document.getElementById('login-screen').classList.add('hidden');
-        if (currentUser && currentUser.disabled) {
+        if (currentUser && currentUser.disabled && currentUser.role !== 'admin') {
             switchView('chat');
             return;
         }
         document.getElementById('quiz-entry-area').classList.remove('hidden');
-        
+
         const menuAdminItem = document.getElementById('menu-admin-item');
         if (currentUser && currentUser.role === 'admin') {
             menuAdminItem.style.display = 'block';
@@ -1057,7 +1066,7 @@
             setMenuDisabledState(false);
         }
 
-        // 若帳號遭到停用，強制只能訪問聊天大廳/申訴系統
+        // 若帳號遭到停用且非管理員，強制只能訪問聊天大廳/申訴系統
         if (currentUser && currentUser.disabled && viewName !== 'chat' && currentUser.role !== 'admin') {
             alert("您的帳戶遭到停用，目前僅開放問題反饋與帳號申訴系統！");
             viewName = 'chat';
@@ -1073,7 +1082,7 @@
 
         if (viewName === 'login') {
             if (currentUser) {
-                if (currentUser.disabled) {
+                if (currentUser.disabled && currentUser.role !== 'admin') {
                     switchView('chat');
                 } else {
                     document.getElementById('quiz-entry-area').classList.remove('hidden');
@@ -1086,7 +1095,7 @@
             document.getElementById('acc-email-display').innerText = currentUser ? currentUser.email : '未登入';
             document.getElementById('acc-name-display').innerText = currentUser ? currentUser.name : '尚未設定';
             document.getElementById('acc-total-tests').innerText = localStorage.getItem('total_tests_run') || '0';
-            
+
             const nameInput = document.getElementById('acc-name-input');
             const nameBtn = document.getElementById('update-name-btn');
             const lockHint = document.getElementById('name-lock-hint');
@@ -1140,13 +1149,21 @@
     function setupFeedbackSystemView() {
         const normalView = document.getElementById('normal-feedback-view');
         const bannedView = document.getElementById('banned-appeal-view');
+        const adminChatView = document.getElementById('admin-chat-view');
 
-        if (currentUser && currentUser.disabled) {
+        if (currentUser && currentUser.role === 'admin') {
             normalView.classList.add('hidden');
+            bannedView.classList.add('hidden');
+            adminChatView.classList.remove('hidden');
+            renderAdminChatFeedbackList();
+        } else if (currentUser && currentUser.disabled) {
+            normalView.classList.add('hidden');
+            adminChatView.classList.add('hidden');
             bannedView.classList.remove('hidden');
             renderBannedAppealList();
         } else {
             bannedView.classList.add('hidden');
+            adminChatView.classList.add('hidden');
             normalView.classList.remove('hidden');
             renderNormalFeedbackList();
         }
@@ -1165,7 +1182,6 @@
         const today = getTodayDateString();
         const userEmail = currentUser.email;
 
-        // 計算今天提交次數
         const todaySubmissions = feedbackDB.filter(item => item.email === userEmail && item.type === 'feedback' && item.date === today);
         if (todaySubmissions.length >= 3) {
             return alert("您今天已達到問題反饋上限（一天最多 3 次），請明天再來或靜候回覆！");
@@ -1180,7 +1196,9 @@
             date: today,
             timestamp: new Date().toLocaleString(),
             isRead: false,
-            adminReply: ''
+            isProcessed: false,
+            adminReply: '',
+            appealResult: null
         };
 
         feedbackDB.push(newFeedback);
@@ -1203,14 +1221,14 @@
         let html = '';
         userItems.reverse().forEach(item => {
             const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308;">未讀</span>';
+            const processStatus = item.isProcessed ? '<span style="color:#22c55e;">[已處理]</span>' : '<span style="color:#f97316;">[未處理]</span>';
             html += `
                 <div class="feedback-card">
                     <div class="feedback-header">
-                        <span>提交時間：${item.timestamp}</span>
-                        <span>狀態：${readStatus}</span>
+                        <span>提交時間：${item.timestamp} | 狀態：${readStatus} ${processStatus}</span>
                     </div>
                     <div style="font-size:0.95em; color:#f8fafc; margin-bottom:8px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
-                    ${item.adminReply ? `<div class="admin-reply-box"><b>💬 管理員回覆：</b><br>${escapeHtml(item.adminReply)}</div>` : '<div style="font-size:0.85em; color:#64748b; font-style:italic;">等待管理員回覆中...</div>'}
+                    ${item.adminReply ? `<div class="admin-reply-box"><b>管理員回覆：</b><br>${escapeHtml(item.adminReply)}</div>` : '<div style="font-size:0.85em; color:#64748b; font-style:italic;">等待管理員回覆中...</div>'}
                 </div>
             `;
         });
@@ -1239,7 +1257,9 @@
             date: today,
             timestamp: new Date().toLocaleString(),
             isRead: false,
-            adminReply: ''
+            isProcessed: false,
+            adminReply: '',
+            appealResult: null // null, 'approved', 'rejected'
         };
 
         feedbackDB.push(newAppeal);
@@ -1262,18 +1282,132 @@
         let html = '';
         userItems.reverse().forEach(item => {
             const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308;">未讀</span>';
+            let resultHtml = '';
+            if (item.appealResult === 'rejected') {
+                resultHtml = '<div style="color:#ef4444; font-weight:bold; margin-top:8px; font-size:1.05em;">審核結果：此案不允受理</div>';
+            } else if (item.appealResult === 'approved') {
+                resultHtml = '<div style="color:#22c55e; font-weight:bold; margin-top:8px; font-size:1.05em;">審核結果：已核准恢復帳戶，請重新登入或重新整理頁面</div>';
+            }
+
             html += `
                 <div class="feedback-card" style="border-color:#c0392b;">
                     <div class="feedback-header">
-                        <span>申訴時間：${item.timestamp}</span>
-                        <span>狀態：${readStatus}</span>
+                        <span>申訴時間：${item.timestamp} | 狀態：${readStatus}</span>
                     </div>
                     <div style="font-size:0.95em; color:#f8fafc; margin-bottom:8px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
-                    ${item.adminReply ? `<div class="admin-reply-box" style="border-left-color:#ef4444;"><b>💬 管理員審核回覆：</b><br>${escapeHtml(item.adminReply)}</div>` : '<div style="font-size:0.85em; color:#64748b; font-style:italic;">等待管理員審核中...</div>'}
+                    ${resultHtml}
+                    ${item.adminReply ? `<div class="admin-reply-box" style="border-left-color:#ef4444;"><b>管理員審核回覆：</b><br>${escapeHtml(item.adminReply)}</div>` : '<div style="font-size:0.85em; color:#64748b; font-style:italic;">等待管理員審核中...</div>'}
                 </div>
             `;
         });
         container.innerHTML = html;
+    }
+
+    /* 管理員在聊天大廳選單中檢視所有回報與申訴，並具備刪除、是否處理、回覆及恢復帳戶功能 */
+    function renderAdminChatFeedbackList() {
+        const container = document.getElementById('admin-chat-feedback-list');
+        if (feedbackDB.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無任何反饋或申訴</div>`;
+            return;
+        }
+
+        let html = '';
+        const sorted = [...feedbackDB].reverse();
+        sorted.forEach((item, index) => {
+            const realIndex = feedbackDB.length - 1 - index;
+            const typeLabel = item.type === 'feedback' ? '<span style="color:#38bdf8;">[問題反饋]</span>' : '<span style="color:#ef4444;">[帳號申訴]</span>';
+            const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308; font-weight:bold;">未讀</span>';
+            const processStatusText = item.isProcessed ? '<span style="color:#22c55e; font-weight:bold;">已處理</span>' : '<span style="color:#f97316; font-weight:bold;">未處理</span>';
+
+            let appealActionHtml = '';
+            if (item.type === 'appeal') {
+                let statusBadge = '';
+                if (item.appealResult === 'approved') statusBadge = '<span style="color:#22c55e; font-weight:bold;">[已恢復帳戶]</span>';
+                else if (item.appealResult === 'rejected') statusBadge = '<span style="color:#ef4444; font-weight:bold;">[已判定: 此案不允受理]</span>';
+                else statusBadge = '<span style="color:#eab308;">[尚未審核帳戶恢復]</span>';
+
+                appealActionHtml = `
+                    <div style="margin-top:10px; background:#0f172a; padding:10px; border-radius:4px; border:1px solid #334155;">
+                        <div style="margin-bottom:6px; font-size:0.9em;">帳戶恢復審核狀態：${statusBadge}</div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span style="font-size:0.9em; font-weight:bold;">是否恢復帳戶：</span>
+                            <button class="btn-sm btn-success" onclick="adminRecoverAccountStep1(${realIndex})">是 (恢復)</button>
+                            <button class="btn-sm btn-danger" onclick="adminRejectAppeal(${realIndex})">否 (此案不允受理)</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="feedback-card" style="margin-bottom:12px;">
+                    <div class="feedback-header">
+                        <span>${typeLabel} 提交者：<b>${escapeHtml(item.name)}</b> (${item.email}) | 時間：${item.timestamp}</span>
+                        <span>狀態：${readStatus} | 處理狀態：${processStatusText}</span>
+                    </div>
+                    <div style="font-size:0.95em; color:#f8fafc; margin-bottom:10px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
+                    ${appealActionHtml}
+                    <div style="display:flex; gap:8px; align-items:center; margin-top:10px;">
+                        <input type="text" id="admin-chat-reply-input-${realIndex}" class="code-input" style="margin-bottom:0; flex:1; font-size:0.9em;" placeholder="輸入管理員回覆 / 原因..." value="${escapeHtml(item.adminReply || '')}">
+                        <button class="btn-sm btn-accent" style="padding:8px 12px;" onclick="adminSaveChatReply(${realIndex})">送出回覆</button>
+                        <button class="btn-sm ${item.isProcessed ? 'btn-secondary' : 'btn-success'}" style="padding:8px 12px;" onclick="adminToggleProcessed(${realIndex})">${item.isProcessed ? '標記未處理' : '標記已處理'}</button>
+                        <button class="btn-sm btn-danger" style="padding:8px 12px;" onclick="adminDeleteFeedback(${realIndex})">刪除</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function adminSaveChatReply(index) {
+        const replyText = document.getElementById(`admin-chat-reply-input-${index}`).value.trim();
+        feedbackDB[index].adminReply = replyText;
+        feedbackDB[index].isRead = true;
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("管理員回覆已成功送出！");
+        renderAdminChatFeedbackList();
+    }
+
+    function adminToggleProcessed(index) {
+        feedbackDB[index].isProcessed = !feedbackDB[index].isProcessed;
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        renderAdminChatFeedbackList();
+    }
+
+    function adminDeleteFeedback(index) {
+        if (!confirm("確定要刪除這筆訊息紀錄嗎？")) return;
+        feedbackDB.splice(index, 1);
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("已成功刪除訊息！");
+        renderAdminChatFeedbackList();
+    }
+
+    /* 被停用用戶申訴：按「是」恢復帳戶（2步確認） */
+    function adminRecoverAccountStep1(index) {
+        const item = feedbackDB[index];
+        if (!confirm("第一步確認：您確定要恢復用戶 " + item.email + " 的帳戶嗎？")) return;
+        if (!confirm("第二步確認：執行後該用戶將立刻解除停用並可正常登入系統，是否確定？")) return;
+
+        const targetUser = globalUsersDB.find(u => u.email === item.email);
+        if (targetUser) {
+            targetUser.disabled = false;
+            targetUser.banReason = "";
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+        }
+        feedbackDB[index].appealResult = 'approved';
+        feedbackDB[index].isProcessed = true;
+        feedbackDB[index].adminReply = (feedbackDB[index].adminReply || "") + "\n[系統公告：您的帳戶已審核通過並恢復]";
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("已成功恢復該用戶帳戶！");
+        renderAdminChatFeedbackList();
+    }
+
+    /* 被停用用戶申訴：按「否」在用戶端顯示此案不允受理且可繼續留言原因 */
+    function adminRejectAppeal(index) {
+        feedbackDB[index].appealResult = 'rejected';
+        feedbackDB[index].isProcessed = true;
+        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
+        alert("已設定為此案不允受理。您可以在下方輸入框填寫原因並送出回覆給用戶。");
+        renderAdminChatFeedbackList();
     }
 
     function escapeHtml(text) {
@@ -1300,60 +1434,8 @@
             renameUserSelect.appendChild(opt);
         });
 
-        // 重設第四項題庫即時檢查介面
         document.getElementById('adminQuizCodeInput').value = '';
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
-
-        renderAdminFeedbackList();
-    }
-
-    /* 管理員端渲染並審核反饋/申訴 */
-    function renderAdminFeedbackList() {
-        const container = document.getElementById('admin-feedback-list');
-        if (feedbackDB.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無任何反饋或申訴</div>`;
-            return;
-        }
-
-        let html = '';
-        // 依照時間倒序
-        const sorted = [...feedbackDB].reverse();
-        sorted.forEach((item, index) => {
-            const realIndex = feedbackDB.length - 1 - index;
-            const typeLabel = item.type === 'feedback' ? '<span style="color:#38bdf8;">[問題反饋]</span>' : '<span style="color:#ef4444;">[帳號申訴]</span>';
-            const readStatus = item.isRead ? '<span style="color:#22c55e;">已讀</span>' : '<span style="color:#eab308; font-weight:bold;">未讀</span>';
-
-            html += `
-                <div class="feedback-card" style="margin-bottom:12px;">
-                    <div class="feedback-header">
-                        <span>${typeLabel} 提交者：<b>${escapeHtml(item.name)}</b> (${item.email}) | 時間：${item.timestamp}</span>
-                        <span>狀態：${readStatus}</span>
-                    </div>
-                    <div style="font-size:0.95em; color:#f8fafc; margin-bottom:10px; white-space: pre-wrap;">${escapeHtml(item.content)}</div>
-                    <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
-                        <input type="text" id="admin-reply-input-${realIndex}" class="code-input" style="margin-bottom:0; flex:1; font-size:0.9em;" placeholder="輸入管理員回覆..." value="${escapeHtml(item.adminReply || '')}">
-                        <button class="btn-sm btn-accent" style="padding:8px 12px;" onclick="adminSaveReply(${realIndex})">送出回覆</button>
-                        <button class="btn-sm ${item.isRead ? 'btn-secondary' : 'btn-success'}" style="padding:8px 12px;" onclick="adminToggleRead(${realIndex})">${item.isRead ? '標記未讀' : '標記已讀'}</button>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    function adminSaveReply(index) {
-        const replyText = document.getElementById(`admin-reply-input-${index}`).value.trim();
-        feedbackDB[index].adminReply = replyText;
-        feedbackDB[index].isRead = true; // 回覆時自動標記為已讀
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
-        alert("管理員回覆已成功送出！");
-        renderAdminFeedbackList();
-    }
-
-    function adminToggleRead(index) {
-        feedbackDB[index].isRead = !feedbackDB[index].isRead;
-        localStorage.setItem('rms_feedback_db', JSON.stringify(feedbackDB));
-        renderAdminFeedbackList();
     }
 
     /* 管理員即時檢查題庫代碼狀態 */
@@ -1384,21 +1466,21 @@
         const script = document.createElement('script');
         script.id = 'temp-admin-check-script';
         script.src = `${code}.js?t=` + new Date().getTime();
-        
+
         script.onload = () => {
             if (window.currentQuiz && window.currentQuiz.name) {
-                statusText.textContent = '✅ 題庫檔案正常';
+                statusText.textContent = '題庫檔案正常';
                 statusText.style.color = '#22c55e';
                 quizDetails.innerHTML = `題庫名稱 (JS name)：<b>${window.currentQuiz.name}</b><br>題目數量：<b>${window.currentQuiz.data ? window.currentQuiz.data.length : 0}</b> 題`;
             } else {
-                statusText.textContent = '❌ 檔案格式不符（缺少 currentQuiz 物件或 name 屬性）';
+                statusText.textContent = '檔案格式不符（缺少 currentQuiz 物件或 name 屬性）';
                 statusText.style.color = '#ef4444';
                 quizDetails.textContent = '';
             }
         };
 
         script.onerror = () => {
-            statusText.textContent = '❌ 找不到該題庫檔案（請確認檔案是否存在於同層目錄）';
+            statusText.textContent = '找不到該題庫檔案（請確認檔案是否存在於同層目錄）';
             statusText.style.color = '#ef4444';
             quizDetails.textContent = '';
         };
@@ -1428,7 +1510,7 @@
             target.disabled = true;
             target.banReason = reason;
             localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
-            alert(`已成功停用帳戶：${targetEmail}，原因：${reason}`);
+            alert("已成功停用帳戶：" + targetEmail + "，原因：" + reason);
             setupAdminConsole();
         }
     }
@@ -1450,7 +1532,7 @@
                 currentUser.isNameLocked = true;
             }
 
-            alert(`已成功將用戶 ${targetEmail} 強制改名為「${newName}」並封鎖其後續自行修改權限！`);
+            alert("已成功將用戶 " + targetEmail + " 強制改名為「" + newName + "」並封鎖其後續自行修改權限！");
             document.getElementById('admin-new-name-input').value = '';
             setupAdminConsole();
         }
@@ -1476,19 +1558,17 @@
         }
 
         publicCodes.forEach(code => {
-            // 動態載入該 JS 檔案以取得真正的 name
             const scriptId = `preload-quiz-${code}`;
             if (!document.getElementById(scriptId)) {
                 const s = document.createElement('script');
                 s.id = scriptId;
                 s.src = `${code}.js`;
                 s.onload = () => {
-                    renderPublicQuizzesList(); // 載入完成後重新刷新畫面以呈現 name
+                    renderPublicQuizzesList(); 
                 };
                 document.head.appendChild(s);
             }
 
-            // 若 window.currentQuiz 已載入且代碼相符，顯示 name，否則暫時顯示代碼載入中
             const displayName = (window.currentQuiz && window.currentQuiz.name) ? window.currentQuiz.name : `載入中 (${code})...`;
 
             const item = document.createElement('div');
@@ -1558,12 +1638,12 @@
         if (!rec) return;
         const detailContent = document.getElementById('rank-detail-content');
         detailContent.innerHTML = `
-            <p>👤 <b>考生姓名：</b> <span style="color:#38bdf8;">${escapeHtml(rec.userName)}</span></p>
-            <p>📊 <b>獲得分數：</b> <span style="color:#22c55e; font-weight:bold;">${rec.score} 分</span></p>
-            <p>⏳ <b>開始時間：</b> ${rec.startTime}</p>
-            <p>🏁 <b>結束時間：</b> ${rec.endTime}</p>
-            <p>⏱️ <b>作答總耗時：</b> ${rec.duration}</p>
-            <p>⚡ <b>平均答題速度：</b> 每題約 ${rec.avgSpeed} 秒</p>
+            <p><b>考生姓名：</b> <span style="color:#38bdf8;">${escapeHtml(rec.userName)}</span></p>
+            <p><b>獲得分數：</b> <span style="color:#22c55e; font-weight:bold;">${rec.score} 分</span></p>
+            <p><b>開始時間：</b> ${rec.startTime}</p>
+            <p><b>結束時間：</b> ${rec.endTime}</p>
+            <p><b>作答總耗時：</b> ${rec.duration}</p>
+            <p><b>平均答題速度：</b> 每題約 ${rec.avgSpeed} 秒</p>
         `;
         document.getElementById('rank-detail-modal').classList.remove('hidden');
     }
