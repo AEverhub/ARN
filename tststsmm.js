@@ -1,19 +1,57 @@
-// 檔案路徑：banks/MATH01.js
-window.QUIZ_BANKS = window.QUIZ_BANKS || {};
-
-window.QUIZ_BANKS["MATH01"] = {
-  code: "tststsmm",
-  title: "測試題庫",
-  questions: [
-    {
-      question: "請問 15 + 27 等於多少？",
-      options: ["A. 32", "B. 42", "C. 44", "D. 52"],
-      answer: "B"
-    },
-    {
-      question: "解方程式 2x + 6 = 14，請問 x = ?",
-      options: ["A. 3", "B. 4", "C. 5", "D. 6"],
-      answer: "B"
-    }
-  ]
+window.currentQuiz = {
+    name: "系統測試與資訊基礎科目",
+    password: "", // 若不需要密碼驗證可留空，若需密碼可填入字串如 "1234"
+    time: 15,    // 測驗時間 (分鐘)
+    data: [
+        {
+            q: "在網頁前端開發中，下列何者通常不屬於基本的網頁三大核心技術？",
+            o: [
+                "(A) HTML (超文字標記語言)",
+                "(B) CSS (階層樣式表)",
+                "(C) Python (直譯式程式語言)",
+                "(D) JavaScript (腳本程式語言)"
+            ],
+            a: "C"
+        },
+        {
+            q: "下列哪一個通訊協定通常用於在全球資訊網 (WWW) 中進行安全加密的資料傳輸？",
+            o: [
+                "(A) HTTP",
+                "(B) HTTPS",
+                "(C) FTP",
+                "(D) SMTP"
+            ],
+            a: "B"
+        },
+        {
+            q: "當您在網頁中使用數學公式排版時，下列哪一個套件常被廣泛應用來渲染 LaTeX 公式？",
+            o: [
+                "(A) MathJax",
+                "(B) jQuery",
+                "(C) Bootstrap",
+                "(D) html2pdf"
+            ],
+            a: "A"
+        },
+        {
+            q: "在資料庫與雲端服務架構中，下列何者屬於 Google 所提供的即時資料庫與後端即服務 (BaaS) 平台？",
+            o: [
+                "(A) Apache Tomcat",
+                "(B) Firebase",
+                "(C) Nginx",
+                "(D) Docker"
+            ],
+            a: "B"
+        },
+        {
+            q: "下列有關資安與防弊機制的敘述，何者**錯誤**？",
+            o: [
+                "(A) 監控網頁的全螢幕狀態可以降低考生切換視窗作弊的機率",
+                "(B) 系統記錄 IP 位址與載具資訊有助於後續的數據核驗",
+                "(C) 只要不小心點到其他分頁，系統絕對不會記錄任何違規次數",
+                "(D) 允許匯出 PDF 報告能方便進行學員的成績存查與追蹤"
+            ],
+            a: "C"
+        }
+    ]
 };
