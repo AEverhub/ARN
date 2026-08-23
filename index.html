@@ -646,9 +646,16 @@
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <p><strong>當前登入信箱：</strong> <span id="acc-email-display">尚未登入</span></p>
             <p><strong>當前登入姓名：</strong> <span id="acc-name-display">尚未設定</span></p>
+            <div style="margin: 15px 0;">
+                <label style="display:block; font-weight:bold; margin-bottom:5px;">修改考生姓名：</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="acc-name-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="請輸入新姓名">
+                    <button id="update-name-btn" class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="updateUserName()">儲存姓名</button>
+                </div>
+                <small id="name-lock-hint" style="color:#c0392b; display:none; margin-top:5px;">您的姓名已被管理員強制修改並鎖定，無法自行變更。</small>
+            </div>
             <p><strong>系統識別碼 (UUID)：</strong> <span id="acc-uuid" style="font-family:monospace; color:#2980b9;">ST-2026-X99</span></p>
             <p><strong>歷史測驗總次數：</strong> <span id="acc-total-tests">0</span> 次</p>
-            <button class="main-btn btn-accent" style="width:auto; padding:10px 20px;" onclick="alert('帳號設定已儲存！')">更新個人資料</button>
         </div>
     </div>
 
@@ -681,13 +688,22 @@
                 <button class="main-btn btn-danger" style="width:auto; margin-top:0;" onclick="adminDisableUser()">停用帳戶</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">2. 重複註冊驗證碼設定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">2. 管理員強制改名與鎖定</h4>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <select id="admin-rename-user-select" class="code-input" style="margin-bottom:0; flex:1;">
+                    <option value="">選擇用戶...</option>
+                </select>
+                <input type="text" id="admin-new-name-input" class="code-input" placeholder="新名字..." style="margin-bottom:0; flex:1;">
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminForceRenameUser()">強制改名並鎖定</button>
+            </div>
+
+            <h4 style="margin-top:20px; color:var(--primary);">3. 重複註冊驗證碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">3. 題庫公開快捷管理</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">4. 題庫公開快捷管理</h4>
             <p style="font-size:0.88em; color:#64748b;">勾選後會顯示於普通用戶的快速選擇列表中：</p>
             <div id="admin-quiz-config-list" style="background:#ffffff; border:1px solid #cbd5e1; padding:10px; border-radius:4px; max-height:150px; overflow-y:auto;">
                 <!-- 動態載入題庫勾選 -->
@@ -776,11 +792,11 @@
     updateTaipeiClock();
 
     /* ---------------- 全域系統資料庫與狀態 ---------------- */
-    let currentUser = null; // { email, name, role }
+    let currentUser = null; // { email, name, role, isNameLocked }
     let globalUsersDB = JSON.parse(localStorage.getItem('rms_users_db')) || [];
     let systemVerifyCode = localStorage.getItem('rms_verify_code') || '981103970120';
-    let publicQuizzesMap = JSON.parse(localStorage.getItem('rms_public_quizzes')) || {}; // { quizCode: true/false }
-    let testHistoryRecords = JSON.parse(localStorage.getItem('rms_test_history')) || []; // 儲存所有非作弊成績
+    let publicQuizzesMap = JSON.parse(localStorage.getItem('rms_public_quizzes')) || {}; 
+    let testHistoryRecords = JSON.parse(localStorage.getItem('rms_test_history')) || []; 
 
     /* ---------------- 頂部 MENU 下拉選單控制 ---------------- */
     function toggleMenu() {
@@ -800,11 +816,9 @@
         const regFields = document.getElementById('register-extra-fields');
         const verifyArea = document.getElementById('verification-code-area');
         
-        // 檢查是否為已知註冊用戶
         const existing = globalUsersDB.find(u => u.email === email);
         if (existing) {
-            regFields.classList.add('hidden'); // 已註冊只需輸入密碼登入
-            // 檢查是否裝置曾註冊過其他號碼或進行重複註冊攔截檢查
+            regFields.classList.add('hidden'); 
             const deviceRegistered = localStorage.getItem('rms_device_registered');
             if (deviceRegistered && deviceRegistered !== email) {
                 verifyArea.classList.remove('hidden');
@@ -812,10 +826,10 @@
                 verifyArea.classList.add('hidden');
             }
         } else {
-            regFields.classList.remove('hidden'); // 新用戶註冊
+            regFields.classList.remove('hidden'); 
             const deviceRegistered = localStorage.getItem('rms_device_registered');
             if (deviceRegistered) {
-                verifyArea.classList.remove('hidden'); // 設備已有紀錄視為重複註冊
+                verifyArea.classList.remove('hidden'); 
             } else {
                 verifyArea.classList.add('hidden');
             }
@@ -849,14 +863,12 @@
 
         if (!email || !pass) return alert("請填寫完整信箱與密碼！");
 
-        // 檢查重複註冊驗證碼攔截
         if (!verifyArea.classList.contains('hidden')) {
             if (verifyInput !== systemVerifyCode) {
                 return alert("重複註冊驗證碼錯誤，無法進行註冊！");
             }
         }
 
-        // 檢查是否為管理員帳號
         let role = 'user';
         let userName = nameInput;
         if (email === 'admin@rms.com') {
@@ -865,7 +877,6 @@
             userName = userName || '系統管理員';
         }
 
-        // 尋找用戶是否存在
         let user = globalUsersDB.find(u => u.email === email);
         if (user) {
             if (user.disabled) {
@@ -875,18 +886,16 @@
             currentUser = user;
         } else {
             if (!userName) return alert("新註冊用戶請填寫考生姓名！");
-            user = { email, pass, name: userName, role, disabled: false, banReason: '' };
+            user = { email, pass, name: userName, role, disabled: false, banReason: '', isNameLocked: false };
             globalUsersDB.push(user);
             localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
             currentUser = user;
         }
 
-        // 記錄設備註冊狀態
         if (!localStorage.getItem('rms_device_registered')) {
             localStorage.setItem('rms_device_registered', email);
         }
 
-        // 登入成功，切換介面
         alert(`歡迎回來，${currentUser.name}！`);
         postLoginSetup();
     }
@@ -895,7 +904,6 @@
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('quiz-entry-area').classList.remove('hidden');
         
-        // 若為管理員，顯示管理面板選單
         const menuAdminItem = document.getElementById('menu-admin-item');
         if (currentUser.role === 'admin') {
             menuAdminItem.style.display = 'block';
@@ -936,6 +944,25 @@
             document.getElementById('acc-email-display').innerText = currentUser ? currentUser.email : '未登入';
             document.getElementById('acc-name-display').innerText = currentUser ? currentUser.name : '尚未設定';
             document.getElementById('acc-total-tests').innerText = localStorage.getItem('total_tests_run') || '0';
+            
+            // 姓名變更與鎖定狀態處理
+            const nameInput = document.getElementById('acc-name-input');
+            const nameBtn = document.getElementById('update-name-btn');
+            const lockHint = document.getElementById('name-lock-hint');
+            nameInput.value = currentUser ? currentUser.name : '';
+
+            if (currentUser && currentUser.isNameLocked) {
+                nameInput.disabled = true;
+                nameBtn.disabled = true;
+                nameBtn.style.opacity = "0.5";
+                lockHint.style.display = "block";
+            } else {
+                nameInput.disabled = false;
+                nameBtn.disabled = false;
+                nameBtn.style.opacity = "1";
+                lockHint.style.display = "none";
+            }
+
         } else if (viewName === 'chat') {
             document.getElementById('chat-screen').classList.remove('hidden');
         } else if (viewName === 'admin') {
@@ -947,6 +974,26 @@
             document.getElementById('admin-screen').classList.remove('hidden');
             setupAdminConsole();
         }
+    }
+
+    /* 用戶自行修改名字邏輯 */
+    function updateUserName() {
+        if (!currentUser) return;
+        if (currentUser.isNameLocked) {
+            return alert("您的名字已被管理員鎖定，無法修改！");
+        }
+        const newName = document.getElementById('acc-name-input').value.trim();
+        if (!newName) return alert("姓名不得為空！");
+
+        currentUser.name = newName;
+        // 同步更新 DB
+        const dbUser = globalUsersDB.find(u => u.email === currentUser.email);
+        if (dbUser) {
+            dbUser.name = newName;
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+        }
+        document.getElementById('acc-name-display').innerText = newName;
+        alert("個人姓名更新成功！");
     }
 
     function sendChatMessage() {
@@ -966,7 +1013,7 @@
 
     /* ---------------- 管理面板詳細功能 ---------------- */
     function setupAdminConsole() {
-        // 1. 用戶清單下拉選單
+        // 1. 用戶停用清單下拉選單
         const userSelect = document.getElementById('admin-user-select');
         userSelect.innerHTML = '';
         globalUsersDB.forEach(u => {
@@ -976,11 +1023,20 @@
             userSelect.appendChild(opt);
         });
 
-        // 2. 題庫公開配置清單
+        // 2. 管理員強制改名下拉選單
+        const renameUserSelect = document.getElementById('admin-rename-user-select');
+        renameUserSelect.innerHTML = '';
+        globalUsersDB.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.email;
+            opt.innerText = `${u.name} (${u.email}) ${u.isNameLocked ? '[已鎖定]' : ''}`;
+            renameUserSelect.appendChild(opt);
+        });
+
+        // 3. 題庫公開配置清單
         const configList = document.getElementById('admin-quiz-config-list');
         configList.innerHTML = '';
         
-        // 檢查目前載入過的題庫代碼
         let knownQuizzes = window.currentQuiz ? [document.getElementById('quiz-code').value.trim() || 'test01'] : ['test01'];
         knownQuizzes.forEach(qCode => {
             if(!qCode) return;
@@ -1007,6 +1063,31 @@
             target.banReason = reason;
             localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
             alert(`已成功停用帳戶：${targetEmail}，原因：${reason}`);
+            setupAdminConsole();
+        }
+    }
+
+    /* 管理員強制改名並禁止再次改名功能 */
+    function adminForceRenameUser() {
+        const targetEmail = document.getElementById('admin-rename-user-select').value;
+        const newName = document.getElementById('admin-new-name-input').value.trim();
+        if (!targetEmail) return alert("請選擇目標用戶！");
+        if (!newName) return alert("請輸入要強制修改的新名字！");
+
+        const target = globalUsersDB.find(u => u.email === targetEmail);
+        if (target) {
+            target.name = newName;
+            target.isNameLocked = true; // 禁止別人再次改名
+            localStorage.setItem('rms_users_db', JSON.stringify(globalUsersDB));
+
+            // 如果目前剛好是當事人登入，同步更新
+            if (currentUser && currentUser.email === targetEmail) {
+                currentUser.name = newName;
+                currentUser.isNameLocked = true;
+            }
+
+            alert(`已成功將用戶 ${targetEmail} 強制改名為「${newName}」並封鎖其後續自行修改權限！`);
+            document.getElementById('admin-new-name-input').value = '';
             setupAdminConsole();
         }
     }
@@ -1055,7 +1136,6 @@
         const contentDiv = document.getElementById('rank-modal-content');
         document.getElementById('rank-modal-title').innerText = `題庫 [${quizCode}] 最高分排行榜`;
 
-        // 篩選出該題庫且非作弊的成績紀錄
         const validRecords = testHistoryRecords.filter(r => r.quizCode === quizCode && !r.isCheated);
 
         if (validRecords.length === 0) {
@@ -1064,7 +1144,6 @@
             return;
         }
 
-        // 依分數降冪排序，取最高分
         validRecords.sort((a, b) => b.score - a.score);
         const topRecord = validRecords[0];
 
@@ -1085,7 +1164,6 @@
 
     function quickStartQuiz(quizCode) {
         document.getElementById('quiz-code').value = quizCode;
-        // 觸發載入
         loadQuizScript(quizCode, () => {
             checkAndStart();
         });
@@ -1102,6 +1180,9 @@
                 checkUnlockStatus();
                 if(callback) callback();
             }
+        };
+        s.onerror = () => {
+            document.getElementById('status-msg').innerText = `找不到題庫檔案：${code}.js`;
         };
         document.head.appendChild(s);
     }
@@ -1190,7 +1271,7 @@
         }
 
         requestFullScreen();
-        setMenuDisabledState(true); // 進入考試後選單半透明且失效防止誤觸
+        setMenuDisabledState(true); 
         isWrongQuestionsMode = false;
         beginQuiz(JSON.parse(JSON.stringify(window.currentQuiz.data)).sort(() => Math.random() - 0.5));
     }
@@ -1302,7 +1383,7 @@
         endTimeObj = new Date();
 
         exitFullScreen();
-        setMenuDisabledState(false); // 恢復選單可用
+        setMenuDisabledState(false); 
 
         document.getElementById('quiz-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
@@ -1364,7 +1445,6 @@
         const currentQuizCode = document.getElementById('quiz-code').value.trim() || 'test01';
         const isCheated = warningCount > 0;
 
-        // 若非錯題重測且非作弊，記錄成績至排行榜資料庫
         if (!isWrongQuestionsMode && !isCheated) {
             const recordObj = {
                 quizCode: currentQuizCode,
@@ -1448,7 +1528,6 @@
         beginQuiz(wrongDataset);
     }
 
-    /* PDF下載輔助函式 */
     function validateStampOption(chk) {
         if (!chk.checked) return;
         const val = chk.value;
