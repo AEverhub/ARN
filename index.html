@@ -703,7 +703,7 @@
         <!-- 被停用用戶申訴申請介面 -->
         <div id="banned-appeal-view" class="hidden">
             <h3 style="color:#ef4444;">帳戶遭停用 - 帳號恢復及申訴申請系統</h3>
-            
+
             <!-- 停用原因顯示區塊 -->
             <div id="banned-reason-box" style="background:#450a0a; border:1px solid #ef4444; padding:15px; border-radius:6px; margin-bottom:15px; color:#fca5a5;">
                 <h4 style="margin-top:0; color:#ef4444;">🚨 您的帳戶目前已被停用</h4>
@@ -789,6 +789,33 @@
                 <label style="cursor: pointer; font-weight: bold; color: var(--primary);">
                     <input type="checkbox" id="adminPublicCheckbox" onchange="toggleAdminQuizPublic(this)"> 公開於首頁列表
                 </label>
+                <div id="adminQuizLimitPanel" style="margin-top:15px; padding-top:12px; border-top:1px solid #e2e8f0;">
+                    <strong>公開題庫答題次數限制</strong>
+                    <div style="font-size:12px;color:#64748b;margin:5px 0 8px;">預設為每日 10 次；選擇「不設限」則不顯示鎖定提示。</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <select id="adminQuizLimitMode" class="code-input" style="margin:0;flex:1;min-width:150px;">
+                            <option value="time">1. 時間限定（每日重置）</option>
+                            <option value="global">2. 全域限定（永久總次數）</option>
+                            <option value="none">3. 不設限</option>
+                        </select>
+                        <input type="number" id="adminQuizLimitCount" class="code-input" min="1" max="1000000" value="10" style="margin:0;flex:1;min-width:110px;" placeholder="次數">
+                        <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminQuizLimit()">儲存限制</button>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="margin-top:20px; color:var(--primary);">6. 特定用戶／特定題庫答題次數覆寫</h4>
+            <p style="font-size:0.88em; color:#64748b;">可個別設定每日次數、全域總次數或不受限制；個別設定會優先於題庫公開設定。</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                <select id="admin-limit-user-select" class="code-input" style="margin:0; flex:1; min-width:180px;"><option value="">選擇用戶...</option></select>
+                <input type="text" id="admin-limit-quiz-code" class="code-input" placeholder="題庫代碼" style="margin:0; flex:1; min-width:140px;">
+                <select id="admin-limit-mode" class="code-input" style="margin:0; flex:1; min-width:150px;">
+                    <option value="time">時間限定（每日重置）</option>
+                    <option value="global">全域限定</option>
+                    <option value="none">不受限制</option>
+                </select>
+                <input type="number" id="admin-limit-count" class="code-input" min="1" max="1000000" value="10" placeholder="次數" style="margin:0; width:120px;">
+                <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminUserQuizLimit()">儲存個別限制</button>
             </div>
         </div>
     </div>
@@ -905,6 +932,9 @@
     let globalUsersDB = [];
     let systemVerifyCode = '981103970120';
     let publicQuizzesMap = {}; 
+    let quizLimitsMap = {};
+    let userQuizLimitsMap = {};
+    let quizUsageMap = {};
     let testHistoryRecords = []; 
     let feedbackDB = []; 
 
@@ -913,6 +943,9 @@
             globalUsersDB = data.users || [];
             systemVerifyCode = data.verifyCode || '981103970120';
             publicQuizzesMap = data.publicQuizzes || {};
+            quizLimitsMap = data.quizLimits || {};
+            userQuizLimitsMap = data.userQuizLimits || {};
+            quizUsageMap = data.quizUsage || {};
             testHistoryRecords = data.testHistory || [];
             feedbackDB = data.feedback || [];
         }
@@ -1193,10 +1226,10 @@
             normalView.classList.add('hidden');
             adminChatView.classList.add('hidden');
             bannedView.classList.remove('hidden');
-            
+
             // 顯示管理員設定的停用原因
             document.getElementById('display-ban-reason').innerText = currentUser.banReason || "管理員未特別填寫原因";
-            
+
             renderBannedAppealList();
         } else {
             bannedView.classList.add('hidden');
@@ -1478,6 +1511,11 @@
 
         document.getElementById('adminQuizCodeInput').value = '';
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
+        const limitUser = document.getElementById('admin-limit-user-select');
+        limitUser.innerHTML = '<option value="">選擇用戶...</option>';
+        globalUsersDB.filter(u => u.role !== 'admin').forEach(u => {
+            const opt = document.createElement('option'); opt.value = u.email; opt.innerText = `${u.name} (${u.email})`; limitUser.appendChild(opt);
+        });
     }
 
     // 當停用區塊的下拉選單變更時，自動切換按鈕文字與樣式
@@ -1586,6 +1624,10 @@
         statusText.style.color = '#f97316';
         quizDetails.textContent = '';
         publicCheckbox.checked = !!publicQuizzesMap[code];
+        const savedLimit = quizLimitsMap[code] || { mode: 'time', count: 10 };
+        document.getElementById('adminQuizLimitMode').value = savedLimit.mode || 'time';
+        document.getElementById('adminQuizLimitCount').value = savedLimit.count || 10;
+        document.getElementById('adminQuizLimitCount').disabled = (savedLimit.mode === 'none');
 
         const oldScript = document.getElementById('temp-admin-check-script');
         if (oldScript) oldScript.remove();
@@ -1616,11 +1658,87 @@
         document.head.appendChild(script);
     }
 
+    function saveAdminQuizLimit() {
+        const code = document.getElementById('adminQuizCodeInput').value.trim();
+        if (!code) return alert('請先輸入並檢查題庫代碼！');
+        const mode = document.getElementById('adminQuizLimitMode').value;
+        const count = Math.max(1, parseInt(document.getElementById('adminQuizLimitCount').value, 10) || 10);
+        quizLimitsMap[code] = { mode, count };
+        saveToFirebase('quizLimits', quizLimitsMap);
+        document.getElementById('adminQuizLimitCount').disabled = mode === 'none';
+        renderPublicQuizzesList();
+        alert(`題庫 [${code}] 的答題限制已儲存。`);
+    }
+
+    function saveAdminUserQuizLimit() {
+        const email = document.getElementById('admin-limit-user-select').value;
+        const code = document.getElementById('admin-limit-quiz-code').value.trim();
+        const mode = document.getElementById('admin-limit-mode').value;
+        const count = Math.max(1, parseInt(document.getElementById('admin-limit-count').value, 10) || 10);
+        if (!email || !code) return alert('請選擇用戶並輸入題庫代碼！');
+        if (!userQuizLimitsMap[email]) userQuizLimitsMap[email] = {};
+        userQuizLimitsMap[email][code] = { mode, count };
+        saveToFirebase('userQuizLimits', userQuizLimitsMap);
+        renderPublicQuizzesList();
+        alert(`已為 ${email} 設定題庫 [${code}] 的個別答題限制。`);
+    }
+
+    function getTaipeiDateKey() {
+        const parts = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date());
+        const v = {}; parts.forEach(p => { if (p.type !== 'literal') v[p.type] = p.value; });
+        return `${v.year}-${v.month}-${v.day}`;
+    }
+
+    function getQuizLimitForUser(code) {
+        const personal = currentUser && userQuizLimitsMap[currentUser.email] && userQuizLimitsMap[currentUser.email][code];
+        return personal || quizLimitsMap[code] || { mode:'time', count:10 };
+    }
+
+    function getQuizUsage(email, code) {
+        if (!quizUsageMap[email]) quizUsageMap[email] = {};
+        if (!quizUsageMap[email][code]) quizUsageMap[email][code] = { globalCount:0, dailyCount:0, date:getTaipeiDateKey() };
+        const u = quizUsageMap[email][code];
+        if (u.date !== getTaipeiDateKey()) { u.dailyCount = 0; u.date = getTaipeiDateKey(); }
+        return u;
+    }
+
+    function getQuizLimitState(code, user = currentUser) {
+        if (!user) return { allowed:true, locked:false, message:'' };
+        const limit = getQuizLimitForUser(code);
+        if (!limit || limit.mode === 'none') return { allowed:true, locked:false, message:'' };
+        const usage = getQuizUsage(user.email, code);
+        const used = limit.mode === 'global' ? (usage.globalCount || 0) : (usage.dailyCount || 0);
+        const max = Math.max(1, parseInt(limit.count, 10) || 10);
+        if (used >= max) {
+            return { allowed:false, locked:true, message: limit.mode === 'time' ? '本題庫您當日答題次數已用完，請等待至明日 00:00（台北時間）後再試。' : '該題庫您的答題次數已用盡。' };
+        }
+        return { allowed:true, locked:false, message:'' };
+    }
+
+    function consumeQuizAttempt(code) {
+        if (!currentUser) return true;
+        const state = getQuizLimitState(code);
+        if (!state.allowed) { alert(state.message); renderPublicQuizzesList(); return false; }
+        const limit = getQuizLimitForUser(code);
+        if (limit.mode !== 'none') {
+            const usage = getQuizUsage(currentUser.email, code);
+            usage.globalCount = (usage.globalCount || 0) + 1;
+            if (limit.mode === 'time') usage.dailyCount = (usage.dailyCount || 0) + 1;
+            saveToFirebase('quizUsage', quizUsageMap);
+        }
+        renderPublicQuizzesList();
+        return true;
+    }
+
     function toggleAdminQuizPublic(checkbox) {
         const code = document.getElementById('adminQuizCodeInput').value.trim();
         if (!code) return;
 
         publicQuizzesMap[code] = checkbox.checked;
+        if (checkbox.checked && !quizLimitsMap[code]) {
+            quizLimitsMap[code] = { mode:'time', count:10 };
+            saveToFirebase('quizLimits', quizLimitsMap);
+        }
         saveToFirebase('publicQuizzes', publicQuizzesMap);
         renderPublicQuizzesList();
         alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
@@ -1683,8 +1801,11 @@
 
             const item = document.createElement('div');
             item.className = 'public-quiz-item';
+            const limitState = getQuizLimitState(code);
+            const lockMark = limitState.locked ? '🔒 ' : '';
+            const lockTitle = limitState.locked ? '（點擊查看限制提示）' : '';
             item.innerHTML = `
-                <span><b>${displayName}</b></span>
+                <span><b>${lockMark}${displayName}</b>${lockTitle}</span>
                 <div class="quiz-action-btns">
                     <button class="btn-sm btn-rank" onclick="openRankModalForQuiz('${code}')">排行榜</button>
                     <button class="btn-sm btn-start-quiz" onclick="quickStartQuiz('${code}')">進入考試</button>
@@ -1762,6 +1883,8 @@
     }
 
     function quickStartQuiz(quizCode) {
+        const state = getQuizLimitState(quizCode);
+        if (!state.allowed) return alert(state.message);
         document.getElementById('quiz-code').value = quizCode;
         loadQuizScript(quizCode, () => {
             checkAndStart();
@@ -1867,6 +1990,8 @@
         if(window.currentQuiz.password && document.getElementById('quiz-pass').value !== window.currentQuiz.password) {
             return alert("密碼有誤！");
         }
+        const quizCode = document.getElementById('quiz-code').value.trim();
+        if (!isWrongQuestionsMode && !consumeQuizAttempt(quizCode)) return;
 
         requestFullScreen();
         setMenuDisabledState(true); 
@@ -2314,6 +2439,9 @@
                 users: [],
                 verifyCode: '981103970120',
                 publicQuizzes: {},
+                quizLimits: {},
+                userQuizLimits: {},
+                quizUsage: {},
                 testHistory: [],
                 feedback: []
             };
