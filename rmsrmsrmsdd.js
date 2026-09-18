@@ -1,5 +1,5 @@
 window.currentQuiz = {
-    name: "嵌入式系統與韌體開發實務測驗",
+    name: "測試題庫(非測試人員請勿使用) ",
     password: "1234", 
     time: 15, // 測驗時間 15 分鐘
     data: [
