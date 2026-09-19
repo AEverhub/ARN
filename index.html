@@ -485,6 +485,118 @@
             .action-btn-group .main-btn { width: 100%; }
             .stamp-container-wrapper { justify-content: center; }
         }
+
+        /* 莊嚴登入介面：僅視覺樣式，不改動任何登入邏輯或元素 ID */
+        #login-screen {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 10px 8px 0;
+        }
+        #auth-title {
+            color: #142235;
+            font-family: Georgia, "Times New Roman", "Noto Serif TC", "Microsoft JhengHei", serif;
+            font-size: clamp(1.45rem, 3vw, 2rem);
+            letter-spacing: 0.12em;
+            line-height: 1.5;
+            padding: 6px 0 18px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid #b7c0cc;
+            position: relative;
+        }
+        #auth-title::before {
+            content: "OFFICIAL ASSESSMENT PORTAL";
+            display: block;
+            color: #64748b;
+            font-family: Arial, sans-serif;
+            font-size: 0.42em;
+            font-weight: 700;
+            letter-spacing: 0.24em;
+            margin-bottom: 8px;
+        }
+        #auth-title::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            width: 72px;
+            height: 3px;
+            transform: translateX(-50%);
+            background: #20344d;
+        }
+        #login-screen .input-group {
+            background: #f7f9fb;
+            border: 1px solid #d5dce5;
+            border-top: 4px solid #20344d;
+            border-radius: 3px;
+            padding: 24px 26px 18px;
+            box-shadow: 0 8px 18px rgba(20, 34, 53, 0.08);
+        }
+        #login-screen .code-input {
+            height: 48px;
+            border: 1px solid #aeb9c7;
+            border-radius: 2px;
+            background: #ffffff;
+            color: #172033;
+            font-size: 1rem;
+            padding: 12px 14px;
+            margin-bottom: 13px;
+            transition: border-color .18s, box-shadow .18s;
+        }
+        #login-screen .code-input:focus {
+            outline: none;
+            border-color: #203d60;
+            box-shadow: 0 0 0 3px rgba(32, 61, 96, .12);
+        }
+        #login-screen h3 {
+            color: #20344d;
+            font-family: Georgia, "Noto Serif TC", "Microsoft JhengHei", serif;
+            font-size: 1.05rem;
+            letter-spacing: .08em;
+            border-bottom: 1px solid #d5dce5;
+            padding-bottom: 9px;
+            margin: 18px 0 12px;
+        }
+        #login-screen .terms-box {
+            max-height: 190px;
+            background: #eef2f6;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #64748b;
+            border-radius: 2px;
+            color: #3b4656;
+            line-height: 1.75;
+            padding: 14px 16px;
+        }
+        #login-screen .checkbox-group {
+            color: #344255;
+            line-height: 1.65;
+            margin: 17px 0 10px;
+        }
+        #login-screen .checkbox-group input {
+            accent-color: #203d60;
+            transform: translateY(1px);
+        }
+        #status-msg {
+            color: #526174 !important;
+            border-top: 1px solid #d5dce5;
+            padding-top: 11px;
+        }
+        #auth-submit-btn {
+            border-radius: 2px;
+            letter-spacing: .1em;
+            min-height: 52px;
+            box-shadow: 0 5px 12px rgba(20, 34, 53, .15);
+        }
+        #auth-submit-btn:disabled {
+            background: #c8d0da !important;
+            color: #5d6978 !important;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        @media (max-width: 600px) {
+            #login-screen .input-group { padding: 20px 16px 14px; }
+            #auth-title { letter-spacing: .07em; }
+            #auth-title::before { letter-spacing: .16em; }
+        }
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -510,6 +622,7 @@
 <div class="container">
     <div id="login-screen">
         <h2 class="text-center" id="auth-title">線上模擬評量系統 - 註冊與登入</h2>
+        <p class="login-subtitle" style="text-align:center; color:#526174; font-size:.9em; letter-spacing:.08em; margin:-10px 0 20px;">請依規定完成身分驗證後進入評量系統</p>
         <div class="input-group">
             <input type="email" id="auth-email" class="code-input" placeholder="電子郵件 (例如: admin@rms.com 或一般信箱)">
             <input type="password" id="auth-pass" class="code-input" placeholder="密碼">
@@ -945,6 +1058,8 @@
     let feedbackDB = []; 
 
     window.initFirebaseData = function(data) {
+        let cachedPublicQuizzes = {};
+        try { cachedPublicQuizzes = JSON.parse(localStorage.getItem('rms_public_quizzes_cache') || '{}'); } catch (e) {}
         if (data) {
             globalUsersDB = data.users || [];
             systemVerifyCode = data.verifyCode || '981103970120';
@@ -954,8 +1069,12 @@
             quizUsageMap = data.quizUsage || {};
             testHistoryRecords = data.testHistory || [];
             feedbackDB = data.feedback || [];
+        } else {
+            publicQuizzesMap = cachedPublicQuizzes;
         }
+        try { localStorage.setItem('rms_public_quizzes_cache', JSON.stringify(publicQuizzesMap)); } catch (e) {}
         checkAutoLogin();
+        if (currentUser && !currentUser.disabled) renderPublicQuizzesList();
     };
 
     function saveToFirebase(path, value) {
@@ -1746,6 +1865,7 @@
             saveToFirebase('quizLimits', quizLimitsMap);
         }
         saveToFirebase('publicQuizzes', publicQuizzesMap);
+        try { localStorage.setItem('rms_public_quizzes_cache', JSON.stringify(publicQuizzesMap)); } catch (e) {}
         renderPublicQuizzesList();
         alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
     }
@@ -2363,8 +2483,15 @@
     }
 
     async function gradePendingHandwriting(questions, quizCode) {
-        if (handwritingGradingInProgress || !window.gradeHandwritingWithFirebaseAI) return;
+        if (handwritingGradingInProgress) return;
         const pending = questions.map((q, i) => ({ q, i })).filter(({q, i}) => isHandwritingQuestion(q) && userAnswers[i] && userAnswers[i].answered && !handwritingResults[i]);
+        if (!window.gradeHandwritingWithFirebaseAI) {
+            pending.forEach(({i}) => {
+                const feedback = document.querySelector(`#review-card-${i} .handwriting-feedback`);
+                if (feedback) feedback.innerText = 'AI 批改尚未啟用：請在 Firebase Console 開啟 AI Logic、Gemini Developer API，並設定 App Check。';
+            });
+            return;
+        }
         if (!pending.length) return;
         handwritingGradingInProgress = true;
         for (const item of pending) {
@@ -2556,8 +2683,8 @@
 
 <!-- Firebase SDK 模組初始化與資料同步 -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
     import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
     import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-ai.js";
 
@@ -2573,12 +2700,20 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    let analytics = null;
+    try { analytics = getAnalytics(app); } catch (analyticsError) { console.warn('Analytics 初始化略過：', analyticsError); }
     const db = getDatabase(app);
-    const ai = getAI(app, { backend: new GoogleAIBackend() });
-    const handwritingModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+    let handwritingModel = null;
+    try {
+        const ai = getAI(app, { backend: new GoogleAIBackend() });
+        handwritingModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+    } catch (setupError) {
+        console.error('Firebase AI Logic 初始化失敗：', setupError);
+        window.firebaseAISetupError = setupError.message || String(setupError);
+    }
 
     window.gradeHandwritingWithFirebaseAI = async function(payload) {
+        if (!handwritingModel) throw new Error(window.firebaseAISetupError || 'Firebase AI Logic 尚未初始化');
         const imageBase64 = payload.imageData.split(',')[1];
         const prompt = `你是嚴謹的數學老師，請批改學生的手寫計算題。
 題目：${payload.question}
