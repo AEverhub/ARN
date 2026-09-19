@@ -629,6 +629,8 @@
     </div>
 </header>
 
+<datalist id="quiz-code-options"></datalist>
+
 <div class="container">
     <div id="login-screen">
         <h2 class="text-center" id="auth-title">線上模擬評量系統</h2>
@@ -675,7 +677,7 @@
         <h2 class="text-center">測驗首頁 - 題庫選擇中心</h2>
         <div style="margin-top:20px;">
             <h3>選擇或輸入測驗題庫</h3>
-            <input type="text" id="quiz-code" class="code-input" placeholder="請輸入測驗代碼 (例如: test01)">
+            <input type="text" id="quiz-code" class="code-input" list="quiz-code-options" placeholder="請輸入或選擇測驗代碼 (例如: test01)">
             <div id="password-area" class="hidden">
                 <input type="password" id="quiz-pass" class="code-input" placeholder="請輸入題庫驗證密碼">
             </div>
@@ -925,7 +927,7 @@
             <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
 
             <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <input type="text" id="adminQuizCodeInput" class="code-input" placeholder="例如: Math 或 test01" style="margin-bottom:0; flex:1;">
+                <input type="text" id="adminQuizCodeInput" class="code-input" list="quiz-code-options" placeholder="請輸入或選擇題庫代碼" style="margin-bottom:0; flex:1;">
                 <button class="main-btn btn-accent" id="adminCheckBtn" style="width:auto; margin-top:0;" onclick="checkAdminQuizStatus()">檢查狀態</button>
             </div>
 
@@ -1021,7 +1023,7 @@
 <div id="logout-modal" class="modal-overlay hidden">
     <div class="modal-card">
         <h3 style="color:#ffffff; margin-bottom:15px;">設備登出驗證</h3>
-        <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:15px;">請輸入管理員設定的設備登出許可碼，以安全登出目前帳號。</p>
+        <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:15px;">目前帳號：<span id="logout-modal-email" style="color:#38bdf8;"></span><br>請輸入管理員設定的設備登出許可碼，以安全登出目前帳號。</p>
         <input type="password" id="logout-password-input" class="code-input" placeholder="請輸入設備登出許可碼">
         <button class="main-btn btn-danger" onclick="confirmLogout()">確認登出</button>
         <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closeLogoutModal()">取消</button>
@@ -1104,6 +1106,7 @@
     let quizEntryCountdownTimer = null;
     let publicQuizzesMap = {}; 
     let quizLimitsMap = {};
+    let quizCodesMap = {};
     let userQuizLimitsMap = {};
     let quizUsageMap = {};
     let testHistoryRecords = []; 
@@ -1118,6 +1121,7 @@
             deviceLogoutCode = data.deviceLogoutCode || '000000';
             publicQuizzesMap = data.publicQuizzes || {};
             quizLimitsMap = data.quizLimits || {};
+            quizCodesMap = data.quizCodes || {};
             userQuizLimitsMap = data.userQuizLimits || {};
             quizUsageMap = data.quizUsage || {};
             testHistoryRecords = data.testHistory || [];
@@ -1126,9 +1130,36 @@
             publicQuizzesMap = cachedPublicQuizzes;
         }
         try { localStorage.setItem('rms_public_quizzes_cache', JSON.stringify(publicQuizzesMap)); } catch (e) {}
+        refreshQuizCodeOptions();
         checkAutoLogin();
         if (currentUser && !currentUser.disabled) renderPublicQuizzesList();
     };
+
+    function refreshQuizCodeOptions() {
+        const list = document.getElementById('quiz-code-options');
+        if (!list) return;
+        const codes = new Set([
+            ...Object.keys(quizCodesMap || {}),
+            ...Object.keys(publicQuizzesMap || {}),
+            ...Object.keys(quizLimitsMap || {})
+        ]);
+        list.innerHTML = '';
+        Array.from(codes).filter(Boolean).sort().forEach(code => {
+            const option = document.createElement('option');
+            option.value = code;
+            list.appendChild(option);
+        });
+    }
+
+    function rememberQuizCode(code) {
+        code = String(code || '').trim();
+        if (!code) return;
+        if (!quizCodesMap[code]) {
+            quizCodesMap[code] = true;
+            saveToFirebase('quizCodes', quizCodesMap);
+        }
+        refreshQuizCodeOptions();
+    }
 
     function saveToFirebase(path, value) {
         if (window.fbSetData) {
@@ -1786,6 +1817,7 @@
 
     function checkAdminQuizStatus() {
         const code = document.getElementById('adminQuizCodeInput').value.trim();
+        rememberQuizCode(code);
         const container = document.getElementById('adminQuizStatusContainer');
         const statusText = document.getElementById('adminStatusText');
         const displayCode = document.getElementById('adminDisplayCode');
@@ -1843,6 +1875,7 @@
         const mode = document.getElementById('adminQuizLimitMode').value;
         const count = Math.max(1, parseInt(document.getElementById('adminQuizLimitCount').value, 10) || 10);
         quizLimitsMap[code] = { mode, count };
+        rememberQuizCode(code);
         saveToFirebase('quizLimits', quizLimitsMap);
         document.getElementById('adminQuizLimitCount').disabled = mode === 'none';
         renderPublicQuizzesList();
@@ -1919,6 +1952,7 @@
             saveToFirebase('quizLimits', quizLimitsMap);
         }
         saveToFirebase('publicQuizzes', publicQuizzesMap);
+        refreshQuizCodeOptions();
         try { localStorage.setItem('rms_public_quizzes_cache', JSON.stringify(publicQuizzesMap)); } catch (e) {}
         renderPublicQuizzesList();
         alert(`題庫 [${code}] 公開狀態已更新為：${checkbox.checked ? '已公開' : '未公開'}`);
@@ -2857,6 +2891,7 @@
                 deviceLogoutCode: '000000',
                 publicQuizzes: {},
                 quizLimits: {},
+                quizCodes: {},
                 userQuizLimits: {},
                 quizUsage: {},
                 handwritingGrades: {},
