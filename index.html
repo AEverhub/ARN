@@ -597,6 +597,16 @@
             #auth-title { letter-spacing: .07em; }
             #auth-title::before { letter-spacing: .16em; }
         }
+
+        .auth-mode-tabs { display:flex; gap:8px; margin:0 0 16px; }
+        .auth-mode-tab { flex:1; padding:11px; border:1px solid #aeb9c7; background:#eef2f6; color:#20344d; border-radius:2px; font-weight:700; cursor:pointer; }
+        .auth-mode-tab.active { background:#20344d; color:#fff; border-color:#20344d; }
+        .quiz-entry-summary { color:#334155; line-height:1.8; background:#f8fafc; border:1px solid #cbd5e1; padding:14px; margin-bottom:16px; }
+        .countdown-note { color:#64748b; font-weight:700; text-align:center; margin-top:12px; }
+        .admin-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:12px; }
+        .admin-stat-card { background:#fff; border:1px solid #cbd5e1; border-left:4px solid #20344d; padding:12px; }
+        .admin-stat-card strong { display:block; color:#64748b; font-size:.82em; }
+        .admin-stat-card span { display:block; color:#142235; font-size:1.45em; font-weight:700; margin-top:4px; }
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -621,8 +631,12 @@
 
 <div class="container">
     <div id="login-screen">
-        <h2 class="text-center" id="auth-title">線上模擬評量系統 - 註冊與登入</h2>
+        <h2 class="text-center" id="auth-title">線上模擬評量系統</h2>
         <p class="login-subtitle" style="text-align:center; color:#526174; font-size:.9em; letter-spacing:.08em; margin:-10px 0 20px;">請依規定完成身分驗證後進入評量系統</p>
+        <div class="auth-mode-tabs">
+            <button type="button" id="auth-login-tab" class="auth-mode-tab active" onclick="setAuthMode('login')">登入</button>
+            <button type="button" id="auth-register-tab" class="auth-mode-tab" onclick="setAuthMode('register')">註冊</button>
+        </div>
         <div class="input-group">
             <input type="email" id="auth-email" class="code-input" placeholder="電子郵件 (例如: admin@rms.com 或一般信箱)">
             <input type="password" id="auth-pass" class="code-input" placeholder="密碼">
@@ -859,6 +873,13 @@
     <div id="admin-screen" class="hidden sub-view" style="color:#333;">
         <h3>系統管理面板 (Admin Console)</h3>
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
+        <div class="admin-stat-grid" id="admin-stat-grid">
+            <div class="admin-stat-card"><strong>註冊帳號</strong><span id="admin-stat-users">0</span></div>
+            <div class="admin-stat-card"><strong>啟用帳號</strong><span id="admin-stat-active-users">0</span></div>
+            <div class="admin-stat-card"><strong>公開題庫</strong><span id="admin-stat-public-quizzes">0</span></div>
+            <div class="admin-stat-card"><strong>測驗紀錄</strong><span id="admin-stat-tests">0</span></div>
+            <div class="admin-stat-card"><strong>答題使用次數</strong><span id="admin-stat-attempts">0</span></div>
+        </div>
 
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <h4 style="margin-top:0; color:var(--primary);">1. 用戶帳戶停用與啟用管理</h4>
@@ -887,13 +908,20 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminForceRenameUser()">強制改名並鎖定</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">4. 重複註冊驗證碼設定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">4. 設備登出許可碼設定</h4>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <input type="text" id="admin-logout-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入設備登出許可碼">
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateLogoutCode()">更新登出許可碼</button>
+            </div>
+            <p style="font-size:.82em;color:#64748b;margin-top:-4px;">普通用戶登出時需輸入此許可碼；設定會記錄於 Firebase。</p>
+
+            <h4 style="margin-top:20px; color:var(--primary);">5. 重複註冊驗證碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">5. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">6. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
             <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
 
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -923,7 +951,7 @@
                 </div>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">6. 特定用戶／特定題庫答題次數覆寫</h4>
+            <h4 style="margin-top:20px; color:var(--primary);">7. 特定用戶／特定題庫答題次數覆寫</h4>
             <p style="font-size:0.88em; color:#64748b;">可個別設定每日次數、全域總次數或不受限制；個別設定會優先於題庫公開設定。</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
                 <select id="admin-limit-user-select" class="code-input" style="margin:0; flex:1; min-width:180px;"><option value="">選擇用戶...</option></select>
@@ -971,11 +999,30 @@
     </div>
 </div>
 
+
+<div id="quiz-password-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3 style="color:#ffffff; margin-bottom:15px;">題庫密碼驗證</h3>
+        <div id="quiz-password-summary" class="quiz-entry-summary"></div>
+        <input type="password" id="quiz-password-modal-input" class="code-input" placeholder="請輸入題庫密碼">
+        <button class="main-btn btn-accent" onclick="submitQuizPassword()">確認密碼</button>
+        <button class="main-btn btn-danger" style="margin-top:8px;" onclick="cancelQuizEntry()">取消</button>
+    </div>
+</div>
+<div id="quiz-entry-confirm-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3 style="color:#ffffff; margin-bottom:15px;">即將進入題庫</h3>
+        <div id="quiz-entry-summary" class="quiz-entry-summary"></div>
+        <button class="main-btn btn-success" onclick="confirmQuizEntry()">確認進入</button>
+        <button class="main-btn btn-danger" style="margin-top:8px;" onclick="cancelQuizEntry()">取消</button>
+        <div id="quiz-entry-countdown" class="countdown-note">未操作將自動進入（10）</div>
+    </div>
+</div>
 <div id="logout-modal" class="modal-overlay hidden">
     <div class="modal-card">
-        <h3 style="color:#ffffff; margin-bottom:15px;">安全登出驗證</h3>
-        <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:15px;">為確保帳號安全，請輸入當前帳號 (<span id="logout-modal-email" style="color:#38bdf8;"></span>) 的密碼以確認登出：</p>
-        <input type="password" id="logout-password-input" class="code-input" placeholder="請輸入登入密碼">
+        <h3 style="color:#ffffff; margin-bottom:15px;">設備登出驗證</h3>
+        <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:15px;">請輸入管理員設定的設備登出許可碼，以安全登出目前帳號。</p>
+        <input type="password" id="logout-password-input" class="code-input" placeholder="請輸入設備登出許可碼">
         <button class="main-btn btn-danger" onclick="confirmLogout()">確認登出</button>
         <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closeLogoutModal()">取消</button>
     </div>
@@ -1050,6 +1097,11 @@
     let currentUser = null; 
     let globalUsersDB = [];
     let systemVerifyCode = '981103970120';
+    let deviceLogoutCode = '000000';
+    let authMode = 'login';
+    let pendingQuizCode = '';
+    let pendingQuizFromPublic = false;
+    let quizEntryCountdownTimer = null;
     let publicQuizzesMap = {}; 
     let quizLimitsMap = {};
     let userQuizLimitsMap = {};
@@ -1063,6 +1115,7 @@
         if (data) {
             globalUsersDB = data.users || [];
             systemVerifyCode = data.verifyCode || '981103970120';
+            deviceLogoutCode = data.deviceLogoutCode || '000000';
             publicQuizzesMap = data.publicQuizzes || {};
             quizLimitsMap = data.quizLimits || {};
             userQuizLimitsMap = data.userQuizLimits || {};
@@ -1104,34 +1157,30 @@
         }
     });
 
-    const authEmailInput = document.getElementById('auth-email');
-    authEmailInput.addEventListener('input', (e) => {
-        const email = e.target.value.trim();
-        const regFields = document.getElementById('register-extra-fields');
-        const verifyArea = document.getElementById('verification-code-area');
+    function setAuthMode(mode) {
+        authMode = mode === 'register' ? 'register' : 'login';
+        const isRegister = authMode === 'register';
+        document.getElementById('auth-login-tab').classList.toggle('active', !isRegister);
+        document.getElementById('auth-register-tab').classList.toggle('active', isRegister);
+        document.getElementById('auth-title').innerText = isRegister ? '建立系統帳號' : '系統帳號登入';
+        document.getElementById('register-extra-fields').classList.toggle('hidden', !isRegister);
+        const needsCode = isRegister && !!localStorage.getItem('rms_device_registered');
+        document.getElementById('verification-code-area').classList.toggle('hidden', !needsCode);
+        checkAuthUnlock();
+    }
 
-        const existing = globalUsersDB.find(u => u.email === email);
-        if (existing) {
-            regFields.classList.add('hidden'); 
-            const deviceRegistered = localStorage.getItem('rms_device_registered');
-            if (deviceRegistered && deviceRegistered !== email) {
-                verifyArea.classList.remove('hidden');
-            } else {
-                verifyArea.classList.add('hidden');
-            }
-        } else {
-            regFields.classList.remove('hidden'); 
-            const deviceRegistered = localStorage.getItem('rms_device_registered');
-            if (deviceRegistered) {
-                verifyArea.classList.remove('hidden'); 
-            } else {
-                verifyArea.classList.add('hidden');
-            }
+    const authEmailInput = document.getElementById('auth-email');
+    authEmailInput.addEventListener('input', () => {
+        if (authMode === 'register') {
+            const needsCode = !!localStorage.getItem('rms_device_registered');
+            document.getElementById('verification-code-area').classList.toggle('hidden', !needsCode);
         }
+        checkAuthUnlock();
     });
 
     document.getElementById('agree-terms').addEventListener('change', checkAuthUnlock);
     document.getElementById('auth-pass').addEventListener('input', checkAuthUnlock);
+    setAuthMode('login');
 
     function checkAuthUnlock() {
         const agreed = document.getElementById('agree-terms').checked;
@@ -1153,43 +1202,26 @@
         const pass = document.getElementById('auth-pass').value.trim();
         const nameInput = document.getElementById('auth-name').value.trim();
         const verifyInput = document.getElementById('auth-verify-code').value.trim();
-        const verifyArea = document.getElementById('verification-code-area');
-
-        if (!email || !pass) return alert("請填寫完整信箱與密碼！");
-
-        if (!verifyArea.classList.contains('hidden')) {
-            if (verifyInput !== systemVerifyCode) {
-                return alert("重複註冊驗證碼錯誤，無法進行註冊！");
-            }
-        }
-
-        let role = 'user';
-        let userName = nameInput;
-        if (email === 'admin@rms.com') {
-            if (pass !== 'Paul0420#') return alert("管理員密碼錯誤！");
-            role = 'admin';
-            userName = userName || '系統管理員';
-        }
-
-        let user = globalUsersDB.find(u => u.email === email);
-        if (user) {
-            if (user.pass !== pass) return alert("密碼錯誤！");
-            currentUser = user;
-        } else {
-            if (!userName) return alert("新註冊用戶請填寫考生姓名！");
-            user = { email, pass, name: userName, role, disabled: false, banReason: '', isNameLocked: false };
+        if (!email || !pass) return alert('請填寫完整信箱與密碼！');
+        const existing = globalUsersDB.find(u => u.email === email);
+        if (authMode === 'register') {
+            if (localStorage.getItem('rms_device_registered') && verifyInput !== systemVerifyCode) return alert('此設備已有註冊紀錄，請輸入管理員設定的重複註冊許可碼！');
+            if (existing) return alert('此信箱已經註冊，請切換至登入。');
+            if (!nameInput) return alert('註冊時請填寫考生姓名！');
+            const user = { email, pass, name: nameInput, role:'user', disabled:false, banReason:'', isNameLocked:false };
             globalUsersDB.push(user);
             saveToFirebase('users', globalUsersDB);
             currentUser = user;
+        } else {
+            if (!existing) return alert('查無此帳號，請先切換至註冊。');
+            if (existing.pass !== pass) return alert('密碼錯誤！');
+            currentUser = existing;
         }
-
         localStorage.setItem('rms_device_registered', email);
-
         if (currentUser.disabled && currentUser.role !== 'admin') {
-            alert("注意：您的帳號目前處於遭到停用狀態！系統將引導您進入申訴與帳號恢復系統。");
+            alert('注意：您的帳號目前處於遭到停用狀態！');
             switchView('chat');
         } else {
-            alert("歡迎回來，" + currentUser.name + "！");
             postLoginSetup();
         }
     }
@@ -1227,7 +1259,7 @@
     function confirmLogout() {
         const pass = document.getElementById('logout-password-input').value.trim();
         if (!pass) return alert("請輸入密碼！");
-        if (pass !== currentUser.pass) return alert("密碼錯誤，無法登出！");
+        if (pass !== deviceLogoutCode) return alert('設備登出許可碼錯誤，無法登出！');
 
         currentUser = null;
         localStorage.removeItem('rms_device_registered');
@@ -1316,6 +1348,7 @@
             }
             document.getElementById('admin-screen').classList.remove('hidden');
             setupAdminConsole();
+            updateAdminStats();
         }
     }
 
@@ -1636,11 +1669,32 @@
 
         document.getElementById('adminQuizCodeInput').value = '';
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
+        document.getElementById('admin-logout-code-input').value = deviceLogoutCode || '';
+        updateAdminStats();
         const limitUser = document.getElementById('admin-limit-user-select');
         limitUser.innerHTML = '<option value="">選擇用戶...</option>';
         globalUsersDB.filter(u => u.role !== 'admin').forEach(u => {
             const opt = document.createElement('option'); opt.value = u.email; opt.innerText = `${u.name} (${u.email})`; limitUser.appendChild(opt);
         });
+    }
+
+    function updateAdminStats() {
+        const attempts = Object.values(quizUsageMap || {}).reduce((sum, quizzes) => sum + Object.values(quizzes || {}).reduce((n, u) => n + Number(u.globalCount || 0), 0), 0);
+        const set = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
+        set('admin-stat-users', globalUsersDB.length);
+        set('admin-stat-active-users', globalUsersDB.filter(u => !u.disabled).length);
+        set('admin-stat-public-quizzes', Object.values(publicQuizzesMap || {}).filter(Boolean).length);
+        set('admin-stat-tests', testHistoryRecords.length);
+        set('admin-stat-attempts', attempts);
+    }
+
+    function adminUpdateLogoutCode() {
+        if (!currentUser || currentUser.role !== 'admin') return alert('您無權執行此操作！');
+        const code = document.getElementById('admin-logout-code-input').value.trim();
+        if (!code) return alert('登出許可碼不得為空！');
+        deviceLogoutCode = code;
+        saveToFirebase('deviceLogoutCode', deviceLogoutCode);
+        alert('設備登出許可碼已更新並記錄於 Firebase。');
     }
 
     // 當停用區塊的下拉選單變更時，自動切換按鈕文字與樣式
@@ -1898,6 +1952,7 @@
         if (!newCode) return alert("驗證碼不得為空！");
         systemVerifyCode = newCode;
         saveToFirebase('verifyCode', systemVerifyCode);
+        updateAdminStats();
         alert("重複註冊驗證碼更新成功！");
     }
 
@@ -2009,12 +2064,68 @@
     }
 
     function quickStartQuiz(quizCode) {
-        const state = getQuizLimitState(quizCode);
-        if (!state.allowed) return alert(state.message);
+        openQuizEntryFlow(quizCode, true);
+    }
+
+    function openQuizEntryFlow(quizCode, fromPublic) {
+        quizCode = String(quizCode || '').trim();
+        if (!quizCode) return alert('缺少題庫代碼！');
+        pendingQuizCode = quizCode;
+        pendingQuizFromPublic = !!fromPublic;
         document.getElementById('quiz-code').value = quizCode;
         loadQuizScript(quizCode, () => {
-            checkAndStart();
+            const state = getQuizLimitState(quizCode);
+            if (!state.allowed) return alert(state.message);
+            if (window.currentQuiz && window.currentQuiz.password) {
+                document.getElementById('quiz-password-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(window.currentQuiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(quizCode)}`;
+                document.getElementById('quiz-password-modal-input').value = '';
+                document.getElementById('quiz-password-modal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('quiz-password-modal-input').focus(), 50);
+            } else {
+                openQuizConfirmModal();
+            }
         });
+    }
+
+    function openQuizConfirmModal() {
+        const quiz = window.currentQuiz || {};
+        document.getElementById('quiz-entry-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(quiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(pendingQuizCode)}`;
+        document.getElementById('quiz-entry-confirm-modal').classList.remove('hidden');
+        let remain = 10;
+        const note = document.getElementById('quiz-entry-countdown');
+        note.innerText = `未操作將自動進入（${remain}）`;
+        clearInterval(quizEntryCountdownTimer);
+        quizEntryCountdownTimer = setInterval(() => {
+            remain -= 1;
+            note.innerText = `未操作將自動進入（${remain}）`;
+            if (remain <= 0) confirmQuizEntry();
+        }, 1000);
+    }
+
+    function submitQuizPassword() {
+        const value = document.getElementById('quiz-password-modal-input').value;
+        if (!window.currentQuiz || value !== window.currentQuiz.password) return alert('題庫密碼錯誤！');
+        document.getElementById('quiz-password-modal').classList.add('hidden');
+        openQuizConfirmModal();
+    }
+
+    function cancelQuizEntry() {
+        clearInterval(quizEntryCountdownTimer);
+        document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
+        document.getElementById('quiz-password-modal').classList.add('hidden');
+        pendingQuizCode = '';
+    }
+
+    function confirmQuizEntry() {
+        clearInterval(quizEntryCountdownTimer);
+        document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
+        const state = getQuizLimitState(pendingQuizCode);
+        if (!state.allowed) return alert(state.message);
+        if (!isWrongQuestionsMode && !consumeQuizAttempt(pendingQuizCode)) return;
+        requestFullScreen();
+        setMenuDisabledState(true);
+        isWrongQuestionsMode = false;
+        beginQuiz(JSON.parse(JSON.stringify(window.currentQuiz.data)).sort(() => Math.random() - 0.5));
     }
 
     function loadQuizScript(code, callback) {
@@ -2024,7 +2135,7 @@
         s.onload = () => {
             if(window.currentQuiz) {
                 document.getElementById('status-msg').innerText = `已成功讀取題庫：${window.currentQuiz.name}`;
-                if(window.currentQuiz.password) document.getElementById('password-area').classList.remove('hidden');
+                document.getElementById('password-area').classList.add('hidden');
                 checkUnlockStatus();
                 if(callback) callback();
             }
@@ -2114,17 +2225,8 @@
     }
 
     function checkAndStart() {
-        if(!window.currentQuiz) return alert("請先載入有效題庫！");
-        if(window.currentQuiz.password && document.getElementById('quiz-pass').value !== window.currentQuiz.password) {
-            return alert("密碼有誤！");
-        }
-        const quizCode = document.getElementById('quiz-code').value.trim();
-        if (!isWrongQuestionsMode && !consumeQuizAttempt(quizCode)) return;
-
-        requestFullScreen();
-        setMenuDisabledState(true); 
-        isWrongQuestionsMode = false;
-        beginQuiz(JSON.parse(JSON.stringify(window.currentQuiz.data)).sort(() => Math.random() - 0.5));
+        if (!window.currentQuiz) return alert('請先載入有效題庫！');
+        openQuizEntryFlow(document.getElementById('quiz-code').value.trim(), false);
     }
 
     function beginQuiz(questionsDataset) {
@@ -2752,6 +2854,7 @@
             const initialData = {
                 users: [],
                 verifyCode: '981103970120',
+                deviceLogoutCode: '000000',
                 publicQuizzes: {},
                 quizLimits: {},
                 userQuizLimits: {},
