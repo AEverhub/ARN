@@ -1,5 +1,3 @@
-//a
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -229,6 +227,12 @@
         }
         .opt-btn:hover { background: #f8fafc; border-color: #94a3b8; }
         .opt-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+        .handwriting-wrap { margin-top: 12px; }
+        .handwriting-canvas { width: 100%; height: 260px; display: block; background: #fffef5; border: 2px solid #94a3b8; border-radius: 6px; cursor: crosshair; touch-action: none; box-sizing: border-box; }
+        .handwriting-tools { display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
+        .handwriting-tools button { padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; cursor: pointer; font-weight: 600; }
+        .handwriting-tools button:hover { background: #e2e8f0; }
+        .handwriting-status { color: #64748b; font-size: 0.85em; margin-top: 6px; }
 
         .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
         #timer-box { 
@@ -1942,6 +1946,8 @@
     let selectedPdfIncludeWrong = false;
     let startTimeObj, endTimeObj;
     let userIP = "未知IP";
+    let handwritingResults = {};
+    let handwritingGradingInProgress = false;
 
     fetch('https://api.ipify.org?format=json')
         .then(res => res.json())
@@ -2047,38 +2053,122 @@
         if (!document.fullscreenElement && quizActive) handleViolation();
     });
 
+    function isHandwritingQuestion(q) {
+        return q && (q.type === 'handwriting' || q.type === 'written' || q.type === 'calculation');
+    }
+
+    function saveHandwritingCanvas(index, canvas) {
+        const existing = userAnswers[index] && typeof userAnswers[index] === 'object' ? userAnswers[index] : {};
+        userAnswers[index] = {
+            ...existing,
+            type: 'handwriting',
+            imageData: canvas.toDataURL('image/png'),
+            answered: !isBlankCanvas(canvas)
+        };
+        const status = document.getElementById(`handwriting-status-${index}`);
+        if (status) status.innerText = userAnswers[index].answered ? '已保存手寫內容' : '尚未作答';
+    }
+
+    function isBlankCanvas(canvas) {
+        const ctx = canvas.getContext('2d');
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        for (let i = 0; i < pixels.length; i += 4) {
+            if (pixels[i] < 245 || pixels[i + 1] < 245 || pixels[i + 2] < 245) return false;
+        }
+        return true;
+    }
+
+    function setupHandwritingCanvas(index, canvas) {
+        const ctx = canvas.getContext('2d');
+        const ratio = Math.max(1, window.devicePixelRatio || 1);
+        const cssWidth = canvas.clientWidth || 600;
+        const cssHeight = canvas.clientHeight || 260;
+        canvas.width = Math.floor(cssWidth * ratio);
+        canvas.height = Math.floor(cssHeight * ratio);
+        ctx.scale(ratio, ratio);
+        ctx.fillStyle = '#fffef5';
+        ctx.fillRect(0, 0, cssWidth, cssHeight);
+        ctx.strokeStyle = '#111827';
+        ctx.lineWidth = 2.2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const previous = userAnswers[index] && userAnswers[index].imageData;
+        if (previous) {
+            const image = new Image();
+            image.onload = () => ctx.drawImage(image, 0, 0, cssWidth, cssHeight);
+            image.src = previous;
+        }
+
+        let drawing = false;
+        const point = (event) => {
+            const rect = canvas.getBoundingClientRect();
+            return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        };
+        canvas.addEventListener('pointerdown', (event) => {
+            drawing = true;
+            canvas.setPointerCapture(event.pointerId);
+            const p = point(event);
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + 0.1, p.y + 0.1); ctx.stroke();
+            saveHandwritingCanvas(index, canvas);
+        });
+        canvas.addEventListener('pointermove', (event) => {
+            if (!drawing) return;
+            const p = point(event); ctx.lineTo(p.x, p.y); ctx.stroke();
+            saveHandwritingCanvas(index, canvas);
+        });
+        const stop = () => { drawing = false; saveHandwritingCanvas(index, canvas); };
+        canvas.addEventListener('pointerup', stop);
+        canvas.addEventListener('pointercancel', stop);
+        canvas.addEventListener('pointerleave', stop);
+    }
+
+    function clearHandwriting(index) {
+        const canvas = document.getElementById(`handwriting-canvas-${index}`);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#fffef5'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
+        userAnswers[index] = { type: 'handwriting', imageData: canvas.toDataURL('image/png'), answered: false };
+        const status = document.getElementById(`handwriting-status-${index}`);
+        if (status) status.innerText = '尚未作答';
+    }
+
     function renderQuiz() {
         const container = document.getElementById('quiz-container');
         container.innerHTML = '';
 
         currentQuestions.forEach((q, i) => {
-            const card = document.createElement('div'); 
+            const card = document.createElement('div');
             card.className = `question-card ${i === currentActiveIndex ? '' : 'hidden'}`;
             card.id = `q-card-${i}`;
-            card.innerHTML = `<div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題<br>${q.q}</div><div id="opts-${i}"></div>`;
+            const typeLabel = isHandwritingQuestion(q) ? '<span style="color:#8b5cf6;">【手寫計算題】</span>' : '<span style="color:#2980b9;">【選擇題】</span>';
+            card.innerHTML = `<div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題 ${typeLabel}<br>${q.q}</div><div id="opts-${i}"></div>`;
             container.appendChild(card);
 
-            q.o.forEach(opt => {
-                const b = document.createElement('button'); 
-                b.className = 'opt-btn'; 
-                b.innerText = opt;
-
-                const optLetter = opt.match(/\(([A-D])\)/)[1];
-                if(userAnswers[i] === optLetter) b.classList.add('selected');
-
-                b.onclick = () => {
-                    userAnswers[i] = optLetter;
-                    Array.from(b.parentElement.children).forEach(x => x.classList.remove('selected'));
-                    b.classList.add('selected');
-
-                    setTimeout(() => {
-                        if (currentActiveIndex < currentQuestions.length - 1) {
-                            navigateQuestion(1);
-                        }
-                    }, 300);
-                };
-                document.getElementById(`opts-${i}`).appendChild(b);
-            });
+            const answerArea = document.getElementById(`opts-${i}`);
+            if (isHandwritingQuestion(q)) {
+                answerArea.innerHTML = `<div class="handwriting-wrap"><canvas id="handwriting-canvas-${i}" class="handwriting-canvas" aria-label="手寫作答區"></canvas><div class="handwriting-tools"><button type="button" onclick="clearHandwriting(${i})">清除筆跡</button><span class="handwriting-status" id="handwriting-status-${i}">尚未作答</span></div></div>`;
+                const canvas = document.getElementById(`handwriting-canvas-${i}`);
+                setupHandwritingCanvas(i, canvas);
+                if (userAnswers[i] && userAnswers[i].answered) document.getElementById(`handwriting-status-${i}`).innerText = '已保存手寫內容';
+            } else {
+                (q.o || []).forEach(opt => {
+                    const b = document.createElement('button');
+                    b.className = 'opt-btn';
+                    b.innerText = opt;
+                    const match = opt.match(/\(([A-D])\)/);
+                    const optLetter = match ? match[1] : opt;
+                    if (userAnswers[i] === optLetter) b.classList.add('selected');
+                    b.onclick = () => {
+                        userAnswers[i] = optLetter;
+                        Array.from(b.parentElement.children).forEach(x => x.classList.remove('selected'));
+                        b.classList.add('selected');
+                        setTimeout(() => { if (currentActiveIndex < currentQuestions.length - 1) navigateQuestion(1); }, 300);
+                    };
+                    answerArea.appendChild(b);
+                });
+            }
         });
         if (window.MathJax) MathJax.typesetPromise([container]);
     }
@@ -2117,33 +2207,41 @@
         let reviewHTML = '<h3 style="color:#ffffff; margin-top:20px;">詳細解析評估 (正確答案已標註)</h3>';
         originalWrongQuestions = [];
 
+        let earnedPoints = 0;
+        let possiblePoints = 0;
+        let answeredCount = 0;
+        let wrongCount = 0;
         currentQuestions.forEach((q, i) => {
-            const correctContent = q.o.find(str => str.trim().startsWith(`(${q.a})`));
-            const isRight = userAnswers[i] === q.a;
-            if(isRight) {
-                correctCount++;
-            } else {
-                originalWrongQuestions.push({
-                    index: i,
-                    qObj: q,
-                    userAns: userAnswers[i] || ''
-                });
+            const hand = isHandwritingQuestion(q);
+            const maxPoints = hand ? Math.max(1, Number(q.score) || 10) : 1;
+            possiblePoints += maxPoints;
+            const answer = userAnswers[i];
+            const answered = hand ? !!(answer && answer.answered) : !!answer;
+            if (answered) answeredCount++;
+            let isRight = false;
+            let answerText = hand ? (answered ? '已提交手寫內容，等待 AI 批改' : '未作答') : (answer || '未填答');
+            let correctContent = hand ? (q.answer || '依題庫標準答案批改') : ((q.o || []).find(str => str.trim().startsWith(`(${q.a})`)) || q.a || '未設定');
+            if (!hand) {
+                isRight = answer === q.a;
+                if (isRight) { correctCount++; earnedPoints += 1; } else if (answered) wrongCount++;
+            } else if (handwritingResults[i]) {
+                const result = handwritingResults[i];
+                earnedPoints += Math.max(0, Math.min(maxPoints, Number(result.score) || 0));
+                isRight = !!result.isCorrect;
+                answerText = result.recognizedAnswer || answerText;
+                if (!isRight && answered) wrongCount++;
             }
-
-            reviewHTML += `
-                <div class="review-card" style="border-left: 4px solid ${isRight ? 'var(--success)' : 'var(--error)'}">
-                    <p><b>題目 ${i+1}: ${q.q}</b></p>
-                    <p>您的作答：${userAnswers[i] || '未填答'} | 
-                    <span style="color:var(--success); font-weight:bold;">正確答案：${correctContent}</span></p>
-                </div>`;
+            if (!isRight && answered) originalWrongQuestions.push({ index: i, qObj: q, userAns: answerText });
+            reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (hand && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
+                <p><b>題目 ${i+1}: ${q.q}</b></p>
+                <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">標準答案：${escapeHtml(String(correctContent))}</span></p>
+                ${hand ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
+            </div>`;
         });
 
         const totalQ = currentQuestions.length;
-        const answeredCount = Object.keys(userAnswers).length;
         const unansweredCount = totalQ - answeredCount;
-        const wrongCount = totalQ - correctCount - unansweredCount;
-
-        calculatedScore = Math.round(correctCount * (100 / totalQ));
+        calculatedScore = possiblePoints ? Math.round(earnedPoints * 100 / possiblePoints) : 0;
 
         let testCountKey = `test_count_${window.currentQuiz.name}`;
         let localCount = (parseInt(localStorage.getItem(testCountKey)) || 0) + 1;
@@ -2242,6 +2340,58 @@
         }
 
         if (window.MathJax) MathJax.typesetPromise([document.getElementById('review-area')]);
+        gradePendingHandwriting(currentQuestions, currentQuizCode);
+    }
+
+    function refreshScoreAfterHandwritingAI(questions) {
+        let earned = 0, possible = 0;
+        questions.forEach((q, i) => {
+            const hand = isHandwritingQuestion(q);
+            const max = hand ? Math.max(1, Number(q.score) || 10) : 1;
+            possible += max;
+            if (hand) earned += Math.max(0, Math.min(max, Number(handwritingResults[i] && handwritingResults[i].score) || 0));
+            else if (userAnswers[i] === q.a) earned += 1;
+        });
+        calculatedScore = possible ? Math.round(earned * 100 / possible) : 0;
+        const scoreEl = document.getElementById('res-score');
+        if (scoreEl) scoreEl.innerText = calculatedScore;
+        const passEl = document.getElementById('res-pass-label');
+        if (passEl && warningCount === 0) {
+            passEl.innerText = calculatedScore >= 60 ? '及格 論' : '不及格 論';
+            passEl.className = calculatedScore >= 60 ? 'tb-val res-black-pass' : 'tb-val res-red';
+        }
+    }
+
+    async function gradePendingHandwriting(questions, quizCode) {
+        if (handwritingGradingInProgress || !window.gradeHandwritingWithFirebaseAI) return;
+        const pending = questions.map((q, i) => ({ q, i })).filter(({q, i}) => isHandwritingQuestion(q) && userAnswers[i] && userAnswers[i].answered && !handwritingResults[i]);
+        if (!pending.length) return;
+        handwritingGradingInProgress = true;
+        for (const item of pending) {
+            const q = item.q, i = item.i;
+            try {
+                const result = await window.gradeHandwritingWithFirebaseAI({
+                    question: q.q,
+                    standardAnswer: q.answer || '',
+                    rubric: q.rubric || '請依照計算過程與最後答案給分。',
+                    maxScore: Number(q.score) || 10,
+                    imageData: userAnswers[i].imageData
+                });
+                handwritingResults[i] = result;
+                refreshScoreAfterHandwritingAI(questions);
+                const card = document.getElementById(`review-card-${i}`);
+                if (card) {
+                    card.style.borderLeftColor = result.isCorrect ? 'var(--success)' : 'var(--error)';
+                    const feedback = card.querySelector('.handwriting-feedback');
+                    if (feedback) feedback.innerText = `AI 批改：${result.feedback || '已完成批改'}（${result.score || 0}/${result.maxScore || q.score || 10} 分）`;
+                }
+            } catch (error) {
+                const feedback = document.querySelector(`#review-card-${i} .handwriting-feedback`);
+                if (feedback) feedback.innerText = 'AI 暫時無法批改，請由老師人工批改。';
+            }
+        }
+        handwritingGradingInProgress = false;
+        alert('手寫題 AI 批改已完成，請查看詳細解析。');
     }
 
     function startWrongQuestionsQuiz() {
@@ -2408,7 +2558,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
-    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-ai.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
@@ -2424,6 +2575,32 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getDatabase(app);
+    const ai = getAI(app, { backend: new GoogleAIBackend() });
+    const handwritingModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+
+    window.gradeHandwritingWithFirebaseAI = async function(payload) {
+        const imageBase64 = payload.imageData.split(',')[1];
+        const prompt = `你是嚴謹的數學老師，請批改學生的手寫計算題。
+題目：${payload.question}
+標準答案：${payload.standardAnswer || '未提供'}
+配分：${payload.maxScore}
+評分規則：${payload.rubric}
+請辨識手寫計算過程與最後答案，依正確性及步驟給分。只回傳 JSON，不要 Markdown，格式：{"recognizedAnswer":"","isCorrect":false,"score":0,"maxScore":${payload.maxScore},"feedback":""}`;
+        const result = await handwritingModel.generateContent([
+            { text: prompt },
+            { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+        ]);
+        const text = result.response.text().replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+        const parsed = JSON.parse(text);
+        parsed.maxScore = Number(payload.maxScore) || parsed.maxScore || 10;
+        parsed.score = Math.max(0, Math.min(parsed.maxScore, Number(parsed.score) || 0));
+        const email = localStorage.getItem('rms_device_registered') || 'anonymous';
+        const key = `${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        if (window.fbSetData) {
+            window.fbSetData(`handwritingGrades/${key}`, { ...parsed, question: payload.question, quizCode: document.getElementById('quiz-code').value.trim(), timestamp: new Date().toISOString() });
+        }
+        return parsed;
+    };
 
     window.fbSetData = function(path, value) {
         set(ref(db, 'system_data/' + path), value).catch(err => {
@@ -2444,6 +2621,7 @@
                 quizLimits: {},
                 userQuizLimits: {},
                 quizUsage: {},
+                handwritingGrades: {},
                 testHistory: [],
                 feedback: []
             };
