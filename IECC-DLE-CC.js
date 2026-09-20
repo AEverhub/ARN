@@ -1,6 +1,6 @@
 window.currentQuiz = {
     "name": "工丙學科(不含圖片題)",
-    "time": 60,
+    "time": 180,
     "data": [
         {
             "q": "下列電阻器之標註何者為正確",
