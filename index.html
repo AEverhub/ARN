@@ -623,6 +623,7 @@
         <div class="dropdown-menu" id="dropdown-menu">
             <div class="dropdown-item" onclick="switchView('login')">測驗首頁</div>
             <div class="dropdown-item" onclick="switchView('account')">帳號管理</div>
+            <div class="dropdown-item" onclick="openLocalApiModal()">本地 API 配置</div>
             <div class="dropdown-item" id="menu-lobby-item" onclick="switchView('chat')">聊天大廳 / 問題反饋</div>
             <div class="dropdown-item" id="menu-admin-item" onclick="switchView('admin')" style="display:none;">管理面板</div>
             <div class="dropdown-item danger" onclick="openLogoutModal()">登出帳號</div>
@@ -918,6 +919,25 @@
             </div>
             <p style="font-size:.82em;color:#64748b;margin-top:-4px;">普通用戶登出時需輸入此許可碼；設定會記錄於 Firebase。</p>
 
+            <h4 style="margin-top:20px; color:var(--primary);">4.5 全域 AI API 設定</h4>
+            <p style="font-size:.82em;color:#b45309;margin-top:-4px;">此設定會記錄於 Firebase，所有使用者共用。API 金鑰會傳到使用者瀏覽器，請只使用專用、限額及可撤銷的金鑰。</p>
+            <div style="display:grid; gap:8px; margin-bottom:10px;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <select id="global-api-provider" class="code-input" style="margin:0; flex:1; min-width:150px;" onchange="updateApiProviderFields('global')">
+                        <option value="gemini">Gemini</option>
+                        <option value="openai">OpenAI 相容 API</option>
+                        <option value="custom">自訂 OpenAI 相容服務</option>
+                    </select>
+                    <input type="password" id="global-api-key" class="code-input" style="margin:0; flex:2; min-width:220px;" placeholder="全域 Key 由 Firebase Secret Manager 管理" autocomplete="off">
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="global-api-model" class="code-input" style="margin:0; flex:1;" placeholder="模型，例如 gemini-2.5-flash">
+                    <input type="url" id="global-api-endpoint" class="code-input" style="margin:0; flex:2;" placeholder="自訂端點（OpenAI 相容 API 使用）">
+                    <label style="display:flex; align-items:center; gap:6px; color:#334155;"><input type="checkbox" id="global-api-enabled"> 啟用全域 API</label>
+                </div>
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="saveGlobalApiConfig()">儲存全域 API 設定</button>
+            </div>
+
             <h4 style="margin-top:20px; color:var(--primary);">5. 重複註冊驗證碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
@@ -966,6 +986,29 @@
                 </select>
                 <input type="number" id="admin-limit-count" class="code-input" min="1" max="1000000" value="10" placeholder="次數" style="margin:0; width:120px;">
                 <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminUserQuizLimit()">儲存個別限制</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="local-api-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width:620px; text-align:left;">
+        <h3 style="color:#ffffff; margin-bottom:10px;">本地 API 配置</h3>
+        <p style="font-size:.85em;color:#cbd5e1;line-height:1.6;">本地設定只保存於此瀏覽器的 localStorage。使用優先順序：本地 API → 全域 API → 內建 Gemini 設定。</p>
+        <div style="display:grid; gap:10px;">
+            <select id="local-api-provider" class="code-input" onchange="updateApiProviderFields('local')">
+                <option value="gemini">Gemini</option>
+                <option value="openai">OpenAI 相容 API</option>
+                <option value="custom">自訂 OpenAI 相容服務</option>
+            </select>
+            <input type="password" id="local-api-key" class="code-input" placeholder="本地 API Key">
+            <input type="text" id="local-api-model" class="code-input" placeholder="模型，例如 gemini-2.5-flash">
+            <input type="url" id="local-api-endpoint" class="code-input" placeholder="自訂端點（OpenAI 相容 API 使用）">
+            <label style="color:#e2e8f0;"><input type="checkbox" id="local-api-enabled"> 啟用本地 API（優先使用）</label>
+            <div style="display:flex; gap:10px;">
+                <button class="main-btn btn-accent" style="margin-top:0;" onclick="saveLocalApiConfig()">儲存本地設定</button>
+                <button class="main-btn btn-danger" style="margin-top:0;" onclick="clearLocalApiConfig()">清除本地設定</button>
+                <button class="main-btn btn-secondary" style="margin-top:0;" onclick="closeLocalApiModal()">取消</button>
             </div>
         </div>
     </div>
@@ -1112,6 +1155,74 @@
     let quizUsageMap = {};
     let testHistoryRecords = []; 
     let feedbackDB = []; 
+    let globalApiConfig = {};
+
+    function defaultApiConfig() {
+        return { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-2.5-flash', endpoint: '' };
+    }
+
+    function readLocalApiConfig() {
+        try { return { ...defaultApiConfig(), ...(JSON.parse(localStorage.getItem('rms_local_api_config') || '{}')) }; }
+        catch (e) { return defaultApiConfig(); }
+    }
+
+    function getEffectiveApiConfig() {
+        const local = readLocalApiConfig();
+        if (local.enabled && local.apiKey) return { ...local, source: 'local' };
+        const global = { ...defaultApiConfig(), ...(globalApiConfig || {}) };
+        if (global.enabled && global.apiKey) return { ...global, source: 'global' };
+        return { ...defaultApiConfig(), enabled: true, provider: 'gemini', apiKey: window.EMBEDDED_GEMINI_API_KEY || '', model: window.EMBEDDED_GEMINI_MODEL || 'gemini-2.5-flash', source: 'embedded' };
+    }
+
+    function updateApiProviderFields(scope) {
+        const provider = document.getElementById(`${scope}-api-provider`).value;
+        const model = document.getElementById(`${scope}-api-model`);
+        const endpoint = document.getElementById(`${scope}-api-endpoint`);
+        if (provider === 'gemini') {
+            model.placeholder = '模型，例如 gemini-2.5-flash';
+            endpoint.placeholder = 'Gemini 不需要填端點';
+        } else {
+            model.placeholder = '模型，例如 gpt-4o-mini';
+            endpoint.placeholder = 'https://api.openai.com/v1/chat/completions';
+        }
+    }
+
+    function openLocalApiModal() {
+        const cfg = readLocalApiConfig();
+        document.getElementById('local-api-provider').value = cfg.provider;
+        document.getElementById('local-api-key').value = cfg.apiKey;
+        document.getElementById('local-api-model').value = cfg.model;
+        document.getElementById('local-api-endpoint').value = cfg.endpoint;
+        document.getElementById('local-api-enabled').checked = !!cfg.enabled;
+        updateApiProviderFields('local');
+        document.getElementById('local-api-modal').classList.remove('hidden');
+    }
+
+    function closeLocalApiModal() { document.getElementById('local-api-modal').classList.add('hidden'); }
+
+    function collectApiConfig(scope) {
+        return {
+            enabled: document.getElementById(`${scope}-api-enabled`).checked,
+            provider: document.getElementById(`${scope}-api-provider`).value,
+            apiKey: document.getElementById(`${scope}-api-key`).value.trim(),
+            model: document.getElementById(`${scope}-api-model`).value.trim(),
+            endpoint: document.getElementById(`${scope}-api-endpoint`).value.trim()
+        };
+    }
+
+    function saveLocalApiConfig() {
+        const cfg = collectApiConfig('local');
+        if (cfg.enabled && !cfg.apiKey) return alert('啟用本地 API 時必須輸入 API Key。');
+        localStorage.setItem('rms_local_api_config', JSON.stringify(cfg));
+        closeLocalApiModal();
+        alert('本地 API 設定已儲存；之後 AI 批改會優先使用本地 API。');
+    }
+
+    function clearLocalApiConfig() {
+        localStorage.removeItem('rms_local_api_config');
+        closeLocalApiModal();
+        alert('本地 API 設定已清除，系統將改用全域 API 或內建設定。');
+    }
 
     window.initFirebaseData = function(data) {
         let cachedPublicQuizzes = {};
@@ -1127,6 +1238,7 @@
             quizUsageMap = data.quizUsage || {};
             testHistoryRecords = data.testHistory || [];
             feedbackDB = data.feedback || [];
+            globalApiConfig = { ...(data.globalApiConfig || {}), apiKey: '' };
         } else {
             publicQuizzesMap = cachedPublicQuizzes;
         }
@@ -1702,6 +1814,13 @@
         document.getElementById('adminQuizCodeInput').value = '';
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
         document.getElementById('admin-logout-code-input').value = deviceLogoutCode || '';
+        const globalCfg = { ...defaultApiConfig(), ...(globalApiConfig || {}), apiKey: '' };
+        document.getElementById('global-api-provider').value = globalCfg.provider;
+        document.getElementById('global-api-key').value = globalCfg.apiKey || '';
+        document.getElementById('global-api-model').value = globalCfg.model || '';
+        document.getElementById('global-api-endpoint').value = globalCfg.endpoint || '';
+        document.getElementById('global-api-enabled').checked = !!globalCfg.enabled;
+        updateApiProviderFields('global');
         updateAdminStats();
         const limitUser = document.getElementById('admin-limit-user-select');
         limitUser.innerHTML = '<option value="">選擇用戶...</option>';
@@ -1727,6 +1846,16 @@
         deviceLogoutCode = code;
         saveToFirebase('deviceLogoutCode', deviceLogoutCode);
         alert('設備登出許可碼已更新並記錄於 Firebase。');
+    }
+
+    function saveGlobalApiConfig() {
+        if (!currentUser || currentUser.role !== 'admin') return alert('您無權執行此操作！');
+        const cfg = collectApiConfig('global');
+        cfg.apiKey = '';
+        if (cfg.enabled && !cfg.model) cfg.model = 'gemini-2.5-flash';
+        globalApiConfig = cfg;
+        saveToFirebase('globalApiConfig', globalApiConfig);
+        alert('全域 API 設定已儲存至 Firebase，所有使用者將可依優先順序使用。');
     }
 
     // 當停用區塊的下拉選單變更時，自動切換按鈕文字與樣式
@@ -2310,8 +2439,70 @@
         if (!document.fullscreenElement && quizActive) handleViolation();
     });
 
-    function isHandwritingQuestion(q) {
-        return q && (q.type === 'handwriting' || q.type === 'written' || q.type === 'calculation');
+    function getQuestionType(q) {
+        const raw = String((q && q.type) || '').toLowerCase().trim();
+        if (raw === 'handwriting' || raw === 'written' || raw === 'calculation' || raw === 'essay-writing') return 'handwriting';
+        if (raw === 'multiple' || raw === 'multi' || raw === 'multiple-choice' || raw === 'multi-select' || raw === 'checkbox' || raw === '複選題') return 'multiple';
+        if (raw === 'short' || raw === 'short-answer' || raw === 'text' || raw === 'essay' || raw === '簡答題') return 'short';
+        return 'single';
+    }
+
+    function isHandwritingQuestion(q) { return getQuestionType(q) === 'handwriting'; }
+
+    function optionLetter(value) {
+        const match = String(value ?? '').match(/^\s*\(?([A-Za-z])\)?(?:[\.、\s]|$)/);
+        return match ? match[1].toUpperCase() : String(value ?? '').trim();
+    }
+
+    function answerArray(q) {
+        const raw = q && (q.a ?? q.answer ?? q.answers);
+        if (Array.isArray(raw)) return raw.map(optionLetter).filter(Boolean).sort();
+        return String(raw ?? '').split(/[,，、\s]+/).map(optionLetter).filter(Boolean).sort();
+    }
+
+    function isAnswered(q, answer) {
+        const type = getQuestionType(q);
+        if (type === 'handwriting') return !!(answer && answer.answered);
+        if (type === 'multiple') return Array.isArray(answer) && answer.length > 0;
+        if (type === 'short') return !!(answer && String(answer.value ?? answer).trim());
+        return !!(typeof answer === 'object' ? answer.value : answer);
+    }
+
+    function getAnswerValue(answer) {
+        return answer && typeof answer === 'object' && 'value' in answer ? answer.value : answer;
+    }
+
+    function normalizeText(value) {
+        return String(value ?? '').trim().toLowerCase().replace(/[\s\u3000]/g, '');
+    }
+
+    function gradeShortAnswer(q, answer) {
+        const value = normalizeText(getAnswerValue(answer));
+        if (!value) return false;
+        const accepted = q.acceptedAnswers || q.answers || q.answer;
+        const candidates = Array.isArray(accepted) ? accepted : [accepted];
+        if (candidates.some(item => normalizeText(item) === value)) return true;
+        const keywords = Array.isArray(q.keywords) ? q.keywords : [];
+        return keywords.length > 0 && keywords.every(word => value.includes(normalizeText(word)));
+    }
+
+    function isAnswerCorrect(q, answer) {
+        const type = getQuestionType(q);
+        if (type === 'single') return optionLetter(getAnswerValue(answer)) === optionLetter(q.a);
+        if (type === 'multiple') {
+            const actual = (Array.isArray(answer) ? answer : []).map(optionLetter).sort();
+            const expected = answerArray(q);
+            return actual.length === expected.length && actual.every((item, index) => item === expected[index]);
+        }
+        if (type === 'short') return gradeShortAnswer(q, answer);
+        return false;
+    }
+
+    function displayCorrectAnswer(q) {
+        const type = getQuestionType(q);
+        if (type === 'multiple') return answerArray(q).join(', ');
+        if (type === 'handwriting' || type === 'short') return q.answer || q.a || '未設定';
+        return q.a || '未設定';
     }
 
     function saveHandwritingCanvas(index, canvas) {
@@ -2399,32 +2590,59 @@
             const card = document.createElement('div');
             card.className = `question-card ${i === currentActiveIndex ? '' : 'hidden'}`;
             card.id = `q-card-${i}`;
-            const typeLabel = isHandwritingQuestion(q) ? '<span style="color:#8b5cf6;">【手寫計算題】</span>' : '<span style="color:#2980b9;">【選擇題】</span>';
+            const type = getQuestionType(q);
+            const typeNames = { single: '單選題', multiple: '複選題', short: '簡答題', handwriting: '手寫計算題' };
+            const typeColors = { single: '#2980b9', multiple: '#0f766e', short: '#d97706', handwriting: '#8b5cf6' };
+            const typeLabel = `<span style="color:${typeColors[type]};">【${typeNames[type]}】</span>`;
             card.innerHTML = `<div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題 ${typeLabel}<br>${q.q}</div><div id="opts-${i}"></div>`;
             container.appendChild(card);
 
             const answerArea = document.getElementById(`opts-${i}`);
-            if (isHandwritingQuestion(q)) {
+            if (type === 'handwriting') {
                 answerArea.innerHTML = `<div class="handwriting-wrap"><canvas id="handwriting-canvas-${i}" class="handwriting-canvas" aria-label="手寫作答區"></canvas><div class="handwriting-tools"><button type="button" onclick="clearHandwriting(${i})">清除筆跡</button><span class="handwriting-status" id="handwriting-status-${i}">尚未作答</span></div></div>`;
                 const canvas = document.getElementById(`handwriting-canvas-${i}`);
                 setupHandwritingCanvas(i, canvas);
                 if (userAnswers[i] && userAnswers[i].answered) document.getElementById(`handwriting-status-${i}`).innerText = '已保存手寫內容';
+            } else if (type === 'short') {
+                const saved = getAnswerValue(userAnswers[i]) || '';
+                answerArea.innerHTML = `<textarea id="short-answer-${i}" class="chat-textarea" placeholder="請輸入答案"></textarea><div class="handwriting-status">字數：<span id="short-count-${i}">0</span></div>`;
+                const input = document.getElementById(`short-answer-${i}`);
+                input.value = saved;
+                const save = () => {
+                    userAnswers[i] = { type: 'short', value: input.value, answered: !!input.value.trim() };
+                    document.getElementById(`short-count-${i}`).innerText = input.value.length;
+                };
+                input.addEventListener('input', save);
             } else {
+                const selected = type === 'multiple' ? (Array.isArray(userAnswers[i]) ? userAnswers[i] : []) : [optionLetter(getAnswerValue(userAnswers[i]))];
                 (q.o || []).forEach(opt => {
                     const b = document.createElement('button');
                     b.className = 'opt-btn';
                     b.innerText = opt;
-                    const match = opt.match(/\(([A-D])\)/);
-                    const optLetter = match ? match[1] : opt;
-                    if (userAnswers[i] === optLetter) b.classList.add('selected');
+                    const letter = optionLetter(opt);
+                    if (selected.includes(letter)) b.classList.add('selected');
                     b.onclick = () => {
-                        userAnswers[i] = optLetter;
-                        Array.from(b.parentElement.children).forEach(x => x.classList.remove('selected'));
-                        b.classList.add('selected');
-                        setTimeout(() => { if (currentActiveIndex < currentQuestions.length - 1) navigateQuestion(1); }, 300);
+                        if (type === 'multiple') {
+                            const values = Array.isArray(userAnswers[i]) ? userAnswers[i].slice() : [];
+                            const pos = values.indexOf(letter);
+                            if (pos >= 0) values.splice(pos, 1); else values.push(letter);
+                            userAnswers[i] = values.sort();
+                            b.classList.toggle('selected', values.includes(letter));
+                        } else {
+                            userAnswers[i] = letter;
+                            Array.from(b.parentElement.children).forEach(x => x.classList.remove('selected'));
+                            b.classList.add('selected');
+                            setTimeout(() => { if (currentActiveIndex < currentQuestions.length - 1) navigateQuestion(1); }, 300);
+                        }
                     };
                     answerArea.appendChild(b);
                 });
+                if (type === 'multiple') {
+                    const hint = document.createElement('div');
+                    hint.className = 'handwriting-status';
+                    hint.innerText = '複選題：可選擇一個或多個答案';
+                    answerArea.appendChild(hint);
+                }
             }
         });
         if (window.MathJax) MathJax.typesetPromise([container]);
@@ -2440,7 +2658,7 @@
     }
 
     function confirmSubmit() { 
-        const answeredCount = Object.keys(userAnswers).length;
+        const answeredCount = currentQuestions.filter((q, i) => isAnswered(q, userAnswers[i])).length;
         if(answeredCount < currentQuestions.length) {
             if(!confirm(`尚有 ${currentQuestions.length - answeredCount} 題未作答，確定要提早提交？`)) return;
         } else {
@@ -2469,18 +2687,19 @@
         let answeredCount = 0;
         let wrongCount = 0;
         currentQuestions.forEach((q, i) => {
-            const hand = isHandwritingQuestion(q);
-            const maxPoints = hand ? Math.max(1, Number(q.score) || 10) : 1;
+            const type = getQuestionType(q);
+            const hand = type === 'handwriting';
+            const maxPoints = Math.max(1, Number(q.score) || (hand ? 10 : 1));
             possiblePoints += maxPoints;
             const answer = userAnswers[i];
-            const answered = hand ? !!(answer && answer.answered) : !!answer;
+            const answered = isAnswered(q, answer);
             if (answered) answeredCount++;
             let isRight = false;
-            let answerText = hand ? (answered ? '已提交手寫內容，等待 AI 批改' : '未作答') : (answer || '未填答');
-            let correctContent = hand ? (q.answer || '依題庫標準答案批改') : ((q.o || []).find(str => str.trim().startsWith(`(${q.a})`)) || q.a || '未設定');
+            let answerText = hand ? (answered ? '已提交手寫內容，等待 AI 批改' : '未作答') : (getAnswerValue(answer) || '未填答');
+            let correctContent = displayCorrectAnswer(q);
             if (!hand) {
-                isRight = answer === q.a;
-                if (isRight) { correctCount++; earnedPoints += 1; } else if (answered) wrongCount++;
+                isRight = isAnswerCorrect(q, answer);
+                if (isRight) { correctCount++; earnedPoints += maxPoints; } else if (answered) wrongCount++;
             } else if (handwritingResults[i]) {
                 const result = handwritingResults[i];
                 earnedPoints += Math.max(0, Math.min(maxPoints, Number(result.score) || 0));
@@ -2488,11 +2707,13 @@
                 answerText = result.recognizedAnswer || answerText;
                 if (!isRight && answered) wrongCount++;
             }
+            if (Array.isArray(answerText)) answerText = answerText.join(', ');
             if (!isRight && answered) originalWrongQuestions.push({ index: i, qObj: q, userAns: answerText });
-            reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (hand && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
+            const subjective = hand || type === 'short';
+            reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (subjective && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
                 <p><b>題目 ${i+1}: ${q.q}</b></p>
                 <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">標準答案：${escapeHtml(String(correctContent))}</span></p>
-                ${hand ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
+                ${subjective ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
             </div>`;
         });
 
@@ -2501,11 +2722,14 @@
         calculatedScore = possiblePoints ? Math.round(earnedPoints * 100 / possiblePoints) : 0;
 
         let testCountKey = `test_count_${window.currentQuiz.name}`;
-        let localCount = (parseInt(localStorage.getItem(testCountKey)) || 0) + 1;
-        localStorage.setItem(testCountKey, localCount);
-
-        let totalTestsRun = (parseInt(localStorage.getItem('total_tests_run')) || 0) + 1;
-        localStorage.setItem('total_tests_run', totalTestsRun);
+        let localCount = parseInt(localStorage.getItem(testCountKey)) || 0;
+        let totalTestsRun = parseInt(localStorage.getItem('total_tests_run')) || 0;
+        if (!isWrongQuestionsMode) {
+            localCount += 1;
+            totalTestsRun += 1;
+            localStorage.setItem(testCountKey, localCount);
+            localStorage.setItem('total_tests_run', totalTestsRun);
+        }
 
         const formatTimeFull = (date) => {
             const y = date.getFullYear() - 1911;
@@ -2604,10 +2828,10 @@
         let earned = 0, possible = 0;
         questions.forEach((q, i) => {
             const hand = isHandwritingQuestion(q);
-            const max = hand ? Math.max(1, Number(q.score) || 10) : 1;
+            const max = Math.max(1, Number(q.score) || (hand ? 10 : 1));
             possible += max;
-            if (hand) earned += Math.max(0, Math.min(max, Number(handwritingResults[i] && handwritingResults[i].score) || 0));
-            else if (userAnswers[i] === q.a) earned += 1;
+            if (hand || getQuestionType(q) === 'short') earned += Math.max(0, Math.min(max, Number(handwritingResults[i] && handwritingResults[i].score) || 0));
+            else if (isAnswerCorrect(q, userAnswers[i])) earned += max;
         });
         calculatedScore = possible ? Math.round(earned * 100 / possible) : 0;
         const scoreEl = document.getElementById('res-score');
@@ -2621,7 +2845,10 @@
 
     async function gradePendingHandwriting(questions, quizCode) {
         if (handwritingGradingInProgress) return;
-        const pending = questions.map((q, i) => ({ q, i })).filter(({q, i}) => isHandwritingQuestion(q) && userAnswers[i] && userAnswers[i].answered && !handwritingResults[i]);
+        const pending = questions.map((q, i) => ({ q, i })).filter(({q, i}) => {
+            const type = getQuestionType(q);
+            return (type === 'handwriting' || type === 'short') && isAnswered(q, userAnswers[i]) && !handwritingResults[i];
+        });
         if (!window.gradeHandwritingWithFirebaseAI) {
             pending.forEach(({i}) => {
                 const feedback = document.querySelector(`#review-card-${i} .handwriting-feedback`);
@@ -2634,13 +2861,10 @@
         for (const item of pending) {
             const q = item.q, i = item.i;
             try {
-                const result = await window.gradeHandwritingWithFirebaseAI({
-                    question: q.q,
-                    standardAnswer: q.answer || '',
-                    rubric: q.rubric || '請依照計算過程與最後答案給分。',
-                    maxScore: Number(q.score) || 10,
-                    imageData: userAnswers[i].imageData
-                });
+                const type = getQuestionType(q);
+                const result = type === 'short'
+                    ? await window.gradeShortAnswerWithGemini({ question: q.q, studentAnswer: getAnswerValue(userAnswers[i]), standardAnswer: q.answer || q.a || '', rubric: q.rubric, maxScore: Number(q.score) || 10 })
+                    : await window.gradeHandwritingWithFirebaseAI({ question: q.q, standardAnswer: q.answer || '', rubric: q.rubric || '請依照計算過程與最後答案給分。', maxScore: Number(q.score) || 10, imageData: userAnswers[i].imageData });
                 handwritingResults[i] = result;
                 refreshScoreAfterHandwritingAI(questions);
                 const card = document.getElementById(`review-card-${i}`);
@@ -2789,9 +3013,11 @@
         if (includeWrong && originalWrongQuestions.length > 0) {
             let html = '<div style="margin-top:25px; border-top:1px solid #334155; padding-top:15px;"><h3 style="color:#ef4444; margin-bottom:15px;">錯題解析與參考答案</h3>';
             originalWrongQuestions.forEach((item) => {
-                const correctContent = item.qObj.o.find(str => str.trim().startsWith(`(${item.qObj.a})`));
-                const userAnsText = item.userAns ? `(${item.userAns})` : '未填答';
-                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${item.qObj.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${item.qObj.o.join(' | ')}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${userAnsText}</span> | 正確答案：<span style="color:#22c55e; font-weight:bold;">${correctContent}</span></div></div>`;
+                const q = item.qObj;
+                const options = Array.isArray(q.o) ? q.o.join(' | ') : '非選擇題';
+                const correctContent = displayCorrectAnswer(q);
+                const userAnsText = Array.isArray(item.userAns) ? item.userAns.join(', ') : (item.userAns || '未填答');
+                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(userAnsText))}</span> | 正確答案：<span style="color:#22c55e; font-weight:bold;">${escapeHtml(String(correctContent))}</span></div></div>`;
             });
             html += '</div>';
             pdfWrongList.innerHTML = html;
@@ -2823,7 +3049,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
     import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
-    import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-ai.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
@@ -2840,30 +3065,55 @@
     let analytics = null;
     try { analytics = getAnalytics(app); } catch (analyticsError) { console.warn('Analytics 初始化略過：', analyticsError); }
     const db = getDatabase(app);
-    let handwritingModel = null;
-    try {
-        const ai = getAI(app, { backend: new GoogleAIBackend() });
-        handwritingModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    } catch (setupError) {
-        console.error('Firebase AI Logic 初始化失敗：', setupError);
-        window.firebaseAISetupError = setupError.message || String(setupError);
+    // 不在 HTML 保存任何 AI Secret；全域 Key 應放在 Cloud Functions Secret Manager。
+    window.EMBEDDED_GEMINI_API_KEY = '';
+    window.EMBEDDED_GEMINI_MODEL = 'gemini-2.5-flash';
+    const AI_PROXY_URL = 'https://asia-southeast1-rms-quiz-system-dbserver.cloudfunctions.net/aiProxy';
+
+    async function callGemini(prompt, imageData) {
+        const cfg = getEffectiveApiConfig();
+        const local = readLocalApiConfig();
+        const useLocalDirect = local.enabled && !!local.apiKey;
+        if (!useLocalDirect) {
+            const response = await fetch(AI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider: cfg.provider, model: cfg.model, endpoint: cfg.endpoint, prompt, imageData })
+            });
+            const responseBody = await response.json();
+            if (!response.ok) throw new Error(responseBody?.error || `AI 代理錯誤（HTTP ${response.status}）`);
+            return responseBody.result || responseBody;
+        }
+        let url, body, headers = { 'Content-Type': 'application/json' };
+        const localCfg = local;
+        if (localCfg.provider === 'gemini') {
+            const parts = [{ text: prompt }];
+            if (imageData) parts.push({ inline_data: { mime_type: 'image/png', data: imageData.split(',')[1] } });
+            url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(localCfg.model || 'gemini-2.5-flash')}:generateContent?key=${encodeURIComponent(localCfg.apiKey)}`;
+            body = { contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } };
+        } else {
+            url = localCfg.endpoint || 'https://api.openai.com/v1/chat/completions';
+            headers.Authorization = `Bearer ${localCfg.apiKey}`;
+            const content = [{ type: 'text', text: prompt }];
+            if (imageData) content.push({ type: 'image_url', image_url: { url: imageData } });
+            body = { model: localCfg.model || 'gpt-4o-mini', messages: [{ role: 'user', content }], temperature: 0.1, response_format: { type: 'json_object' } };
+        }
+        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+        const responseBody = await response.json();
+        if (!response.ok) throw new Error(responseBody?.error?.message || `AI API 錯誤（HTTP ${response.status}）`);
+        const text = (localCfg.provider === 'gemini' ? responseBody?.candidates?.[0]?.content?.parts?.[0]?.text : responseBody?.choices?.[0]?.message?.content)?.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+        if (!text) throw new Error('AI 沒有回傳有效內容');
+        return JSON.parse(text);
     }
 
     window.gradeHandwritingWithFirebaseAI = async function(payload) {
-        if (!handwritingModel) throw new Error(window.firebaseAISetupError || 'Firebase AI Logic 尚未初始化');
-        const imageBase64 = payload.imageData.split(',')[1];
         const prompt = `你是嚴謹的數學老師，請批改學生的手寫計算題。
 題目：${payload.question}
 標準答案：${payload.standardAnswer || '未提供'}
 配分：${payload.maxScore}
 評分規則：${payload.rubric}
 請辨識手寫計算過程與最後答案，依正確性及步驟給分。只回傳 JSON，不要 Markdown，格式：{"recognizedAnswer":"","isCorrect":false,"score":0,"maxScore":${payload.maxScore},"feedback":""}`;
-        const result = await handwritingModel.generateContent([
-            { text: prompt },
-            { inlineData: { mimeType: 'image/png', data: imageBase64 } }
-        ]);
-        const text = result.response.text().replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-        const parsed = JSON.parse(text);
+        const parsed = await callGemini(prompt, payload.imageData);
         parsed.maxScore = Number(payload.maxScore) || parsed.maxScore || 10;
         parsed.score = Math.max(0, Math.min(parsed.maxScore, Number(parsed.score) || 0));
         const email = localStorage.getItem('rms_device_registered') || 'anonymous';
@@ -2871,6 +3121,14 @@
         if (window.fbSetData) {
             window.fbSetData(`handwritingGrades/${key}`, { ...parsed, question: payload.question, quizCode: document.getElementById('quiz-code').value.trim(), timestamp: new Date().toISOString() });
         }
+        return parsed;
+    };
+
+    window.gradeShortAnswerWithGemini = async function(payload) {
+        const prompt = `你是嚴謹的老師，請批改簡答題。題目：${payload.question}\n學生答案：${payload.studentAnswer}\n參考答案：${payload.standardAnswer || '未提供'}\n評分規則：${payload.rubric || '依內容正確性與關鍵概念給分'}\n配分：${payload.maxScore}\n只回傳 JSON：{"recognizedAnswer":"","isCorrect":false,"score":0,"maxScore":${payload.maxScore},"feedback":""}`;
+        const parsed = await callGemini(prompt);
+        parsed.maxScore = Number(payload.maxScore) || parsed.maxScore || 10;
+        parsed.score = Math.max(0, Math.min(parsed.maxScore, Number(parsed.score) || 0));
         return parsed;
     };
 
@@ -2896,6 +3154,7 @@
                 userQuizLimits: {},
                 quizUsage: {},
                 handwritingGrades: {},
+                globalApiConfig: { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-2.5-flash', endpoint: '' },
                 testHistory: [],
                 feedback: []
             };
