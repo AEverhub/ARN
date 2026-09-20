@@ -1,6 +1,5 @@
 window.currentQuiz = {
-    name: "混合測試題庫",
-    password: "1234",
+    name: "公開測試題庫",
     time: 15,
     data: [
         {
