@@ -608,6 +608,73 @@
         .admin-stat-card { background:#fff; border:1px solid #cbd5e1; border-left:4px solid #20344d; padding:12px; }
         .admin-stat-card strong { display:block; color:#64748b; font-size:.82em; }
         .admin-stat-card span { display:block; color:#142235; font-size:1.45em; font-weight:700; margin-top:4px; }
+
+        /* 管理員面板手機版：保留功能順序，將操作列改為易點擊的單欄布局。 */
+        @media (max-width: 600px) {
+            #admin-screen {
+                padding: 0;
+            }
+            #admin-screen > p {
+                line-height: 1.6;
+            }
+            #admin-screen > div:not(.admin-stat-grid) {
+                padding: 14px !important;
+            }
+            #admin-screen .admin-stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+            #admin-screen .admin-stat-card {
+                min-width: 0;
+                padding: 10px 8px;
+            }
+            #admin-screen .admin-stat-card span {
+                font-size: 1.25em;
+            }
+            #admin-screen [style*="display:flex"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            #admin-screen [style*="display:flex"] > * {
+                width: 100% !important;
+                min-width: 0 !important;
+                flex: none !important;
+                box-sizing: border-box;
+            }
+            #admin-screen [style*="display:grid"] {
+                grid-template-columns: 1fr !important;
+            }
+            #admin-screen .code-input,
+            #admin-screen .main-btn {
+                width: 100% !important;
+                min-width: 0 !important;
+                box-sizing: border-box;
+            }
+            #admin-screen .main-btn {
+                min-height: 44px;
+                margin-top: 0 !important;
+            }
+            #admin-screen h4 {
+                line-height: 1.45;
+            }
+            #admin-history-modal .modal-card,
+            #rank-modal .modal-card {
+                width: calc(100% - 20px);
+                max-height: 88vh;
+                overflow-y: auto;
+                padding: 16px 12px;
+            }
+            #admin-history-modal-content,
+            #rank-modal-content {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            #admin-history-modal-content table,
+            #rank-modal-content table {
+                min-width: 520px;
+            }
+        }
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -1157,6 +1224,8 @@
     let testHistoryRecords = []; 
     let feedbackDB = []; 
     let globalApiConfig = {};
+    let quizMetadataCache = {};
+    let quizMetadataLoadPromises = {};
 
     function defaultApiConfig() {
         return { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-flash-latest', endpoint: '' };
@@ -2143,6 +2212,39 @@
         alert("重複註冊驗證碼更新成功！");
     }
 
+    function loadQuizMetadata(code) {
+        if (quizMetadataCache[code]) return Promise.resolve(quizMetadataCache[code]);
+        if (quizMetadataLoadPromises[code]) return quizMetadataLoadPromises[code];
+        quizMetadataLoadPromises[code] = new Promise(resolve => {
+            const scriptId = `preload-quiz-${code.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+            const old = document.getElementById(scriptId);
+            if (old) old.remove();
+            // 題庫檔案仍維持原格式；這裡只在載入後讀取其全域物件並快取名稱。
+            window.currentQuiz = null;
+            const legacyKeysBefore = new Set(Object.keys(window).filter(key => /^bankData_/.test(key)));
+            const script = document.createElement('script');
+            script.id = scriptId;
+            script.src = `${code}.js`;
+            script.onload = () => {
+                let quiz = window.currentQuiz;
+                // 支援 Math.js 這類既有 bankData_* 格式，不改動題庫檔案本身。
+                if (!quiz) {
+                    const legacyKey = Object.keys(window).find(key => !legacyKeysBefore.has(key) && /^bankData_/.test(key) && window[key] && Array.isArray(window[key].questions));
+                    const legacy = legacyKey ? window[legacyKey] : null;
+                    if (legacy) quiz = { name: legacy.title, data: legacy.questions };
+                }
+                quizMetadataCache[code] = quiz && quiz.name ? { name: quiz.name } : { name: `題庫 ${code}` };
+                resolve(quizMetadataCache[code]);
+            };
+            script.onerror = () => {
+                quizMetadataCache[code] = { name: `無法載入 (${code})` };
+                resolve(quizMetadataCache[code]);
+            };
+            document.head.appendChild(script);
+        });
+        return quizMetadataLoadPromises[code];
+    }
+
     function renderPublicQuizzesList() {
         const listContainer = document.getElementById('public-quizzes-list');
         listContainer.innerHTML = '';
@@ -2154,32 +2256,33 @@
         }
 
         publicCodes.forEach(code => {
-            const scriptId = `preload-quiz-${code}`;
-            if (!document.getElementById(scriptId)) {
-                const s = document.createElement('script');
-                s.id = scriptId;
-                s.src = `${code}.js`;
-                s.onload = () => {
-                    renderPublicQuizzesList(); 
-                };
-                document.head.appendChild(s);
-            }
-
-            const displayName = (window.currentQuiz && window.currentQuiz.name) ? window.currentQuiz.name : `載入中 (${code})...`;
+            const displayName = quizMetadataCache[code]?.name || `載入中 (${code})...`;
 
             const item = document.createElement('div');
             item.className = 'public-quiz-item';
             const limitState = getQuizLimitState(code);
             const lockMark = limitState.locked ? '🔒 ' : '';
             const lockTitle = limitState.locked ? '（點擊查看限制提示）' : '';
-            item.innerHTML = `
-                <span><b>${lockMark}${displayName}</b>${lockTitle}</span>
-                <div class="quiz-action-btns">
-                    <button class="btn-sm btn-rank" onclick="openRankModalForQuiz('${code}')">排行榜</button>
-                    <button class="btn-sm btn-start-quiz" onclick="quickStartQuiz('${code}')">進入考試</button>
-                </div>
-            `;
+            item.innerHTML = `<span><b>${lockMark}${displayName}</b>${lockTitle}</span><div class="quiz-action-btns"></div>`;
+            const buttons = item.querySelector('.quiz-action-btns');
+            const rankButton = document.createElement('button');
+            rankButton.className = 'btn-sm btn-rank';
+            rankButton.innerText = '排行榜';
+            rankButton.onclick = () => openRankModalForQuiz(code);
+            const startButton = document.createElement('button');
+            startButton.className = 'btn-sm btn-start-quiz';
+            startButton.innerText = '進入考試';
+            startButton.onclick = () => quickStartQuiz(code);
+            buttons.append(rankButton, startButton);
             listContainer.appendChild(item);
+        });
+        const missingMetadataCodes = publicCodes.filter(code => !quizMetadataCache[code]);
+        if (missingMetadataCodes.length === 0) return;
+        missingMetadataCodes.reduce(
+            (chain, code) => chain.then(() => loadQuizMetadata(code)),
+            Promise.resolve()
+        ).then(() => {
+            renderPublicQuizzesList();
         });
     }
 
@@ -2351,9 +2454,33 @@
 
     function loadQuizScript(code, callback) {
         const old = document.getElementById('q-script'); if(old) old.remove();
+        window.currentQuiz = null;
+        const legacyKeysBefore = new Set(Object.keys(window).filter(key => /^bankData_/.test(key)));
         const s = document.createElement('script');
         s.id = 'q-script'; s.src = `${code}.js`; 
         s.onload = () => {
+            if (!window.currentQuiz) {
+                const legacyKey = Object.keys(window).find(key => !legacyKeysBefore.has(key) && /^bankData_/.test(key) && window[key] && Array.isArray(window[key].questions));
+                const legacy = legacyKey ? window[legacyKey] : null;
+                if (legacy) {
+                    window.currentQuiz = {
+                        name: legacy.title || code,
+                        time: legacy.time || 20,
+                        data: legacy.questions.map(item => ({
+                            q: item.q || item.question,
+                            o: item.o || item.options || [],
+                            a: (item.a !== undefined ? item.a : item.ans) !== undefined
+                                ? (Array.isArray(item.a !== undefined ? item.a : item.ans)
+                                    ? (item.a !== undefined ? item.a : item.ans).map(value => String.fromCharCode(65 + Number(value)))
+                                    : (typeof (item.a !== undefined ? item.a : item.ans) === 'number'
+                                        ? String.fromCharCode(65 + (item.a !== undefined ? item.a : item.ans))
+                                        : (item.a !== undefined ? item.a : item.ans)))
+                                : '',
+                            type: item.type || 'single'
+                        }))
+                    };
+                }
+            }
             if(window.currentQuiz) {
                 document.getElementById('status-msg').innerText = `已成功讀取題庫：${window.currentQuiz.name}`;
                 document.getElementById('password-area').classList.add('hidden');
