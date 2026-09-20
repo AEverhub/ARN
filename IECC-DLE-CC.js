@@ -1,5 +1,5 @@
 window.currentQuiz = {
-    "name": "工業電子丙級學科題庫（去除有圖題目）",
+    "name": "工丙學科(不含圖片題)",
     "time": 60,
     "data": [
         {
