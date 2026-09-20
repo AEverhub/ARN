@@ -15,10 +15,10 @@ window.currentQuiz = {
 
         {
             type: "handwriting",
-            q: "請寫出你的名字",
-            answer: "文字可識別",
+            q: "請計算：125 × 24，請寫出完整計算過程與最後答案。",
+            answer: "3000",
             score: 10,
-            rubric: "文字可識別就給分"
+            rubric: "答案正確且計算過程合理得 10 分；答案正確但過程不完整得 8 分；過程合理但答案錯誤得部分分數。"
         },
 
         {
@@ -30,4 +30,14 @@ window.currentQuiz = {
                 "(D) 改成遞迴"
             ],
             a: "C"
-        };
+        },
+
+        {
+            type: "handwriting",
+            q: "請解方程式：2x + 6 = 20，請寫出移項過程與 x 的答案。",
+            answer: "x = 7",
+            score: 10,
+            rubric: "需要檢查移項及除法過程；答案與過程完整得 10 分。"
+        }
+    ]
+};
