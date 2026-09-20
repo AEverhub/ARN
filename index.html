@@ -919,8 +919,8 @@
             </div>
             <p style="font-size:.82em;color:#64748b;margin-top:-4px;">普通用戶登出時需輸入此許可碼；設定會記錄於 Firebase。</p>
 
-            <h4 style="margin-top:20px; color:var(--primary);">4.5 全域 AI API 設定</h4>
-            <p style="font-size:.82em;color:#b45309;margin-top:-4px;">此設定會記錄於 Firebase，所有使用者共用。API 金鑰會傳到使用者瀏覽器，請只使用專用、限額及可撤銷的金鑰。</p>
+            <h4 style="margin-top:20px; color:#64748b;">4.5 全域 AI API 設定（目前停用）</h4>
+            <p style="font-size:.82em;color:#64748b;margin-top:-4px;">目前系統只允許各使用者使用自己的本地 API；此區塊保留相容性但不會參與 AI 批改，也不會使用 Firebase 全域 API。</p>
             <div style="display:grid; gap:8px; margin-bottom:10px;">
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <select id="global-api-provider" class="code-input" style="margin:0; flex:1; min-width:150px;" onchange="updateApiProviderFields('global')">
@@ -931,11 +931,11 @@
                     <input type="password" id="global-api-key" class="code-input" style="margin:0; flex:2; min-width:220px;" placeholder="全域 Key 由 Firebase Secret Manager 管理" autocomplete="off">
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <input type="text" id="global-api-model" class="code-input" style="margin:0; flex:1;" placeholder="模型，例如 gemini-2.5-flash">
+                    <input type="text" id="global-api-model" class="code-input" style="margin:0; flex:1;" placeholder="模型，例如 gemini-flash-latest">
                     <input type="url" id="global-api-endpoint" class="code-input" style="margin:0; flex:2;" placeholder="自訂端點（OpenAI 相容 API 使用）">
                     <label style="display:flex; align-items:center; gap:6px; color:#334155;"><input type="checkbox" id="global-api-enabled"> 啟用全域 API</label>
                 </div>
-                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="saveGlobalApiConfig()">儲存全域 API 設定</button>
+                <button class="main-btn btn-secondary" style="width:auto; margin-top:0;" disabled>全域 API 已停用</button>
             </div>
 
             <h4 style="margin-top:20px; color:var(--primary);">5. 重複註冊驗證碼設定</h4>
@@ -994,7 +994,7 @@
 <div id="local-api-modal" class="modal-overlay hidden">
     <div class="modal-card" style="max-width:620px; text-align:left;">
         <h3 style="color:#ffffff; margin-bottom:10px;">本地 API 配置</h3>
-        <p style="font-size:.85em;color:#cbd5e1;line-height:1.6;">本地設定只保存於此瀏覽器的 localStorage。使用優先順序：本地 API → 全域 API → 內建 Gemini 設定。</p>
+        <p style="font-size:.85em;color:#cbd5e1;line-height:1.6;">本地設定只保存於此瀏覽器的 localStorage。目前只允許使用本地 API；選擇題不需要 API，簡答題與手寫題會在開始前檢查 API。</p>
         <div style="display:grid; gap:10px;">
             <select id="local-api-provider" class="code-input" onchange="updateApiProviderFields('local')">
                 <option value="gemini">Gemini</option>
@@ -1002,9 +1002,10 @@
                 <option value="custom">自訂 OpenAI 相容服務</option>
             </select>
             <input type="password" id="local-api-key" class="code-input" placeholder="本地 API Key">
-            <input type="text" id="local-api-model" class="code-input" placeholder="模型，例如 gemini-2.5-flash">
+            <input type="text" id="local-api-model" class="code-input" placeholder="模型，例如 gemini-flash-latest">
             <input type="url" id="local-api-endpoint" class="code-input" placeholder="自訂端點（OpenAI 相容 API 使用）">
             <label style="color:#e2e8f0;"><input type="checkbox" id="local-api-enabled"> 啟用本地 API（優先使用）</label>
+            <div id="local-api-status" style="font-size:.88em; min-height:20px;"></div>
             <div style="display:flex; gap:10px;">
                 <button class="main-btn btn-accent" style="margin-top:0;" onclick="saveLocalApiConfig()">儲存本地設定</button>
                 <button class="main-btn btn-danger" style="margin-top:0;" onclick="clearLocalApiConfig()">清除本地設定</button>
@@ -1158,7 +1159,7 @@
     let globalApiConfig = {};
 
     function defaultApiConfig() {
-        return { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-2.5-flash', endpoint: '' };
+        return { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-flash-latest', endpoint: '' };
     }
 
     function readLocalApiConfig() {
@@ -1168,10 +1169,7 @@
 
     function getEffectiveApiConfig() {
         const local = readLocalApiConfig();
-        if (local.enabled && local.apiKey) return { ...local, source: 'local' };
-        const global = { ...defaultApiConfig(), ...(globalApiConfig || {}) };
-        if (global.enabled && global.apiKey) return { ...global, source: 'global' };
-        return { ...defaultApiConfig(), enabled: true, provider: 'gemini', apiKey: window.EMBEDDED_GEMINI_API_KEY || '', model: window.EMBEDDED_GEMINI_MODEL || 'gemini-2.5-flash', source: 'embedded' };
+        return { ...local, source: 'local-only' };
     }
 
     function updateApiProviderFields(scope) {
@@ -1179,7 +1177,7 @@
         const model = document.getElementById(`${scope}-api-model`);
         const endpoint = document.getElementById(`${scope}-api-endpoint`);
         if (provider === 'gemini') {
-            model.placeholder = '模型，例如 gemini-2.5-flash';
+            model.placeholder = '模型，例如 gemini-flash-latest';
             endpoint.placeholder = 'Gemini 不需要填端點';
         } else {
             model.placeholder = '模型，例如 gpt-4o-mini';
@@ -1194,6 +1192,9 @@
         document.getElementById('local-api-model').value = cfg.model;
         document.getElementById('local-api-endpoint').value = cfg.endpoint;
         document.getElementById('local-api-enabled').checked = !!cfg.enabled;
+        const status = document.getElementById('local-api-status');
+        status.innerText = cfg.lastTestOk === false ? `API 無法使用：${cfg.lastTestError || '請重新測試或更新 API'}` : (cfg.lastTestOk ? 'API 測試成功，可使用。' : '尚未測試 API。');
+        status.style.color = cfg.lastTestOk === false ? '#dc2626' : '#16a34a';
         updateApiProviderFields('local');
         document.getElementById('local-api-modal').classList.remove('hidden');
     }
@@ -1210,18 +1211,40 @@
         };
     }
 
-    function saveLocalApiConfig() {
+    async function saveLocalApiConfig() {
         const cfg = collectApiConfig('local');
         if (cfg.enabled && !cfg.apiKey) return alert('啟用本地 API 時必須輸入 API Key。');
+        cfg.lastTestOk = false;
+        cfg.lastTestError = '正在測試 API...';
         localStorage.setItem('rms_local_api_config', JSON.stringify(cfg));
-        closeLocalApiModal();
-        alert('本地 API 設定已儲存；之後 AI 批改會優先使用本地 API。');
+        const status = document.getElementById('local-api-status');
+        status.innerText = '正在測試 API...'; status.style.color = '#d97706';
+        if (!cfg.enabled) {
+            closeLocalApiModal();
+            return alert('本地 API 已停用；選擇題仍可正常使用。');
+        }
+        try {
+            if (window.testLocalApiConfig) await window.testLocalApiConfig(cfg);
+            cfg.lastTestOk = true;
+            cfg.lastTestError = '';
+        } catch (error) {
+            cfg.lastTestOk = false;
+            cfg.lastTestError = error.message || 'API 無法使用';
+        }
+        localStorage.setItem('rms_local_api_config', JSON.stringify(cfg));
+        if (cfg.lastTestOk) {
+            closeLocalApiModal();
+            alert('本地 API 測試成功，之後 AI 批改會使用此 API。');
+        } else {
+            status.innerText = `API 無法使用：${cfg.lastTestError}`;
+            status.style.color = '#dc2626';
+        }
     }
 
     function clearLocalApiConfig() {
         localStorage.removeItem('rms_local_api_config');
         closeLocalApiModal();
-        alert('本地 API 設定已清除，系統將改用全域 API 或內建設定。');
+        alert('本地 API 設定已清除；選擇題仍可正常使用，主觀題需重新設定 API。');
     }
 
     window.initFirebaseData = function(data) {
@@ -1238,7 +1261,7 @@
             quizUsageMap = data.quizUsage || {};
             testHistoryRecords = data.testHistory || [];
             feedbackDB = data.feedback || [];
-            globalApiConfig = { ...(data.globalApiConfig || {}), apiKey: '' };
+            globalApiConfig = {};
         } else {
             publicQuizzesMap = cachedPublicQuizzes;
         }
@@ -2273,6 +2296,36 @@
         openQuizConfirmModal();
     }
 
+    function normalizeQuizDataset(quiz) {
+        const source = quiz && (quiz.data ?? quiz.questions ?? quiz.items ?? quiz.questionBank);
+        let list;
+        if (Array.isArray(source)) list = source;
+        else if (source && typeof source === 'object') list = Object.values(source);
+        else list = [];
+        return list.filter(Boolean).map((item) => {
+            if (typeof item === 'string') return { q: item, o: [], a: '' };
+            const q = { ...item };
+            if (!q.q && q.question) q.q = q.question;
+            if (!q.o && Array.isArray(q.options)) q.o = q.options;
+            if (q.a === undefined && q.answer !== undefined && getQuestionType(q) !== 'short' && getQuestionType(q) !== 'handwriting') q.a = q.answer;
+            if (!q.type && Array.isArray(q.o)) q.type = 'single';
+            return q;
+        }).filter(q => q.q !== undefined && q.q !== null);
+    }
+
+    function quizNeedsAI(questions) {
+        return questions.some(q => ['short', 'handwriting'].includes(getQuestionType(q)));
+    }
+
+    function ensureLocalApiForQuestions(questions) {
+        if (!quizNeedsAI(questions)) return true;
+        const local = readLocalApiConfig();
+        if (local.enabled && local.apiKey && local.lastTestOk !== false) return true;
+        alert('此題庫包含需要 AI 辨識／批改的簡答題或手寫題，但尚未設定本地 API。請先在「本地 API 配置」輸入並啟用 API；純選擇題不需要 API。');
+        openLocalApiModal();
+        return false;
+    }
+
     function cancelQuizEntry() {
         clearInterval(quizEntryCountdownTimer);
         document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
@@ -2285,11 +2338,15 @@
         document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
         const state = getQuizLimitState(pendingQuizCode);
         if (!state.allowed) return alert(state.message);
+        const entryDataset = normalizeQuizDataset(window.currentQuiz);
+        if (!ensureLocalApiForQuestions(entryDataset)) return;
         if (!isWrongQuestionsMode && !consumeQuizAttempt(pendingQuizCode)) return;
         requestFullScreen();
         setMenuDisabledState(true);
         isWrongQuestionsMode = false;
-        beginQuiz(JSON.parse(JSON.stringify(window.currentQuiz.data)).sort(() => Math.random() - 0.5));
+        const dataset = entryDataset;
+        if (!dataset.length) return alert('題庫沒有可用的題目，請確認 data／questions 是否為題目陣列。');
+        beginQuiz(JSON.parse(JSON.stringify(dataset)).sort(() => Math.random() - 0.5));
     }
 
     function loadQuizScript(code, callback) {
@@ -2884,11 +2941,12 @@
 
     function startWrongQuestionsQuiz() {
         if(originalWrongQuestions.length === 0) return;
+        const wrongDataset = originalWrongQuestions.map(item => item.qObj);
+        if (!ensureLocalApiForQuestions(wrongDataset)) return;
         requestFullScreen();
         setMenuDisabledState(true);
         isWrongQuestionsMode = true;
-        const wrongDataset = originalWrongQuestions.map(item => item.qObj).sort(() => Math.random() - 0.5);
-        beginQuiz(wrongDataset);
+        beginQuiz(wrongDataset.sort(() => Math.random() - 0.5));
     }
 
     function validateStampOption(chk) {
@@ -3051,7 +3109,6 @@
     import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyAdyumqIGFQNJYnlhEUGe_b7NMSdBQNsMA",
         authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
         databaseURL: "https://rms-quiz-system-dbserver-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "rms-quiz-system-dbserver",
@@ -3075,21 +3132,15 @@
         const local = readLocalApiConfig();
         const useLocalDirect = local.enabled && !!local.apiKey;
         if (!useLocalDirect) {
-            const response = await fetch(AI_PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ provider: cfg.provider, model: cfg.model, endpoint: cfg.endpoint, prompt, imageData })
-            });
-            const responseBody = await response.json();
-            if (!response.ok) throw new Error(responseBody?.error || `AI 代理錯誤（HTTP ${response.status}）`);
-            return responseBody.result || responseBody;
+            throw new Error('尚未設定本地 API。請從「選單 MENU → 本地 API 配置」輸入並啟用 API Key。');
         }
         let url, body, headers = { 'Content-Type': 'application/json' };
         const localCfg = local;
         if (localCfg.provider === 'gemini') {
             const parts = [{ text: prompt }];
             if (imageData) parts.push({ inline_data: { mime_type: 'image/png', data: imageData.split(',')[1] } });
-            url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(localCfg.model || 'gemini-2.5-flash')}:generateContent?key=${encodeURIComponent(localCfg.apiKey)}`;
+            url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(localCfg.model || 'gemini-flash-latest')}:generateContent`;
+            headers['X-goog-api-key'] = localCfg.apiKey;
             body = { contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } };
         } else {
             url = localCfg.endpoint || 'https://api.openai.com/v1/chat/completions';
@@ -3105,6 +3156,28 @@
         if (!text) throw new Error('AI 沒有回傳有效內容');
         return JSON.parse(text);
     }
+
+    window.testLocalApiConfig = async function(cfg) {
+        if (!cfg || !cfg.apiKey) throw new Error('API Key 不得為空');
+        const testPrompt = '只回傳 JSON：{"ok":true,"message":"API connection test passed"}';
+        let url, headers = { 'Content-Type': 'application/json' }, body;
+        if (cfg.provider === 'gemini') {
+            url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg.model || 'gemini-flash-latest')}:generateContent`;
+            headers['X-goog-api-key'] = cfg.apiKey;
+            body = { contents: [{ parts: [{ text: testPrompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } };
+        } else {
+            url = cfg.endpoint || 'https://api.openai.com/v1/chat/completions';
+            headers.Authorization = `Bearer ${cfg.apiKey}`;
+            body = { model: cfg.model || 'gpt-4o-mini', messages: [{ role: 'user', content: testPrompt }], temperature: 0, response_format: { type: 'json_object' } };
+        }
+        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+        const responseBody = await response.json();
+        if (!response.ok) throw new Error(responseBody?.error?.message || `API 回應錯誤（HTTP ${response.status}）`);
+        const content = cfg.provider === 'gemini' ? responseBody?.candidates?.[0]?.content?.parts?.[0]?.text : responseBody?.choices?.[0]?.message?.content;
+        if (!content) throw new Error('API 沒有回傳有效內容');
+        JSON.parse(String(content).replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim());
+        return true;
+    };
 
     window.gradeHandwritingWithFirebaseAI = async function(payload) {
         const prompt = `你是嚴謹的數學老師，請批改學生的手寫計算題。
@@ -3154,7 +3227,7 @@
                 userQuizLimits: {},
                 quizUsage: {},
                 handwritingGrades: {},
-                globalApiConfig: { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-2.5-flash', endpoint: '' },
+                globalApiConfig: { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-flash-latest', endpoint: '' },
                 testHistory: [],
                 feedback: []
             };
