@@ -2138,6 +2138,8 @@
 
     function getQuizLimitState(code, user = currentUser) {
         if (!user) return { allowed:true, locked:false, message:'' };
+        // 管理員可不受公開題庫的每日／全域答題次數限制影響。
+        if (user.role === 'admin') return { allowed:true, locked:false, message:'' };
         const limit = getQuizLimitForUser(code);
         if (!limit || limit.mode === 'none') return { allowed:true, locked:false, message:'' };
         const usage = getQuizUsage(user.email, code);
@@ -2151,6 +2153,8 @@
 
     function consumeQuizAttempt(code) {
         if (!currentUser) return true;
+        // 管理員進入題庫不消耗任何使用次數，也不寫入 quizUsage。
+        if (currentUser.role === 'admin') return true;
         const state = getQuizLimitState(code);
         if (!state.allowed) { alert(state.message); renderPublicQuizzesList(); return false; }
         const limit = getQuizLimitForUser(code);
@@ -2410,7 +2414,11 @@
             const q = { ...item };
             if (!q.q && q.question) q.q = q.question;
             if (!q.o && Array.isArray(q.options)) q.o = q.options;
+            if (q.a === undefined && q.ans !== undefined) q.a = q.ans;
             if (q.a === undefined && q.answer !== undefined && getQuestionType(q) !== 'short' && getQuestionType(q) !== 'handwriting') q.a = q.answer;
+            // 單選題常用 0-based 數字答案；統一轉成 A/B/C... 供判分器使用。
+            if (typeof q.a === 'number' && Array.isArray(q.o)) q.a = String.fromCharCode(65 + q.a);
+            if (Array.isArray(q.a) && Array.isArray(q.o)) q.a = q.a.map(value => typeof value === 'number' ? String.fromCharCode(65 + value) : value);
             if (!q.type && Array.isArray(q.o)) q.type = 'single';
             return q;
         }).filter(q => q.q !== undefined && q.q !== null);
