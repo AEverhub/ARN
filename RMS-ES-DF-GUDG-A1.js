@@ -1,5 +1,5 @@
 window.currentQuiz = {
-    "name": "三角洲行動：烽火地帶高階理解與完整改槍測驗",
+    "name": "初階遊戲邏輯學",
     "time": 90,
     "data": [
         {
