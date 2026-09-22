@@ -610,6 +610,46 @@
         .admin-stat-card span { display:block; color:#142235; font-size:1.45em; font-weight:700; margin-top:4px; }
 
         /* 管理員面板手機版：保留功能順序，將操作列改為易點擊的單欄布局。 */
+        .terms-toggle-btn { width:100%; padding:10px 12px; border:1px solid #94a3b8; background:#eef2f6; color:#20344d; border-radius:3px; font-weight:700; cursor:pointer; margin-bottom:10px; }
+        .profile-control-card,.board-hero,.board-compose-card { background:#f8fafc; border:1px solid #d7e0ea; border-radius:8px; padding:16px; margin-top:14px; }
+        .muted-note { color:#64748b; font-size:.86em; line-height:1.55; }
+        .avatar-picker { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+        .avatar-choice { width:58px; height:58px; border:2px solid #cbd5e1; background:#fff; border-radius:14px; cursor:pointer; padding:5px; }
+        .avatar-choice.selected { border-color:#2980b9; box-shadow:0 0 0 3px rgba(41,128,185,.18); }
+        .avatar-choice svg { width:100%; height:100%; }
+        .board-compose-footer { display:flex; justify-content:space-between; align-items:center; gap:10px; color:#64748b; font-size:.85em; }
+        .board-list,.external-links-list,.admin-mini-list { display:flex; flex-direction:column; gap:12px; margin-top:15px; }
+        .board-card,.external-link-card { background:#fff; border:1px solid #d7e0ea; border-radius:10px; padding:15px; box-shadow:0 5px 15px rgba(15,23,42,.06); }
+        .board-meta { display:flex; align-items:center; gap:9px; color:#64748b; font-size:.82em; border-bottom:1px solid #eef2f6; padding-bottom:9px; }
+        .board-avatar { width:34px; height:34px; border-radius:10px; border:1px solid #cbd5e1; padding:3px; background:#f8fafc; flex:none; }
+        .board-content { white-space:pre-wrap; line-height:1.65; color:#1e293b; margin:12px 0; }
+        .board-replies { border-left:3px solid #dbeafe; padding-left:12px; margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+        .board-reply { background:#f8fafc; border-radius:7px; padding:9px; }
+        .board-reply-form { display:flex; gap:8px; margin-top:9px; }
+        .board-reply-form input { flex:1; min-width:0; }
+        .external-link-card { display:flex; justify-content:space-between; gap:15px; align-items:center; }
+        .external-link-card h4 { margin:0 0 5px; color:#20344d; }
+        .admin-section-title { margin-top:22px; color:var(--primary); border-top:1px solid #dbe3ec; padding-top:16px; }
+        .admin-tool-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        .admin-tool-grid label { display:flex; flex-direction:column; gap:5px; color:#475569; font-weight:700; font-size:.86em; }
+        .admin-tool-grid .code-input { margin:0; }
+        .admin-tool-grid .full-width { grid-column:1/-1; }
+        .admin-wide-btn { width:auto; margin-top:10px; }
+        .export-button-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+        .admin-mini-card { background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:10px; color:#334155; }
+        .terms-gate-card { max-width:680px; text-align:left; }
+        .terms-gate-scroll { max-height:45vh; overflow-y:auto; background:#0f172a; color:#e2e8f0; }
+        .terms-gate-confirm { display:block; color:#e2e8f0; margin:12px 0; line-height:1.5; }
+        .notice-modal-content { white-space:pre-wrap; line-height:1.7; text-align:left; background:#0f172a; padding:15px; border-radius:8px; color:#e2e8f0; }
+        @media (max-width: 600px) {
+            .admin-tool-grid,.export-button-grid { grid-template-columns:1fr; }
+            .admin-tool-grid .full-width { grid-column:auto; }
+            .admin-wide-btn { width:100%; }
+            .external-link-card { flex-direction:column; align-items:stretch; }
+            .board-reply-form { flex-direction:column; }
+            .board-compose-footer { align-items:stretch; flex-direction:column; }
+        }
+
         @media (max-width: 600px) {
             #admin-screen {
                 padding: 0;
@@ -689,9 +729,12 @@
         </button>
         <div class="dropdown-menu" id="dropdown-menu">
             <div class="dropdown-item" onclick="switchView('login')">測驗首頁</div>
-            <div class="dropdown-item" onclick="switchView('account')">帳號管理</div>
+            <div class="dropdown-item" onclick="switchView('account')">帳號中心</div>
             <div class="dropdown-item" onclick="openLocalApiModal()">本地 API 配置</div>
-            <div class="dropdown-item" id="menu-lobby-item" onclick="switchView('chat')">聊天大廳 / 問題反饋</div>
+            <div class="dropdown-item" id="menu-lobby-item" onclick="switchView('chat')">異常回覆</div>
+            <div class="dropdown-item" id="menu-board-item" onclick="switchView('board')">留言板</div>
+            <div class="dropdown-item" id="menu-links-item" onclick="switchView('external')">前往其他網域</div>
+            <div class="dropdown-item" id="menu-export-item" onclick="switchView('admin'); setTimeout(()=>document.getElementById('admin-section-export')?.scrollIntoView({behavior:'smooth'}),100);" style="display:none;">文件輸出</div>
             <div class="dropdown-item" id="menu-admin-item" onclick="switchView('admin')" style="display:none;">管理面板</div>
             <div class="dropdown-item danger" onclick="openLogoutModal()">登出帳號</div>
         </div>
@@ -722,13 +765,18 @@
             </div>
 
             <h3>使用者服務條款與免責聲明</h3>
-            <div class="terms-box">
+            <button type="button" class="terms-toggle-btn" onclick="toggleTermsDetails()">查看完整使用者條款</button>
+            <div class="terms-box hidden" id="terms-details-box">
                 <p><strong>第一條：學術用途與免責聲明</strong><br>
                 本系統所提供之測驗內容、學術題目及解析僅供學術交流與個人自我評量用途。系統開發方與學術內容提供者已盡力確保內容之正確性，惟不保證所有資訊皆毫無疏漏。若因題目錯誤、系統延遲、評分偏差或其他不可抗力因素導致使用者之正式考試成績、權益 or 決策產生偏差，本系統及開發方概不負任何法律責任與賠償義務。</p>
                 <p><strong>第二條：勘誤回報義務</strong><br>
                 使用者於測驗過程中，如發現任何題目敘述錯誤、選項爭議、公式渲染異常或解析謬誤，有義務立即紀錄該題資訊並聯絡系統開發人員進行回報，以利系統持續維護。使用者不得利用已知錯誤進行惡意刷分或散佈不實言論。使用本題庫及表示您已經確認並了解題庫可能出錯並且不會將題庫作為主要工具使用，落因題庫系統問題一律概不負責。</p>
                 <p><strong>第三條：IP 位址存取與紀錄授權</strong><br>
                 為維護系統公平性、安全驗證及防範惡意作弊或攻擊行為，使用者同意並授權本系統於測驗期間自動存取、讀取並紀錄使用者之網際網路協定位址（IP 位址）、裝置資訊及平台載具數據。該資訊僅用於測驗報告生成與防弊核驗，不作其他商業用途。</p>
+                <p><strong>第四條：帳號與辨識碼</strong><br>每個帳號由系統建立唯一系統辨識碼。使用者不得冒用、轉讓、共享或試圖修改他人帳號資料；管理員得依管理規範停用、限制或復原帳號。</p>
+                <p><strong>第五條：公開留言與內容管理</strong><br>使用者對留言內容負責。系統得為防止詐騙、騷擾、暴力、歧視、違法或不當內容而進行文字過濾，並得由管理員編輯、隱藏、刪除或限制留言及回覆。</p>
+                <p><strong>第六條：廣播、外部連結與第三方服務</strong><br>系統可能顯示管理員公告、外部連結或第三方服務。使用者前往外部網域時應自行確認其內容與隱私政策，系統不對外部網站內容負責。</p>
+                <p><strong>第七條：資料保留與管理紀錄</strong><br>為維持系統安全與處理爭議，系統可能保留登入、測驗、留言、申訴、管理操作與裝置相關紀錄，並依系統管理政策進行保存、查詢與匯出。</p>
             </div>
 
             <div class="checkbox-group">
@@ -883,7 +931,30 @@
             </div>
             <p><strong>系統識別碼 (UUID)：</strong> <span id="acc-uuid" style="font-family:monospace; color:#2980b9;">ST-2026-X99</span></p>
             <p><strong>歷史測驗總次數：</strong> <span id="acc-total-tests">0</span> 次</p>
+            <div class="profile-control-card">
+                <h4>個人識別與頭像</h4>
+                <p><strong>個別系統辨識碼：</strong> <code id="acc-system-uid">建立中...</code></p>
+                <p class="muted-note">此辨識碼由系統建立，每個帳號只有一個；一般使用者無法修改。</p>
+                <div id="avatar-picker" class="avatar-picker" aria-label="選擇頭像"></div>
+            </div>
         </div>
+    </div>
+
+    <div id="message-board-screen" class="hidden sub-view" style="color:#333;">
+        <div class="board-hero">
+            <h3>公開留言板</h3>
+            <p>留言、回覆與顯示資料均受系統管理規範管理；系統只顯示國家，不公開縣市與完整 IP。</p>
+        </div>
+        <div id="board-compose-card" class="board-compose-card">
+            <textarea id="board-message-input" class="chat-textarea" maxlength="1000" placeholder="寫下公開留言..."></textarea>
+            <div class="board-compose-footer"><span id="board-char-count">0 / 1000</span><button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="submitBoardMessage()">發表留言</button></div>
+        </div>
+        <div id="message-board-list" class="board-list"></div>
+    </div>
+
+    <div id="external-links-screen" class="hidden sub-view" style="color:#333;">
+        <div class="board-hero"><h3>前往其他網域</h3><p>管理員發布的服務入口與說明會顯示於此；尚未發布時保持空白。</p></div>
+        <div id="external-links-list" class="external-links-list"></div>
     </div>
 
     <div id="chat-screen" class="hidden sub-view" style="color:#333;">
@@ -1054,7 +1125,67 @@
                 <input type="number" id="admin-limit-count" class="code-input" min="1" max="1000000" value="10" placeholder="次數" style="margin:0; width:120px;">
                 <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminUserQuizLimit()">儲存個別限制</button>
             </div>
+
+            <h4 class="admin-section-title">8. 留言板、敏感詞與資料管理</h4>
+            <div class="admin-tool-grid">
+                <label>留言板狀態<select id="admin-board-enabled" class="code-input"><option value="true">啟用</option><option value="false">停用</option></select></label>
+                <label>每則留言上限<input id="admin-board-max-length" class="code-input" type="number" min="50" max="5000" value="1000"></label>
+                <label>留言限制提示<input id="admin-board-notice" class="code-input" placeholder="管理員公告"></label>
+                <label>髒字清單（逗號分隔）<input id="admin-banned-words" class="code-input" placeholder="髒字,敏感詞"></label>
+            </div>
+            <button class="main-btn btn-accent admin-wide-btn" onclick="saveBoardSettingsAdmin()">儲存留言板設定</button>
+            <div id="admin-board-moderation-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title">9. 帳號資料與遺忘帳號管理</h4>
+            <div class="admin-tool-grid">
+                <label>帳號<select id="admin-profile-user-select" class="code-input" onchange="loadAdminProfileEditor()"></select></label>
+                <label>系統辨識碼<input id="admin-profile-uid" class="code-input" placeholder="可由管理員設定初始碼"></label>
+                <label>顯示名稱<input id="admin-profile-name" class="code-input"></label>
+                <label>頭像<select id="admin-profile-avatar" class="code-input"></select></label>
+                <label>帳號狀態<select id="admin-profile-disabled" class="code-input"><option value="false">啟用</option><option value="true">停用</option></select></label>
+                <label>面板顯示<select id="admin-profile-forgotten" class="code-input"><option value="false">正常顯示</option><option value="true">遺忘帳號（隱藏）</option></select></label>
+            </div>
+            <button class="main-btn btn-accent admin-wide-btn" onclick="saveAdminProfileEditor()">儲存帳號資料</button>
+            <button class="main-btn btn-secondary admin-wide-btn" onclick="renderForgottenAccountsAdmin()">開啟遺忘帳號復原設定</button>
+            <div id="admin-forgotten-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title">10. 外部網域分享連結</h4>
+            <div class="admin-tool-grid">
+                <label>按鈕文字<input id="admin-link-label" class="code-input" placeholder="服務入口"></label>
+                <label>網址<input id="admin-link-url" class="code-input" placeholder="https://example.com"></label>
+                <label class="full-width">說明文字<textarea id="admin-link-description" class="chat-textarea" placeholder="向使用者說明此連結用途"></textarea></label>
+            </div>
+            <button class="main-btn btn-accent admin-wide-btn" onclick="addExternalLinkAdmin()">新增分享連結</button>
+            <div id="admin-external-links-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title">11. 全員／個別廣播</h4>
+            <div class="admin-tool-grid">
+                <label>廣播標題<input id="admin-broadcast-title" class="code-input" placeholder="系統公告"></label>
+                <label>指定帳號（留空為全員）<input id="admin-broadcast-target" class="code-input" placeholder="user@example.com"></label>
+                <label class="full-width">公告內容<textarea id="admin-broadcast-content" class="chat-textarea" placeholder="公告內容"></textarea></label>
+            </div>
+            <button class="main-btn btn-accent admin-wide-btn" onclick="sendBroadcastAdmin()">發布廣播</button>
+            <div id="admin-broadcast-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title" id="admin-section-export">12. 文件輸出中心</h4>
+            <p class="muted-note">可輸出帳號、成績、回報、留言、操作紀錄、廣播與外部連結資料。</p>
+            <div class="export-button-grid">
+                <button class="main-btn btn-accent" onclick="exportAdminData('json')">下載完整 JSON</button>
+                <button class="main-btn btn-accent" onclick="exportAdminData('csv')">下載資料表 CSV</button>
+                <button class="main-btn btn-accent" onclick="exportAdminData('txt')">下載文字報告</button>
+                <button class="main-btn btn-success" onclick="exportAdminData('pdf')">下載管理報告 PDF</button>
+            </div>
         </div>
+    </div>
+</div>
+
+<div id="terms-gate-modal" class="modal-overlay hidden">
+    <div class="modal-card terms-gate-card">
+        <h3 style="color:#fff">請先閱讀並同意使用者條款</h3>
+        <div id="terms-gate-content" class="terms-box terms-gate-scroll"></div>
+        <label class="terms-gate-confirm"><input type="checkbox" id="terms-gate-checkbox" disabled> 我已閱讀至條款底部，並同意上述規範</label>
+        <button class="main-btn btn-accent" id="terms-gate-accept" disabled onclick="acceptTermsGate()">確認同意並繼續</button>
+        <button class="main-btn btn-secondary" style="margin-top:8px" onclick="closeTermsGate()">返回</button>
     </div>
 </div>
 
@@ -1191,10 +1322,10 @@
 <script>
     function updateTaipeiClock() {
         const now = new Date();
-        const options = { timeZone: 'Asia/Taipei', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const options = { timeZone: 'Asia/Taipei', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 };
         const formatter = new Intl.DateTimeFormat('zh-TW', options);
         const parts = formatter.formatToParts(now);
-        let year='', month='', day='', hour='', minute='', second='';
+        let year='', month='', day='', hour='', minute='', second='', millisecond='000';
         parts.forEach(p => {
             if (p.type === 'year') year = p.value;
             if (p.type === 'month') month = p.value;
@@ -1202,10 +1333,11 @@
             if (p.type === 'hour') hour = p.value;
             if (p.type === 'minute') minute = p.value;
             if (p.type === 'second') second = p.value;
+            if (p.type === 'fractionalSecond') millisecond = p.value;
         });
-        document.getElementById('taipei-clock').innerHTML = `<span>台北時間: ${year}/${month}/${day} ${hour}:${minute}:${second} (GMT+8)</span>`;
+        document.getElementById('taipei-clock').innerHTML = `<span>台北時間: ${year}/${month}/${day} ${hour}:${minute}:${second}.${millisecond} (GMT+8)</span>`;
     }
-    setInterval(updateTaipeiClock, 1000);
+    setInterval(updateTaipeiClock, 47);
     updateTaipeiClock();
 
     let currentUser = null; 
@@ -3237,6 +3369,80 @@
     }
 </script>
 
+<script>
+/* V5-Pro 增量功能模組：不替換原測驗與計分流程，僅補充資料與管理功能。 */
+(function(){
+    let boardDB = [], broadcastDB = [], externalLinksDB = [], adminAuditDB = [];
+    let boardSettings = { enabled:true, maxLength:1000, notice:'', bannedWords:['髒話','幹你娘','操你媽','廢物'] };
+    let featureDataLoaded = false, pendingNoticeId = null;
+    const AVATAR_IDS = ['circle','diamond','triangle','hex','bars','sun'];
+
+    function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function nowMs(){ return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false}) + '.' + String(Date.now()%1000).padStart(3,'0'); }
+    function makeUid(){ return 'ST-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,8).toUpperCase(); }
+    function ensureUser(u){ if(!u.systemUid) u.systemUid = makeUid(); if(!u.avatarId || !AVATAR_IDS.includes(u.avatarId)) u.avatarId = AVATAR_IDS[0]; if(u.forgotten === undefined) u.forgotten=false; return u; }
+    function ensureAllUsers(){ (globalUsersDB||[]).forEach(ensureUser); if(currentUser) ensureUser(currentUser); }
+    function avatarSvg(id){ const colors=['#2563eb','#7c3aed','#059669','#ea580c','#db2777','#0891b2']; const i=Math.max(0,AVATAR_IDS.indexOf(id)); const c=colors[i]||colors[0]; const shapes=[`<circle cx="32" cy="32" r="21" fill="${c}"/><circle cx="25" cy="27" r="3" fill="#fff"/><circle cx="39" cy="27" r="3" fill="#fff"/><path d="M22 40 Q32 49 42 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,`<path d="M32 5 L58 32 32 59 6 32Z" fill="${c}"/><circle cx="25" cy="30" r="3" fill="#fff"/><circle cx="39" cy="30" r="3" fill="#fff"/><path d="M23 40 Q32 46 41 40" fill="none" stroke="#fff" stroke-width="3"/>`,`<path d="M32 5 L59 57 H5Z" fill="${c}"/><circle cx="25" cy="34" r="3" fill="#fff"/><circle cx="39" cy="34" r="3" fill="#fff"/><path d="M24 43 H40" stroke="#fff" stroke-width="3"/>`,`<path d="M17 7 H47 L59 19 V47 L47 59 H17 L5 47 V19Z" fill="${c}"/><circle cx="25" cy="31" r="3" fill="#fff"/><circle cx="39" cy="31" r="3" fill="#fff"/><path d="M22 42 Q32 48 42 42" fill="none" stroke="#fff" stroke-width="3"/>`,`<rect x="7" y="11" width="50" height="10" rx="5" fill="${c}"/><rect x="7" y="27" width="35" height="10" rx="5" fill="${c}"/><rect x="7" y="43" width="43" height="10" rx="5" fill="${c}"/>`,`<circle cx="32" cy="32" r="12" fill="${c}"/><path d="M32 4 V16 M32 48 V60 M4 32 H16 M48 32 H60 M12 12 L21 21 M43 43 L52 52 M52 12 L43 21 M21 43 L12 52" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`]; return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${shapes[i]}</svg>`; }
+    function currentProfile(){ ensureAllUsers(); return currentUser ? (globalUsersDB.find(u=>u.email===currentUser.email)||currentUser) : null; }
+    function saveFeature(path,value){ if(typeof saveToFirebase==='function') saveToFirebase(path,value); }
+    function cleanText(text){ let out=String(text||''); const words=(boardSettings.bannedWords||[]).filter(Boolean).sort((a,b)=>b.length-a.length); words.forEach(w=>{ out=out.split(w).join('*'.repeat(Math.max(1,w.length))); }); return out; }
+    async function clientMeta(){ let country='未知國家'; try{ const r=await fetch('https://ipapi.co/json/',{cache:'no-store'}); const d=await r.json(); country=d.country_name||country; }catch(e){} return { ip: userIP||'未知IP', country, platform: typeof getPlatform==='function'?getPlatform():'未知裝置' }; }
+    function audit(action,target,detail){ const u=currentProfile(); adminAuditDB.push({id:'AUD-'+Date.now(),time:nowMs(),admin:u?.email||'system',action,target,detail}); if(adminAuditDB.length>5000) adminAuditDB=adminAuditDB.slice(-5000); saveFeature('adminAudit',adminAuditDB); }
+
+    function renderAccountExtras(){ const u=currentProfile(); if(!u) return; const uid=document.getElementById('acc-system-uid'); if(uid) uid.textContent=u.systemUid; const box=document.getElementById('avatar-picker'); if(box){ box.innerHTML=AVATAR_IDS.map(id=>`<button class="avatar-choice ${u.avatarId===id?'selected':''}" title="幾何頭像 ${id}" onclick="selectAvatar('${id}')">${avatarSvg(id)}</button>`).join(''); } }
+    window.selectAvatar=function(id){ const u=currentProfile(); if(!u||!AVATAR_IDS.includes(id)) return; u.avatarId=id; const db=globalUsersDB.find(x=>x.email===u.email); if(db) db.avatarId=id; saveFeature('users',globalUsersDB); renderAccountExtras(); audit('修改頭像',u.email,id); }
+
+    function renderBoard(){ const list=document.getElementById('message-board-list'); if(!list) return; if(!boardSettings.enabled){ list.innerHTML='<div class="board-card">留言板目前由管理員暫停。</div>'; return; } const roots=boardDB.filter(x=>!x.parentId&&!x.deleted); if(!roots.length){ list.innerHTML='<div class="board-card">目前尚無留言。</div>'; return; } list.innerHTML=roots.slice().reverse().map(item=>{ const replies=boardDB.filter(x=>x.parentId===item.id&&!x.deleted); const avatar=avatarSvg(item.avatarId||'circle'); return `<article class="board-card"><div class="board-meta"><div class="board-avatar">${avatar}</div><b>${esc(item.name||'匿名')}</b><span>${esc(item.country||'未知國家')}</span><span>${esc(item.timestamp||'')}</span></div><div class="board-content">${esc(item.content)}</div><div class="board-replies">${replies.map(r=>`<div class="board-reply"><div class="board-meta"><div class="board-avatar">${avatarSvg(r.avatarId||'circle')}</div><b>${esc(r.name||'匿名')}</b><span>${esc(r.country||'未知國家')}</span><span>${esc(r.timestamp||'')}</span></div><div class="board-content">${esc(r.content)}</div></div>`).join('')}</div><div class="board-reply-form"><input class="code-input" id="reply-${esc(item.id)}" maxlength="1000" placeholder="回覆此留言"><button class="btn-sm btn-accent" onclick="replyBoardMessage('${esc(item.id)}')">回覆</button></div></article>`; }).join(''); }
+    window.submitBoardMessage=async function(){ const u=currentProfile(); if(!u) return alert('請先登入！'); if(!boardSettings.enabled) return alert('留言板目前暫停使用。'); const input=document.getElementById('board-message-input'); const raw=input?.value.trim(); if(!raw) return alert('請填寫留言內容！'); if(raw.length>Number(boardSettings.maxLength||1000)) return alert(`留言不可超過 ${boardSettings.maxLength} 字。`); const meta=await clientMeta(); const content=cleanText(raw); boardDB.push({id:'MSG-'+Date.now(),email:u.email,name:u.name,uid:u.systemUid,avatarId:u.avatarId,ip:meta.ip,country:meta.country,platform:meta.platform,content,parentId:null,timestamp:nowMs(),editedAt:''}); saveFeature('messageBoard',boardDB); audit('新增留言',u.email,''); input.value=''; updateBoardCount(); renderBoard(); alert('留言已發表。'); }
+    window.replyBoardMessage=async function(parentId){ const u=currentProfile(); const input=document.getElementById('reply-'+parentId); const raw=input?.value.trim(); if(!u||!raw) return; if(raw.length>Number(boardSettings.maxLength||1000)) return alert(`回覆不可超過 ${boardSettings.maxLength} 字。`); const meta=await clientMeta(); boardDB.push({id:'REP-'+Date.now(),parentId,email:u.email,name:u.name,uid:u.systemUid,avatarId:u.avatarId,ip:meta.ip,country:meta.country,platform:meta.platform,content:cleanText(raw),timestamp:nowMs(),editedAt:''}); saveFeature('messageBoard',boardDB); audit('新增留言回覆',u.email,parentId); renderBoard(); alert('回覆已發表。'); }
+    function updateBoardCount(){ const i=document.getElementById('board-message-input'), c=document.getElementById('board-char-count'); if(i&&c)c.textContent=`${i.value.length} / ${boardSettings.maxLength||1000}`; }
+
+    function renderExternalLinks(){ const el=document.getElementById('external-links-list'); if(!el)return; el.innerHTML=(externalLinksDB||[]).filter(x=>x.enabled!==false).map(x=>`<article class="external-link-card"><div><h4>${esc(x.label)}</h4><p class="muted-note">${esc(x.description)}</p></div><button class="main-btn btn-accent" style="width:auto;margin:0" onclick="window.open('${esc(x.url)}','_blank','noopener,noreferrer')">${esc(x.buttonText||'前往')}</button></article>`).join(''); }
+    function renderAdminFeatureLists(){ const el=document.getElementById('admin-external-links-list'); if(el)el.innerHTML=(externalLinksDB||[]).map((x,i)=>`<div class="admin-mini-card"><b>${esc(x.label)}</b> · ${esc(x.url)} <button class="btn-sm btn-danger" onclick="deleteExternalLinkAdmin(${i})">刪除</button></div>`).join('')||'<div class="muted-note">尚無分享連結</div>'; const bc=document.getElementById('admin-broadcast-list'); if(bc)bc.innerHTML=(broadcastDB||[]).slice().reverse().map(x=>`<div class="admin-mini-card"><b>${esc(x.title)}</b> · ${esc(x.targetEmail||'全員')} · 已確認 ${Object.keys(x.confirmedBy||{}).length} 人 <button class="btn-sm btn-danger" onclick="deleteBroadcastAdmin('${esc(x.id)}')">刪除</button></div>`).join('')||'<div class="muted-note">尚無廣播</div>'; }
+    function renderBoardModeration(){ const el=document.getElementById('admin-board-moderation-list'); if(!el)return; const items=(boardDB||[]).slice().reverse(); el.innerHTML='<h5 style="margin:14px 0 5px;color:#20344d">留言／回覆審核清單</h5>'+(items.length?items.map(x=>`<div class="admin-mini-card"><b>${x.parentId?'回覆':'留言'}</b> · ${esc(x.name)} (${esc(x.country||'未知國家')}) · ${esc(x.timestamp)}<div style="white-space:pre-wrap;margin:7px 0">${esc(x.content)}</div><button class="btn-sm btn-accent" onclick="editBoardItemAdmin('${esc(x.id)}')">修改</button> <button class="btn-sm btn-danger" onclick="deleteBoardItemAdmin('${esc(x.id)}')">刪除</button></div>`).join(''):'<div class="muted-note">目前沒有留言或回覆。</div>'); }
+    window.editBoardItemAdmin=function(id){ const x=boardDB.find(v=>v.id===id); if(!x)return; const value=prompt('請輸入新的留言／回覆內容：',x.content||''); if(value===null)return; x.content=cleanText(value.trim()); x.editedAt=nowMs(); saveFeature('messageBoard',boardDB); audit('修改留言',id,''); renderBoard(); renderBoardModeration(); alert('留言內容已修改。'); }
+    window.deleteBoardItemAdmin=function(id){ if(!confirm('確定刪除此留言／回覆？'))return; const x=boardDB.find(v=>v.id===id); if(x)x.deleted=true; saveFeature('messageBoard',boardDB); audit('刪除留言',id,''); renderBoard(); renderBoardModeration(); alert('留言已刪除。'); }
+
+    window.addExternalLinkAdmin=function(){ if(!currentProfile()||currentProfile().role!=='admin')return; const label=document.getElementById('admin-link-label').value.trim(),url=document.getElementById('admin-link-url').value.trim(),description=document.getElementById('admin-link-description').value.trim(); if(!label||!/^https?:\/\//i.test(url))return alert('請輸入按鈕文字與完整 http(s) 網址。'); externalLinksDB.push({id:'LINK-'+Date.now(),label,buttonText:label,url,description,enabled:true,createdAt:nowMs()}); saveFeature('externalLinks',externalLinksDB); audit('新增外部連結',label,url); renderAdminFeatureLists(); renderExternalLinks(); alert('外部連結已新增。'); }
+    window.deleteExternalLinkAdmin=function(i){ if(!confirm('確定刪除此分享連結？'))return; externalLinksDB.splice(i,1); saveFeature('externalLinks',externalLinksDB); audit('刪除外部連結',String(i),''); renderAdminFeatureLists(); renderExternalLinks(); }
+    window.sendBroadcastAdmin=function(){ if(!currentProfile()||currentProfile().role!=='admin')return; const title=document.getElementById('admin-broadcast-title').value.trim()||'系統公告',content=document.getElementById('admin-broadcast-content').value.trim(),target=document.getElementById('admin-broadcast-target').value.trim(); if(!content)return alert('請填寫公告內容。'); broadcastDB.push({id:'BC-'+Date.now(),title,content,targetEmail:target||null,createdAt:nowMs(),confirmedBy:{}}); saveFeature('broadcasts',broadcastDB); audit('發布廣播',target||'全員',title); document.getElementById('admin-broadcast-content').value=''; renderAdminFeatureLists(); alert('廣播已發布。'); }
+    window.deleteBroadcastAdmin=function(id){ if(!confirm('確定刪除此廣播？'))return; broadcastDB=broadcastDB.filter(x=>x.id!==id); saveFeature('broadcasts',broadcastDB); audit('刪除廣播',id,''); renderAdminFeatureLists(); }
+    function showPendingBroadcast(){ const u=currentProfile(); if(!u||pendingNoticeId)return; const b=(broadcastDB||[]).find(x=>(!x.targetEmail||x.targetEmail===u.email)&&!(x.confirmedBy||{})[u.email]); if(!b)return; pendingNoticeId=b.id; const modal=document.getElementById('broadcast-notice-modal'); if(!modal)return; document.getElementById('broadcast-notice-title').textContent=b.title; document.getElementById('broadcast-notice-content').textContent=b.content; document.getElementById('broadcast-notice-time').textContent=b.createdAt; modal.classList.remove('hidden'); window.confirmBroadcast=function(){ b.confirmedBy=b.confirmedBy||{}; b.confirmedBy[u.email]=nowMs(); saveFeature('broadcasts',broadcastDB); audit('確認廣播',b.id,''); pendingNoticeId=null; modal.classList.add('hidden'); }; }
+
+    window.saveBoardSettingsAdmin=function(){ const u=currentProfile(); if(!u||u.role!=='admin')return; boardSettings.enabled=document.getElementById('admin-board-enabled').value==='true'; boardSettings.maxLength=Math.max(50,Math.min(5000,Number(document.getElementById('admin-board-max-length').value)||1000)); boardSettings.notice=document.getElementById('admin-board-notice').value.trim(); boardSettings.bannedWords=document.getElementById('admin-banned-words').value.split(',').map(x=>x.trim()).filter(Boolean); saveFeature('boardSettings',boardSettings); audit('修改留言板設定','留言板',JSON.stringify(boardSettings)); alert('留言板設定已儲存。'); }
+    function loadBoardAdmin(){ const a=document.getElementById('admin-board-enabled'); if(!a)return; a.value=String(boardSettings.enabled!==false); document.getElementById('admin-board-max-length').value=boardSettings.maxLength||1000; document.getElementById('admin-board-notice').value=boardSettings.notice||''; document.getElementById('admin-banned-words').value=(boardSettings.bannedWords||[]).join(','); }
+    window.loadAdminProfileEditor=function(){ const sel=document.getElementById('admin-profile-user-select'),u=(globalUsersDB||[]).find(x=>x.email===sel?.value); if(!u)return; document.getElementById('admin-profile-uid').value=u.systemUid||''; document.getElementById('admin-profile-name').value=u.name||''; document.getElementById('admin-profile-avatar').value=u.avatarId||'circle'; document.getElementById('admin-profile-disabled').value=String(!!u.disabled); document.getElementById('admin-profile-forgotten').value=String(!!u.forgotten); }
+    window.saveAdminProfileEditor=function(){ const admin=currentProfile(); if(!admin||admin.role!=='admin')return; const email=document.getElementById('admin-profile-user-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u)return; const uid=document.getElementById('admin-profile-uid').value.trim(); if(uid&&!u.systemUid)u.systemUid=uid; else if(uid&&uid!==u.systemUid)return alert('系統辨識碼建立後不可修改；只有尚未建立初始碼的帳號可由管理員設定。'); u.name=document.getElementById('admin-profile-name').value.trim()||u.name; u.avatarId=document.getElementById('admin-profile-avatar').value; u.disabled=document.getElementById('admin-profile-disabled').value==='true'; u.forgotten=document.getElementById('admin-profile-forgotten').value==='true'; saveFeature('users',globalUsersDB); audit('修改帳號資料',email,JSON.stringify({name:u.name,disabled:u.disabled,forgotten:u.forgotten,avatarId:u.avatarId})); ensureAllUsers(); renderAdminProfiles(); renderForgottenAccountsAdmin(); alert('帳號資料已儲存。'); }
+    function renderAdminProfiles(){ const sel=document.getElementById('admin-profile-user-select'); if(!sel)return; const visible=(globalUsersDB||[]).filter(x=>!x.forgotten); sel.innerHTML=visible.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無可顯示帳號</option>'; if(visible.length)loadAdminProfileEditor(); }
+    window.renderForgottenAccountsAdmin=function(){ const el=document.getElementById('admin-forgotten-list'); if(!el)return; el.innerHTML=(globalUsersDB||[]).filter(x=>x.forgotten).map(x=>`<div class="admin-mini-card">${esc(x.name)} (${esc(x.email)}) <button class="btn-sm btn-success" onclick="restoreForgottenAccount('${esc(x.email)}')">復原到帳號選單</button></div>`).join('')||'<div class="muted-note">目前沒有遺忘帳號。</div>'; }
+    window.restoreForgottenAccount=function(email){ const u=globalUsersDB.find(x=>x.email===email); if(!u)return; u.forgotten=false; saveFeature('users',globalUsersDB); audit('復原遺忘帳號',email,''); renderAdminProfiles(); renderForgottenAccountsAdmin(); alert('帳號已復原。'); }
+
+    function exportBlob(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+    window.exportAdminData=function(kind){ const u=currentProfile(); if(!u||u.role!=='admin')return; const data={exportedAt:nowMs(),users:globalUsersDB,testHistory:testHistoryRecords,feedback:feedbackDB,messageBoard:boardDB,broadcasts:broadcastDB,externalLinks:externalLinksDB,audit:adminAuditDB,quizLimits:quizLimitsMap,userQuizLimits:userQuizLimitsMap,quizUsage:quizUsageMap}; const base='rms-admin-'+Date.now(); if(kind==='json')return exportBlob(base+'.json',JSON.stringify(data,null,2),'application/json'); if(kind==='txt'){ let txt=`RMS 管理報告\n輸出時間：${data.exportedAt}\n\n帳號：${data.users.length}\n測驗紀錄：${data.testHistory.length}\n回報：${data.feedback.length}\n留言：${data.messageBoard.length}\n廣播：${data.broadcasts.length}\n\n操作紀錄\n`+(data.audit||[]).map(x=>`${x.time}\t${x.admin}\t${x.action}\t${x.target}\t${x.detail}`).join('\n'); return exportBlob(base+'.txt',txt,'text/plain;charset=utf-8'); } if(kind==='csv'){ const rows=[['類別','時間','帳號/對象','內容'],...data.users.map(x=>['帳號','',x.email,x.name]),...data.testHistory.map(x=>['測驗',x.endTime||'',x.userName||'',`${x.quizCode||''} ${x.score||''}`]),...data.messageBoard.map(x=>['留言',x.timestamp||'',x.email||'',x.content||'']),...data.audit.map(x=>['操作',x.time,x.admin,`${x.action} ${x.target} ${x.detail}`])]; return exportBlob(base+'.csv',rows.map(r=>r.map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',')).join('\n'),'text/csv;charset=utf-8'); } if(kind==='pdf'){ const w=document.createElement('div'); w.style.cssText='background:#fff;color:#111;padding:30px;font-family:Arial;'; w.innerHTML=`<h1>RMS 管理報告</h1><p>輸出時間：${esc(data.exportedAt)}</p><h2>統計</h2><p>帳號 ${data.users.length} ／測驗 ${data.testHistory.length} ／留言 ${data.messageBoard.length} ／操作紀錄 ${data.audit.length}</p><h2>最近操作</h2><pre>${esc(JSON.stringify(data.audit.slice(-100),null,2))}</pre>`; document.body.appendChild(w); if(window.html2pdf)html2pdf().set({margin:10,filename:base+'.pdf',html2canvas:{scale:1.5},jsPDF:{unit:'mm',format:'a4'}}).from(w).save().then(()=>w.remove()); else w.remove(); } audit('匯出資料',kind,''); }
+
+    window.toggleTermsDetails=function(){ const b=document.getElementById('terms-details-box'); if(b)b.classList.toggle('hidden'); }
+    window.openTermsGate=function(){ const source=document.getElementById('terms-details-box'),modal=document.getElementById('terms-gate-modal'),content=document.getElementById('terms-gate-content'),cb=document.getElementById('terms-gate-checkbox'),ok=document.getElementById('terms-gate-accept'); if(!source||!modal)return; content.innerHTML=source.innerHTML; cb.checked=false; cb.disabled=true; ok.disabled=true; content.onscroll=function(){ if(content.scrollTop+content.clientHeight>=content.scrollHeight-5){cb.disabled=false;} }; cb.onchange=()=>ok.disabled=!cb.checked; modal.classList.remove('hidden'); }
+    window.closeTermsGate=function(){ document.getElementById('terms-gate-modal')?.classList.add('hidden'); }
+    window.acceptTermsGate=function(){ document.getElementById('agree-terms').checked=true; document.getElementById('terms-gate-modal').classList.add('hidden'); if(typeof checkAuthUnlock==='function')checkAuthUnlock(); }
+
+    function renderFeatureAdmin(){ ensureAllUsers(); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); }
+    function featureData(data){ boardDB=data?.messageBoard||[]; broadcastDB=data?.broadcasts||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; ensureAllUsers(); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
+    window.__rmsFeatureData = featureData;
+    const originalInit=window.initFirebaseData; window.initFirebaseData=function(data){ featureData(data||{}); if(originalInit)originalInit(data); ensureAllUsers(); try{saveFeature('users',globalUsersDB);}catch(e){} };
+    const originalSwitch=window.switchView; window.switchView=function(view){ if(view==='board'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#external-links-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('message-board-screen').classList.remove('hidden'); renderBoard(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='external'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('external-links-screen').classList.remove('hidden'); renderExternalLinks(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(originalSwitch)originalSwitch(view); if(view==='account')renderAccountExtras(); if(view==='admin')renderFeatureAdmin(); };
+    const originalSetup=window.setupAdminConsole; window.setupAdminConsole=function(){ if(originalSetup)originalSetup(); renderFeatureAdmin(); };
+    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; setTimeout(showPendingBroadcast,250); };
+    const originalSave=window.saveToFirebase; window.saveToFirebase=function(path,value){ if(originalSave)originalSave(path,value); };
+    const originalSubmit=window.handleAuthSubmit; window.handleAuthSubmit=function(){ if(!document.getElementById('agree-terms').checked){ openTermsGate(); return; } if(originalSubmit)originalSubmit(); setTimeout(()=>{ensureAllUsers();renderAccountExtras();showPendingBroadcast();},300); };
+    window.addEventListener('DOMContentLoaded',()=>{ const i=document.getElementById('board-message-input'); if(i)i.addEventListener('input',updateBoardCount); document.getElementById('broadcast-notice-modal')?.classList.add('hidden'); });
+    const nativeAlert=window.alert; window.alert=function(message){ const modal=document.getElementById('ui-message-modal'); if(!modal)return nativeAlert(message); document.getElementById('ui-message-title').textContent='系統訊息'; document.getElementById('ui-message-content').textContent=String(message??''); modal.classList.remove('hidden'); };
+    window.closeUiMessage=function(){ document.getElementById('ui-message-modal')?.classList.add('hidden'); };
+    setInterval(()=>{ if(currentUser&&!document.getElementById('broadcast-notice-modal')?.classList.contains('hidden')){} else showPendingBroadcast(); },1500);
+})();
+</script>
+<div id="broadcast-notice-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="broadcast-notice-title" style="color:#fff"></h3><div id="broadcast-notice-content" class="notice-modal-content"></div><p id="broadcast-notice-time" class="muted-note"></p><button class="main-btn btn-success" onclick="confirmBroadcast()">我已確認</button></div></div>
+<div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>
+
 <!-- Firebase SDK 模組初始化與資料同步 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
@@ -3351,6 +3557,7 @@
         if (snapshot.exists()) {
             const data = snapshot.val();
             window.initFirebaseData(data);
+            if (window.__rmsFeatureData) window.__rmsFeatureData(data || {});
         } else {
             const initialData = {
                 users: [],
@@ -3364,14 +3571,21 @@
                 handwritingGrades: {},
                 globalApiConfig: { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-flash-latest', endpoint: '' },
                 testHistory: [],
-                feedback: []
+                feedback: [],
+                messageBoard: [],
+                boardSettings: { enabled: true, maxLength: 1000, notice: '', bannedWords: ['髒話', '幹你娘', '操你媽', '廢物'] },
+                broadcasts: [],
+                externalLinks: [],
+                adminAudit: []
             };
             set(ref(db, 'system_data'), initialData);
             window.initFirebaseData(initialData);
+            if (window.__rmsFeatureData) window.__rmsFeatureData(initialData || {});
         }
     }).catch((error) => {
         console.error("Firebase 讀取失敗，降級使用空資料: ", error);
         window.initFirebaseData(null);
+        if (window.__rmsFeatureData) window.__rmsFeatureData({});
     });
 </script>
 </body>
