@@ -1,5 +1,6 @@
 window.currentQuiz = {
     "name": "初階遊戲邏輯學",
+    "password": "1234",
     "time": 45,
     "data": [
         {
