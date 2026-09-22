@@ -1,5 +1,5 @@
 window.currentQuiz = {
-    "name": "工丙學科(不含圖片題)",
+    "name": "工丙學科",
     "time": 180,
     "data": [
         {
