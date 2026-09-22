@@ -610,6 +610,14 @@
         .admin-stat-card span { display:block; color:#142235; font-size:1.45em; font-weight:700; margin-top:4px; }
 
         /* 管理員面板手機版：保留功能順序，將操作列改為易點擊的單欄布局。 */
+        .title-profile-box { margin-top:14px; padding-top:14px; border-top:1px solid #d7e0ea; }
+        .title-badge-row { display:flex; flex-wrap:wrap; gap:7px; min-height:28px; }
+        .title-badge { display:inline-flex; align-items:center; padding:4px 9px; border-radius:999px; font-size:.78em; font-weight:800; letter-spacing:.03em; box-shadow:0 2px 5px rgba(15,23,42,.12); }
+        .time-gate-card { max-width:520px; border-top:5px solid #f59e0b; }
+        .gate-lock-mark { width:56px; height:56px; margin:0 auto 10px; display:grid; place-items:center; border-radius:18px; background:#f59e0b; color:#fff; font-size:1.8em; }
+        .gate-time-range { color:#fbbf24; font-weight:800; line-height:1.6; }
+        .title-admin-actions { grid-template-columns:repeat(5,minmax(0,1fr)); margin-top:10px; }
+        @media (max-width:600px){ .title-admin-actions { grid-template-columns:1fr; } }
         .terms-toggle-btn { width:100%; padding:10px 12px; border:1px solid #94a3b8; background:#eef2f6; color:#20344d; border-radius:3px; font-weight:700; cursor:pointer; margin-bottom:10px; }
         .profile-control-card,.board-hero,.board-compose-card { background:#f8fafc; border:1px solid #d7e0ea; border-radius:8px; padding:16px; margin-top:14px; }
         .muted-note { color:#64748b; font-size:.86em; line-height:1.55; }
@@ -640,7 +648,6 @@
         .terms-gate-card { max-width:680px; text-align:left; }
         .terms-gate-scroll { max-height:45vh; overflow-y:auto; background:#0f172a; color:#e2e8f0; }
         .terms-gate-confirm { display:block; color:#e2e8f0; margin:12px 0; line-height:1.5; }
-        .notice-modal-content { white-space:pre-wrap; line-height:1.7; text-align:left; background:#0f172a; padding:15px; border-radius:8px; color:#e2e8f0; }
         @media (max-width: 600px) {
             .admin-tool-grid,.export-button-grid { grid-template-columns:1fr; }
             .admin-tool-grid .full-width { grid-column:auto; }
@@ -775,7 +782,7 @@
                 為維護系統公平性、安全驗證及防範惡意作弊或攻擊行為，使用者同意並授權本系統於測驗期間自動存取、讀取並紀錄使用者之網際網路協定位址（IP 位址）、裝置資訊及平台載具數據。該資訊僅用於測驗報告生成與防弊核驗，不作其他商業用途。</p>
                 <p><strong>第四條：帳號與辨識碼</strong><br>每個帳號由系統建立唯一系統辨識碼。使用者不得冒用、轉讓、共享或試圖修改他人帳號資料；管理員得依管理規範停用、限制或復原帳號。</p>
                 <p><strong>第五條：公開留言與內容管理</strong><br>使用者對留言內容負責。系統得為防止詐騙、騷擾、暴力、歧視、違法或不當內容而進行文字過濾，並得由管理員編輯、隱藏、刪除或限制留言及回覆。</p>
-                <p><strong>第六條：廣播、外部連結與第三方服務</strong><br>系統可能顯示管理員公告、外部連結或第三方服務。使用者前往外部網域時應自行確認其內容與隱私政策，系統不對外部網站內容負責。</p>
+                <p><strong>第六條：外部連結與第三方服務</strong><br>系統可能顯示管理員設定的外部連結或第三方服務。使用者前往外部網域時應自行確認其內容與隱私政策，系統不對外部網站內容負責。</p>
                 <p><strong>第七條：資料保留與管理紀錄</strong><br>為維持系統安全與處理爭議，系統可能保留登入、測驗、留言、申訴、管理操作與裝置相關紀錄，並依系統管理政策進行保存、查詢與匯出。</p>
             </div>
 
@@ -936,6 +943,12 @@
                 <p><strong>個別系統辨識碼：</strong> <code id="acc-system-uid">建立中...</code></p>
                 <p class="muted-note">此辨識碼由系統建立，每個帳號只有一個；一般使用者無法修改。</p>
                 <div id="avatar-picker" class="avatar-picker" aria-label="選擇頭像"></div>
+                <div class="title-profile-box">
+                    <h4>稱號配戴</h4>
+                    <div id="account-title-list" class="title-badge-row"></div>
+                    <select id="acc-title-select" class="code-input" style="margin-top:10px;"></select>
+                    <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveEquippedTitle()">配戴選取稱號</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1130,7 +1143,7 @@
             <div class="admin-tool-grid">
                 <label>留言板狀態<select id="admin-board-enabled" class="code-input"><option value="true">啟用</option><option value="false">停用</option></select></label>
                 <label>每則留言上限<input id="admin-board-max-length" class="code-input" type="number" min="50" max="5000" value="1000"></label>
-                <label>留言限制提示<input id="admin-board-notice" class="code-input" placeholder="管理員公告"></label>
+                <label>留言限制提示<input id="admin-board-notice" class="code-input" placeholder="留言板說明"></label>
                 <label>髒字清單（逗號分隔）<input id="admin-banned-words" class="code-input" placeholder="髒字,敏感詞"></label>
             </div>
             <button class="main-btn btn-accent admin-wide-btn" onclick="saveBoardSettingsAdmin()">儲存留言板設定</button>
@@ -1158,17 +1171,42 @@
             <button class="main-btn btn-accent admin-wide-btn" onclick="addExternalLinkAdmin()">新增分享連結</button>
             <div id="admin-external-links-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title">11. 全員／個別廣播</h4>
-            <div class="admin-tool-grid">
-                <label>廣播標題<input id="admin-broadcast-title" class="code-input" placeholder="系統公告"></label>
-                <label>指定帳號（留空為全員）<input id="admin-broadcast-target" class="code-input" placeholder="user@example.com"></label>
-                <label class="full-width">公告內容<textarea id="admin-broadcast-content" class="chat-textarea" placeholder="公告內容"></textarea></label>
-            </div>
-            <button class="main-btn btn-accent admin-wide-btn" onclick="sendBroadcastAdmin()">發布廣播</button>
-            <div id="admin-broadcast-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-export">12. 文件輸出中心</h4>
-            <p class="muted-note">可輸出帳號、成績、回報、留言、操作紀錄、廣播與外部連結資料。</p>
+            <h4 class="admin-section-title">12. 時效性禁用閘門</h4>
+            <p class="muted-note">在指定時間區間禁止普通用戶進入測驗；管理員不受影響。時間到期後會自動放行。</p>
+            <div class="admin-tool-grid">
+                <label>閘門狀態<select id="admin-gate-enabled" class="code-input"><option value="false">關閉</option><option value="true">啟用</option></select></label>
+                <label>開始限制時間<input id="admin-gate-start" class="code-input" type="datetime-local"></label>
+                <label>結束限制時間<input id="admin-gate-end" class="code-input" type="datetime-local"></label>
+                <label class="full-width">提示文字<textarea id="admin-gate-message" class="chat-textarea" placeholder="時效閘門開啟時顯示的提示內容"></textarea></label>
+            </div>
+            <button class="main-btn btn-accent admin-wide-btn" onclick="saveTimeGateAdmin()">儲存時效閘門</button>
+            <div id="admin-gate-status" class="admin-mini-list"></div>
+            <div class="admin-tool-grid" style="margin-top:12px;">
+                <label>個別免疫帳號<select id="admin-gate-user-select" class="code-input"></select></label>
+                <label>免疫方式<select id="admin-gate-immunity-mode" class="code-input"><option value="none">取消免疫</option><option value="single">單次免疫</option><option value="lifetime">終生免疫</option></select></label>
+            </div>
+            <button class="main-btn btn-secondary admin-wide-btn" onclick="saveGateImmunityAdmin()">儲存個別免疫</button>
+
+            <h4 class="admin-section-title">13. 稱號創作與授予</h4>
+            <div class="admin-tool-grid">
+                <label>稱號名稱<input id="admin-title-name" class="code-input" maxlength="24" placeholder="例如：題庫守護者"></label>
+                <label>背景顏色<input id="admin-title-bg" class="code-input" type="color" value="#7c3aed"></label>
+                <label>文字顏色<input id="admin-title-fg" class="code-input" type="color" value="#ffffff"></label>
+                <label>授予帳號<select id="admin-title-user-select" class="code-input"></select></label>
+                <label>選擇稱號<select id="admin-title-select" class="code-input"></select></label>
+            </div>
+            <div class="export-button-grid title-admin-actions">
+                <button class="main-btn btn-accent" onclick="createTitleAdmin()">建立稱號</button>
+                <button class="main-btn btn-success" onclick="grantTitleAdmin()">授予稱號</button>
+                <button class="main-btn btn-secondary" onclick="cancelTitleAdmin()">取消稱號（可再達成）</button>
+                <button class="main-btn btn-danger" onclick="denyTitleAdmin()">剝奪稱號（永久禁止）</button>
+                <button class="main-btn btn-secondary" onclick="restoreDeniedTitleAdmin()">解除永久剝奪</button>
+            </div>
+            <div id="admin-title-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title" id="admin-section-export">14. 文件輸出中心</h4>
+            <p class="muted-note">可輸出帳號、成績、回報、留言、操作紀錄與外部連結資料。</p>
             <div class="export-button-grid">
                 <button class="main-btn btn-accent" onclick="exportAdminData('json')">下載完整 JSON</button>
                 <button class="main-btn btn-accent" onclick="exportAdminData('csv')">下載資料表 CSV</button>
@@ -1176,6 +1214,16 @@
                 <button class="main-btn btn-success" onclick="exportAdminData('pdf')">下載管理報告 PDF</button>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="time-gate-modal" class="modal-overlay hidden">
+    <div class="modal-card time-gate-card">
+        <div class="gate-lock-mark">⏱</div>
+        <h3 style="color:#fff">時效閘門已開啟</h3>
+        <p id="time-gate-range" class="gate-time-range"></p>
+        <div id="time-gate-message" class="notice-modal-content"></div>
+        <button class="main-btn btn-secondary" onclick="closeTimeGateNotice()">知道了</button>
     </div>
 </div>
 
@@ -2452,7 +2500,7 @@
             html += `
                 <tr style="border-bottom:1px solid #1e293b;">
                     <td style="padding:8px; text-align:center; font-weight:bold; color:${rankColor};">#${rankNum}</td>
-                    <td style="padding:8px; text-align:left; color:#f8fafc; font-weight:600;">${escapeHtml(rec.userName)}</td>
+                    <td style="padding:8px; text-align:left; color:#f8fafc; font-weight:600;">${escapeHtml(rec.userName)} <span class="inline-title-badges">${typeof window.titleHtmlFor === 'function' ? window.titleHtmlFor(rec.userEmail, rec.userName) : ''}</span></td>
                     <td style="padding:8px; text-align:center; color:#22c55e; font-weight:bold;">${rec.score} 分</td>
                     <td style="padding:8px; text-align:center;">
                         <button class="btn-sm btn-accent" style="padding:3px 8px; font-size:0.8em;" onclick="openRankDetailModal(${idx})">詳細資訊</button>
@@ -3077,6 +3125,9 @@
             const recordObj = {
                 quizCode: currentQuizCode,
                 userName: currentUser ? currentUser.name : '訪客',
+                userEmail: currentUser ? currentUser.email : '',
+                correctCount: correctCount,
+                questionCount: totalQ,
                 score: calculatedScore,
                 startTime: formatTimeFull(startTimeObj),
                 endTime: formatTimeFull(endTimeObj),
@@ -3086,6 +3137,10 @@
             };
             testHistoryRecords.push(recordObj);
             saveToFirebase('testHistory', testHistoryRecords);
+            if (currentUser && window.syncAutomaticTitles) {
+                window.syncAutomaticTitles(currentUser);
+                saveToFirebase('users', globalUsersDB);
+            }
         }
 
         document.getElementById('res-subject').innerText = window.currentQuiz.name;
@@ -3372,9 +3427,9 @@
 <script>
 /* V5-Pro 增量功能模組：不替換原測驗與計分流程，僅補充資料與管理功能。 */
 (function(){
-    let boardDB = [], broadcastDB = [], externalLinksDB = [], adminAuditDB = [];
+    let boardDB = [], externalLinksDB = [], adminAuditDB = [];
     let boardSettings = { enabled:true, maxLength:1000, notice:'', bannedWords:['髒話','幹你娘','操你媽','廢物'] };
-    let featureDataLoaded = false, pendingNoticeId = null;
+    let featureDataLoaded = false;
     const AVATAR_IDS = ['circle','diamond','triangle','hex','bars','sun'];
 
     function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -3389,25 +3444,85 @@
     async function clientMeta(){ let country='未知國家'; try{ const r=await fetch('https://ipapi.co/json/',{cache:'no-store'}); const d=await r.json(); country=d.country_name||country; }catch(e){} return { ip: userIP||'未知IP', country, platform: typeof getPlatform==='function'?getPlatform():'未知裝置' }; }
     function audit(action,target,detail){ const u=currentProfile(); adminAuditDB.push({id:'AUD-'+Date.now(),time:nowMs(),admin:u?.email||'system',action,target,detail}); if(adminAuditDB.length>5000) adminAuditDB=adminAuditDB.slice(-5000); saveFeature('adminAudit',adminAuditDB); }
 
-    function renderAccountExtras(){ const u=currentProfile(); if(!u) return; const uid=document.getElementById('acc-system-uid'); if(uid) uid.textContent=u.systemUid; const box=document.getElementById('avatar-picker'); if(box){ box.innerHTML=AVATAR_IDS.map(id=>`<button class="avatar-choice ${u.avatarId===id?'selected':''}" title="幾何頭像 ${id}" onclick="selectAvatar('${id}')">${avatarSvg(id)}</button>`).join(''); } }
+    function renderAccountExtras(){ const u=currentProfile(); if(!u) return; ensureTitleFields(u); syncAutomaticTitles(u); renderAccountTitles(); const uid=document.getElementById('acc-system-uid'); if(uid) uid.textContent=u.systemUid; const box=document.getElementById('avatar-picker'); if(box){ box.innerHTML=AVATAR_IDS.map(id=>`<button class="avatar-choice ${u.avatarId===id?'selected':''}" title="幾何頭像 ${id}" onclick="selectAvatar('${id}')">${avatarSvg(id)}</button>`).join(''); } }
     window.selectAvatar=function(id){ const u=currentProfile(); if(!u||!AVATAR_IDS.includes(id)) return; u.avatarId=id; const db=globalUsersDB.find(x=>x.email===u.email); if(db) db.avatarId=id; saveFeature('users',globalUsersDB); renderAccountExtras(); audit('修改頭像',u.email,id); }
 
-    function renderBoard(){ const list=document.getElementById('message-board-list'); if(!list) return; if(!boardSettings.enabled){ list.innerHTML='<div class="board-card">留言板目前由管理員暫停。</div>'; return; } const roots=boardDB.filter(x=>!x.parentId&&!x.deleted); if(!roots.length){ list.innerHTML='<div class="board-card">目前尚無留言。</div>'; return; } list.innerHTML=roots.slice().reverse().map(item=>{ const replies=boardDB.filter(x=>x.parentId===item.id&&!x.deleted); const avatar=avatarSvg(item.avatarId||'circle'); return `<article class="board-card"><div class="board-meta"><div class="board-avatar">${avatar}</div><b>${esc(item.name||'匿名')}</b><span>${esc(item.country||'未知國家')}</span><span>${esc(item.timestamp||'')}</span></div><div class="board-content">${esc(item.content)}</div><div class="board-replies">${replies.map(r=>`<div class="board-reply"><div class="board-meta"><div class="board-avatar">${avatarSvg(r.avatarId||'circle')}</div><b>${esc(r.name||'匿名')}</b><span>${esc(r.country||'未知國家')}</span><span>${esc(r.timestamp||'')}</span></div><div class="board-content">${esc(r.content)}</div></div>`).join('')}</div><div class="board-reply-form"><input class="code-input" id="reply-${esc(item.id)}" maxlength="1000" placeholder="回覆此留言"><button class="btn-sm btn-accent" onclick="replyBoardMessage('${esc(item.id)}')">回覆</button></div></article>`; }).join(''); }
+    function renderBoard(){ const list=document.getElementById('message-board-list'); if(!list) return; if(!boardSettings.enabled){ list.innerHTML='<div class="board-card">留言板目前由管理員暫停。</div>'; return; } const roots=boardDB.filter(x=>!x.parentId&&!x.deleted); if(!roots.length){ list.innerHTML='<div class="board-card">目前尚無留言。</div>'; return; } list.innerHTML=roots.slice().reverse().map(item=>{ const replies=boardDB.filter(x=>x.parentId===item.id&&!x.deleted); const avatar=avatarSvg(item.avatarId||'circle'); return `<article class="board-card"><div class="board-meta"><div class="board-avatar">${avatar}</div><b>${esc(item.name||'匿名')}</b><span class="inline-title-badges">${titleHtmlFor(item.email,item.name)}</span><span>${esc(item.country||'未知國家')}</span><span>${esc(item.timestamp||'')}</span></div><div class="board-content">${esc(item.content)}</div><div class="board-replies">${replies.map(r=>`<div class="board-reply"><div class="board-meta"><div class="board-avatar">${avatarSvg(r.avatarId||'circle')}</div><b>${esc(r.name||'匿名')}</b><span class="inline-title-badges">${titleHtmlFor(r.email,r.name)}</span><span>${esc(r.country||'未知國家')}</span><span>${esc(r.timestamp||'')}</span></div><div class="board-content">${esc(r.content)}</div></div>`).join('')}</div><div class="board-reply-form"><input class="code-input" id="reply-${esc(item.id)}" maxlength="1000" placeholder="回覆此留言"><button class="btn-sm btn-accent" onclick="replyBoardMessage('${esc(item.id)}')">回覆</button></div></article>`; }).join(''); }
     window.submitBoardMessage=async function(){ const u=currentProfile(); if(!u) return alert('請先登入！'); if(!boardSettings.enabled) return alert('留言板目前暫停使用。'); const input=document.getElementById('board-message-input'); const raw=input?.value.trim(); if(!raw) return alert('請填寫留言內容！'); if(raw.length>Number(boardSettings.maxLength||1000)) return alert(`留言不可超過 ${boardSettings.maxLength} 字。`); const meta=await clientMeta(); const content=cleanText(raw); boardDB.push({id:'MSG-'+Date.now(),email:u.email,name:u.name,uid:u.systemUid,avatarId:u.avatarId,ip:meta.ip,country:meta.country,platform:meta.platform,content,parentId:null,timestamp:nowMs(),editedAt:''}); saveFeature('messageBoard',boardDB); audit('新增留言',u.email,''); input.value=''; updateBoardCount(); renderBoard(); alert('留言已發表。'); }
     window.replyBoardMessage=async function(parentId){ const u=currentProfile(); const input=document.getElementById('reply-'+parentId); const raw=input?.value.trim(); if(!u||!raw) return; if(raw.length>Number(boardSettings.maxLength||1000)) return alert(`回覆不可超過 ${boardSettings.maxLength} 字。`); const meta=await clientMeta(); boardDB.push({id:'REP-'+Date.now(),parentId,email:u.email,name:u.name,uid:u.systemUid,avatarId:u.avatarId,ip:meta.ip,country:meta.country,platform:meta.platform,content:cleanText(raw),timestamp:nowMs(),editedAt:''}); saveFeature('messageBoard',boardDB); audit('新增留言回覆',u.email,parentId); renderBoard(); alert('回覆已發表。'); }
     function updateBoardCount(){ const i=document.getElementById('board-message-input'), c=document.getElementById('board-char-count'); if(i&&c)c.textContent=`${i.value.length} / ${boardSettings.maxLength||1000}`; }
 
     function renderExternalLinks(){ const el=document.getElementById('external-links-list'); if(!el)return; el.innerHTML=(externalLinksDB||[]).filter(x=>x.enabled!==false).map(x=>`<article class="external-link-card"><div><h4>${esc(x.label)}</h4><p class="muted-note">${esc(x.description)}</p></div><button class="main-btn btn-accent" style="width:auto;margin:0" onclick="window.open('${esc(x.url)}','_blank','noopener,noreferrer')">${esc(x.buttonText||'前往')}</button></article>`).join(''); }
-    function renderAdminFeatureLists(){ const el=document.getElementById('admin-external-links-list'); if(el)el.innerHTML=(externalLinksDB||[]).map((x,i)=>`<div class="admin-mini-card"><b>${esc(x.label)}</b> · ${esc(x.url)} <button class="btn-sm btn-danger" onclick="deleteExternalLinkAdmin(${i})">刪除</button></div>`).join('')||'<div class="muted-note">尚無分享連結</div>'; const bc=document.getElementById('admin-broadcast-list'); if(bc)bc.innerHTML=(broadcastDB||[]).slice().reverse().map(x=>`<div class="admin-mini-card"><b>${esc(x.title)}</b> · ${esc(x.targetEmail||'全員')} · 已確認 ${Object.keys(x.confirmedBy||{}).length} 人 <button class="btn-sm btn-danger" onclick="deleteBroadcastAdmin('${esc(x.id)}')">刪除</button></div>`).join('')||'<div class="muted-note">尚無廣播</div>'; }
+    let timeGateConfig = { enabled:false, start:'', end:'', message:'' };
+    const DEFAULT_SCHOLAR_TITLE = { id:'__scholar', name:'學識淵博', bg:'#eab308', fg:'#ffffff', system:true };
+    const ADMIN_TITLE = { id:'__admin', name:'管理員', bg:'#dc2626', fg:'#ffffff', system:true };
+    let titlesCatalog = [];
+
+    function titleBadge(t){ return `<span class="title-badge" style="background:${esc(t.bg||'#334155')};color:${esc(t.fg||'#fff')}">${esc(t.name)}</span>`; }
+    function getUserCorrectTotal(u){
+        if(!u) return 0;
+        return (testHistoryRecords||[]).filter(r => (r.userEmail && r.userEmail===u.email) || (!r.userEmail && r.userName===u.name)).reduce((n,r)=>n + Number(r.correctCount||0),0);
+    }
+    function ensureTitleFields(u){
+        if(!u) return u;
+        if(!Array.isArray(u.titleIds)) u.titleIds=[];
+        if(!Array.isArray(u.titleDeniedIds)) u.titleDeniedIds=[];
+        if(!Array.isArray(u.titleCancelledIds)) u.titleCancelledIds=[];
+        if(u.autoScholarCancelledAt === undefined) u.autoScholarCancelledAt=0;
+        if(u.equippedTitleId === undefined) u.equippedTitleId='';
+        if(u.adminExtraTitleId === undefined) u.adminExtraTitleId='';
+        if(u.gateImmunity === undefined) u.gateImmunity='none';
+        return u;
+    }
+    function allTitleObjects(){ return [DEFAULT_SCHOLAR_TITLE,...titlesCatalog]; }
+    function titleObject(id){ return allTitleObjects().find(t=>t.id===id); }
+    function syncAutomaticTitles(u){
+        ensureTitleFields(u); const total=getUserCorrectTotal(u);
+        const hasScholar=total>1000 && total>Number(u.autoScholarCancelledAt||0) && !u.titleDeniedIds.includes('__scholar');
+        if(hasScholar && !u.titleIds.includes('__scholar')) u.titleIds.push('__scholar');
+        if(u.titleIds.includes('__scholar') && total<=1000 && !u.titleDeniedIds.includes('__scholar')) u.titleIds=u.titleIds.filter(id=>id!=='__scholar');
+        return u;
+    }
+    function getActiveTitles(u){
+        ensureTitleFields(u); syncAutomaticTitles(u);
+        const out=[];
+        if(u.role==='admin') out.push(ADMIN_TITLE);
+        const owned=u.titleIds.map(titleObject).filter(Boolean).filter(t=>!u.titleDeniedIds.includes(t.id));
+        if(u.role==='admin') { const extra=titleObject(u.adminExtraTitleId); if(extra&&!u.titleDeniedIds.includes(extra.id)&&!out.some(x=>x.id===extra.id))out.push(extra); }
+        else { const selected=owned.find(t=>t.id===u.equippedTitleId); if(selected)out.push(selected); }
+        return out;
+    }
+    function titleHtmlFor(email,name){ const u=(globalUsersDB||[]).find(x=>x.email===email)||{email,name}; return getActiveTitles(u).map(titleBadge).join(''); }
+    window.titleHtmlFor=titleHtmlFor;
+    window.syncAutomaticTitles=syncAutomaticTitles;
+    function renderAccountTitles(){ const u=currentProfile(); if(!u)return; syncAutomaticTitles(u); const row=document.getElementById('account-title-list'),sel=document.getElementById('acc-title-select'); const owned=u.titleIds.map(titleObject).filter(Boolean).filter(t=>!u.titleDeniedIds.includes(t.id)); if(row)row.innerHTML=getActiveTitles(u).map(titleBadge).join('')||'<span class="muted-note">尚未配戴稱號</span>'; if(sel){ sel.innerHTML=owned.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('')||'<option value="">尚無可配戴稱號</option>'; if(u.equippedTitleId)sel.value=u.equippedTitleId; } }
+    window.saveEquippedTitle=function(){ const u=currentProfile(),sel=document.getElementById('acc-title-select'); if(!u||!sel?.value)return; ensureTitleFields(u); if(u.role==='admin')u.adminExtraTitleId=sel.value; else u.equippedTitleId=sel.value; saveFeature('users',globalUsersDB); audit('配戴稱號',u.email,sel.value); renderAccountTitles(); alert('稱號配戴已更新。'); };
+
+    function gateNow(){ return Date.now(); }
+    function gateActive(){ if(!timeGateConfig.enabled||!timeGateConfig.start||!timeGateConfig.end)return false; const a=new Date(timeGateConfig.start).getTime(),b=new Date(timeGateConfig.end).getTime(); return Number.isFinite(a)&&Number.isFinite(b)&&gateNow()>=a&&gateNow()<b; }
+    function fmtGateTime(v){ const d=new Date(v); return Number.isNaN(d.getTime())?v:d.toLocaleString('zh-TW',{hour12:false}); }
+    function hasGateBypass(u,consume=false){ if(!u||u.role==='admin')return true; ensureTitleFields(u); if(u.gateImmunity==='lifetime')return true; if(u.gateImmunity==='single'){ if(consume){u.gateImmunity='none'; saveFeature('users',globalUsersDB); audit('消耗單次閘門免疫',u.email,'');} return true; } return false; }
+    function canPassGate(consume=false){ const u=currentProfile(); if(!gateActive()||hasGateBypass(u,consume))return true; showTimeGateNotice(); return false; }
+    function showTimeGateNotice(){ const modal=document.getElementById('time-gate-modal'); if(!modal)return; document.getElementById('time-gate-range').textContent=`限制開始：${fmtGateTime(timeGateConfig.start)}　｜　限制結束：${fmtGateTime(timeGateConfig.end)}`; document.getElementById('time-gate-message').textContent=timeGateConfig.message||'目前不開放普通用戶使用，請於限制結束後再試。'; modal.classList.remove('hidden'); }
+    window.closeTimeGateNotice=function(){ document.getElementById('time-gate-modal')?.classList.add('hidden'); };
+    window.saveTimeGateAdmin=function(){ const u=currentProfile(); if(!u||u.role!=='admin')return; timeGateConfig={enabled:document.getElementById('admin-gate-enabled').value==='true',start:document.getElementById('admin-gate-start').value,end:document.getElementById('admin-gate-end').value,message:document.getElementById('admin-gate-message').value.trim()}; if(timeGateConfig.enabled&&(!timeGateConfig.start||!timeGateConfig.end||new Date(timeGateConfig.end)<=new Date(timeGateConfig.start)))return alert('請設定有效的開始與結束時間。'); saveFeature('timeGate',timeGateConfig); audit('修改時效閘門','timeGate',JSON.stringify(timeGateConfig)); renderGateAdmin(); alert('時效閘門設定已儲存。'); };
+    function renderGateAdmin(){ const e=document.getElementById('admin-gate-enabled'); if(!e)return; e.value=String(!!timeGateConfig.enabled); document.getElementById('admin-gate-start').value=timeGateConfig.start||''; document.getElementById('admin-gate-end').value=timeGateConfig.end||''; document.getElementById('admin-gate-message').value=timeGateConfig.message||''; const st=document.getElementById('admin-gate-status'); if(st)st.innerHTML=`<div class="admin-mini-card">目前狀態：<b>${gateActive()?'限制中':timeGateConfig.enabled?'已設定但目前未到限制時間':'關閉'}</b><br>${timeGateConfig.start?fmtGateTime(timeGateConfig.start):'未設定'} ～ ${timeGateConfig.end?fmtGateTime(timeGateConfig.end):'未設定'}</div>`; const users=(globalUsersDB||[]).filter(x=>!x.forgotten); const us=document.getElementById('admin-gate-user-select'); if(us){us.innerHTML=users.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無帳號</option>'; if(users[0]){us.value=users[0].email; document.getElementById('admin-gate-immunity-mode').value=users[0].gateImmunity||'none';}} }
+    window.saveGateImmunityAdmin=function(){ const u=currentProfile(); if(!u||u.role!=='admin')return; const email=document.getElementById('admin-gate-user-select').value,target=globalUsersDB.find(x=>x.email===email); if(!target)return; ensureTitleFields(target); target.gateImmunity=document.getElementById('admin-gate-immunity-mode').value; saveFeature('users',globalUsersDB); audit('修改個別閘門免疫',email,target.gateImmunity); alert('個別用戶閘門免疫已儲存。'); renderGateAdmin(); };
+
+    window.createTitleAdmin=function(){ const u=currentProfile(); if(!u||u.role!=='admin')return; const name=document.getElementById('admin-title-name').value.trim(); if(!name)return alert('請輸入稱號名稱。'); const id='title-'+Date.now(); titlesCatalog.push({id,name,bg:document.getElementById('admin-title-bg').value,fg:document.getElementById('admin-title-fg').value}); saveFeature('titlesCatalog',titlesCatalog); audit('建立稱號',id,name); renderTitleAdmin(); alert('稱號已建立。'); };
+    window.grantTitleAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-title-user-select').value,id=document.getElementById('admin-title-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u||!id)return; ensureTitleFields(u); u.titleDeniedIds=u.titleDeniedIds.filter(x=>x!==id); if(!u.titleIds.includes(id))u.titleIds.push(id); saveFeature('users',globalUsersDB); audit('授予稱號',email,id); renderTitleAdmin(); alert('稱號已授予。'); };
+    window.cancelTitleAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-title-user-select').value,id=document.getElementById('admin-title-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u||!id)return; ensureTitleFields(u); u.titleIds=u.titleIds.filter(x=>x!==id); if(id==='__scholar')u.autoScholarCancelledAt=getUserCorrectTotal(u); if(u.equippedTitleId===id)u.equippedTitleId=''; if(u.adminExtraTitleId===id)u.adminExtraTitleId=''; saveFeature('users',globalUsersDB); audit('取消稱號',email,id); renderTitleAdmin(); alert('稱號已取消；符合條件後仍可重新取得。'); };
+    window.denyTitleAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-title-user-select').value,id=document.getElementById('admin-title-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u||!id)return; ensureTitleFields(u); if(!u.titleDeniedIds.includes(id))u.titleDeniedIds.push(id); u.titleIds=u.titleIds.filter(x=>x!==id); if(u.equippedTitleId===id)u.equippedTitleId=''; if(u.adminExtraTitleId===id)u.adminExtraTitleId=''; saveFeature('users',globalUsersDB); audit('永久剝奪稱號',email,id); renderTitleAdmin(); alert('稱號已永久剝奪，該帳號不會再取得此稱號。'); };
+    window.restoreDeniedTitleAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-title-user-select').value,id=document.getElementById('admin-title-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u||!id)return; ensureTitleFields(u); u.titleDeniedIds=u.titleDeniedIds.filter(x=>x!==id); saveFeature('users',globalUsersDB); audit('解除稱號永久剝奪',email,id); renderTitleAdmin(); alert('已解除永久剝奪。'); };
+    function renderTitleAdmin(){ const users=(globalUsersDB||[]).filter(x=>!x.forgotten),us=document.getElementById('admin-title-user-select'),ts=document.getElementById('admin-title-select'); if(us)us.innerHTML=users.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無帳號</option>'; const titles=allTitleObjects(); if(ts)ts.innerHTML=titles.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); const list=document.getElementById('admin-title-list'); if(list)list.innerHTML=titlesCatalog.map(x=>`<div class="admin-mini-card">${titleBadge(x)}　ID：${esc(x.id)}</div>`).join('')||'<div class="muted-note">尚未建立自訂稱號。</div>'; }
+
+    function renderAdminFeatureLists(){ const el=document.getElementById('admin-external-links-list'); if(el)el.innerHTML=(externalLinksDB||[]).map((x,i)=>`<div class="admin-mini-card"><b>${esc(x.label)}</b> · ${esc(x.url)} <button class="btn-sm btn-danger" onclick="deleteExternalLinkAdmin(${i})">刪除</button></div>`).join('')||'<div class="muted-note">尚無分享連結</div>'; }
     function renderBoardModeration(){ const el=document.getElementById('admin-board-moderation-list'); if(!el)return; const items=(boardDB||[]).slice().reverse(); el.innerHTML='<h5 style="margin:14px 0 5px;color:#20344d">留言／回覆審核清單</h5>'+(items.length?items.map(x=>`<div class="admin-mini-card"><b>${x.parentId?'回覆':'留言'}</b> · ${esc(x.name)} (${esc(x.country||'未知國家')}) · ${esc(x.timestamp)}<div style="white-space:pre-wrap;margin:7px 0">${esc(x.content)}</div><button class="btn-sm btn-accent" onclick="editBoardItemAdmin('${esc(x.id)}')">修改</button> <button class="btn-sm btn-danger" onclick="deleteBoardItemAdmin('${esc(x.id)}')">刪除</button></div>`).join(''):'<div class="muted-note">目前沒有留言或回覆。</div>'); }
     window.editBoardItemAdmin=function(id){ const x=boardDB.find(v=>v.id===id); if(!x)return; const value=prompt('請輸入新的留言／回覆內容：',x.content||''); if(value===null)return; x.content=cleanText(value.trim()); x.editedAt=nowMs(); saveFeature('messageBoard',boardDB); audit('修改留言',id,''); renderBoard(); renderBoardModeration(); alert('留言內容已修改。'); }
     window.deleteBoardItemAdmin=function(id){ if(!confirm('確定刪除此留言／回覆？'))return; const x=boardDB.find(v=>v.id===id); if(x)x.deleted=true; saveFeature('messageBoard',boardDB); audit('刪除留言',id,''); renderBoard(); renderBoardModeration(); alert('留言已刪除。'); }
 
     window.addExternalLinkAdmin=function(){ if(!currentProfile()||currentProfile().role!=='admin')return; const label=document.getElementById('admin-link-label').value.trim(),url=document.getElementById('admin-link-url').value.trim(),description=document.getElementById('admin-link-description').value.trim(); if(!label||!/^https?:\/\//i.test(url))return alert('請輸入按鈕文字與完整 http(s) 網址。'); externalLinksDB.push({id:'LINK-'+Date.now(),label,buttonText:label,url,description,enabled:true,createdAt:nowMs()}); saveFeature('externalLinks',externalLinksDB); audit('新增外部連結',label,url); renderAdminFeatureLists(); renderExternalLinks(); alert('外部連結已新增。'); }
     window.deleteExternalLinkAdmin=function(i){ if(!confirm('確定刪除此分享連結？'))return; externalLinksDB.splice(i,1); saveFeature('externalLinks',externalLinksDB); audit('刪除外部連結',String(i),''); renderAdminFeatureLists(); renderExternalLinks(); }
-    window.sendBroadcastAdmin=function(){ if(!currentProfile()||currentProfile().role!=='admin')return; const title=document.getElementById('admin-broadcast-title').value.trim()||'系統公告',content=document.getElementById('admin-broadcast-content').value.trim(),target=document.getElementById('admin-broadcast-target').value.trim(); if(!content)return alert('請填寫公告內容。'); broadcastDB.push({id:'BC-'+Date.now(),title,content,targetEmail:target||null,createdAt:nowMs(),confirmedBy:{}}); saveFeature('broadcasts',broadcastDB); audit('發布廣播',target||'全員',title); document.getElementById('admin-broadcast-content').value=''; renderAdminFeatureLists(); alert('廣播已發布。'); }
-    window.deleteBroadcastAdmin=function(id){ if(!confirm('確定刪除此廣播？'))return; broadcastDB=broadcastDB.filter(x=>x.id!==id); saveFeature('broadcasts',broadcastDB); audit('刪除廣播',id,''); renderAdminFeatureLists(); }
-    function showPendingBroadcast(){ const u=currentProfile(); if(!u||pendingNoticeId)return; const b=(broadcastDB||[]).find(x=>(!x.targetEmail||x.targetEmail===u.email)&&!(x.confirmedBy||{})[u.email]); if(!b)return; pendingNoticeId=b.id; const modal=document.getElementById('broadcast-notice-modal'); if(!modal)return; document.getElementById('broadcast-notice-title').textContent=b.title; document.getElementById('broadcast-notice-content').textContent=b.content; document.getElementById('broadcast-notice-time').textContent=b.createdAt; modal.classList.remove('hidden'); window.confirmBroadcast=function(){ b.confirmedBy=b.confirmedBy||{}; b.confirmedBy[u.email]=nowMs(); saveFeature('broadcasts',broadcastDB); audit('確認廣播',b.id,''); pendingNoticeId=null; modal.classList.add('hidden'); }; }
 
     window.saveBoardSettingsAdmin=function(){ const u=currentProfile(); if(!u||u.role!=='admin')return; boardSettings.enabled=document.getElementById('admin-board-enabled').value==='true'; boardSettings.maxLength=Math.max(50,Math.min(5000,Number(document.getElementById('admin-board-max-length').value)||1000)); boardSettings.notice=document.getElementById('admin-board-notice').value.trim(); boardSettings.bannedWords=document.getElementById('admin-banned-words').value.split(',').map(x=>x.trim()).filter(Boolean); saveFeature('boardSettings',boardSettings); audit('修改留言板設定','留言板',JSON.stringify(boardSettings)); alert('留言板設定已儲存。'); }
     function loadBoardAdmin(){ const a=document.getElementById('admin-board-enabled'); if(!a)return; a.value=String(boardSettings.enabled!==false); document.getElementById('admin-board-max-length').value=boardSettings.maxLength||1000; document.getElementById('admin-board-notice').value=boardSettings.notice||''; document.getElementById('admin-banned-words').value=(boardSettings.bannedWords||[]).join(','); }
@@ -3418,29 +3533,29 @@
     window.restoreForgottenAccount=function(email){ const u=globalUsersDB.find(x=>x.email===email); if(!u)return; u.forgotten=false; saveFeature('users',globalUsersDB); audit('復原遺忘帳號',email,''); renderAdminProfiles(); renderForgottenAccountsAdmin(); alert('帳號已復原。'); }
 
     function exportBlob(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
-    window.exportAdminData=function(kind){ const u=currentProfile(); if(!u||u.role!=='admin')return; const data={exportedAt:nowMs(),users:globalUsersDB,testHistory:testHistoryRecords,feedback:feedbackDB,messageBoard:boardDB,broadcasts:broadcastDB,externalLinks:externalLinksDB,audit:adminAuditDB,quizLimits:quizLimitsMap,userQuizLimits:userQuizLimitsMap,quizUsage:quizUsageMap}; const base='rms-admin-'+Date.now(); if(kind==='json')return exportBlob(base+'.json',JSON.stringify(data,null,2),'application/json'); if(kind==='txt'){ let txt=`RMS 管理報告\n輸出時間：${data.exportedAt}\n\n帳號：${data.users.length}\n測驗紀錄：${data.testHistory.length}\n回報：${data.feedback.length}\n留言：${data.messageBoard.length}\n廣播：${data.broadcasts.length}\n\n操作紀錄\n`+(data.audit||[]).map(x=>`${x.time}\t${x.admin}\t${x.action}\t${x.target}\t${x.detail}`).join('\n'); return exportBlob(base+'.txt',txt,'text/plain;charset=utf-8'); } if(kind==='csv'){ const rows=[['類別','時間','帳號/對象','內容'],...data.users.map(x=>['帳號','',x.email,x.name]),...data.testHistory.map(x=>['測驗',x.endTime||'',x.userName||'',`${x.quizCode||''} ${x.score||''}`]),...data.messageBoard.map(x=>['留言',x.timestamp||'',x.email||'',x.content||'']),...data.audit.map(x=>['操作',x.time,x.admin,`${x.action} ${x.target} ${x.detail}`])]; return exportBlob(base+'.csv',rows.map(r=>r.map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',')).join('\n'),'text/csv;charset=utf-8'); } if(kind==='pdf'){ const w=document.createElement('div'); w.style.cssText='background:#fff;color:#111;padding:30px;font-family:Arial;'; w.innerHTML=`<h1>RMS 管理報告</h1><p>輸出時間：${esc(data.exportedAt)}</p><h2>統計</h2><p>帳號 ${data.users.length} ／測驗 ${data.testHistory.length} ／留言 ${data.messageBoard.length} ／操作紀錄 ${data.audit.length}</p><h2>最近操作</h2><pre>${esc(JSON.stringify(data.audit.slice(-100),null,2))}</pre>`; document.body.appendChild(w); if(window.html2pdf)html2pdf().set({margin:10,filename:base+'.pdf',html2canvas:{scale:1.5},jsPDF:{unit:'mm',format:'a4'}}).from(w).save().then(()=>w.remove()); else w.remove(); } audit('匯出資料',kind,''); }
+    window.exportAdminData=function(kind){ const u=currentProfile(); if(!u||u.role!=='admin')return; const data={exportedAt:nowMs(),users:globalUsersDB,testHistory:testHistoryRecords,feedback:feedbackDB,messageBoard:boardDB,externalLinks:externalLinksDB,audit:adminAuditDB,quizLimits:quizLimitsMap,userQuizLimits:userQuizLimitsMap,quizUsage:quizUsageMap}; const base='rms-admin-'+Date.now(); if(kind==='json')return exportBlob(base+'.json',JSON.stringify(data,null,2),'application/json'); if(kind==='txt'){ let txt=`RMS 管理報告\n輸出時間：${data.exportedAt}\n\n帳號：${data.users.length}\n測驗紀錄：${data.testHistory.length}\n回報：${data.feedback.length}\n留言：${data.messageBoard.length}\n\n操作紀錄\n`+(data.audit||[]).map(x=>`${x.time}\t${x.admin}\t${x.action}\t${x.target}\t${x.detail}`).join('\n'); return exportBlob(base+'.txt',txt,'text/plain;charset=utf-8'); } if(kind==='csv'){ const rows=[['類別','時間','帳號/對象','內容'],...data.users.map(x=>['帳號','',x.email,x.name]),...data.testHistory.map(x=>['測驗',x.endTime||'',x.userName||'',`${x.quizCode||''} ${x.score||''}`]),...data.messageBoard.map(x=>['留言',x.timestamp||'',x.email||'',x.content||'']),...data.audit.map(x=>['操作',x.time,x.admin,`${x.action} ${x.target} ${x.detail}`])]; return exportBlob(base+'.csv',rows.map(r=>r.map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',')).join('\n'),'text/csv;charset=utf-8'); } if(kind==='pdf'){ const w=document.createElement('div'); w.style.cssText='background:#fff;color:#111;padding:30px;font-family:Arial;'; w.innerHTML=`<h1>RMS 管理報告</h1><p>輸出時間：${esc(data.exportedAt)}</p><h2>統計</h2><p>帳號 ${data.users.length} ／測驗 ${data.testHistory.length} ／留言 ${data.messageBoard.length} ／操作紀錄 ${data.audit.length}</p><h2>最近操作</h2><pre>${esc(JSON.stringify(data.audit.slice(-100),null,2))}</pre>`; document.body.appendChild(w); if(window.html2pdf)html2pdf().set({margin:10,filename:base+'.pdf',html2canvas:{scale:1.5},jsPDF:{unit:'mm',format:'a4'}}).from(w).save().then(()=>w.remove()); else w.remove(); } audit('匯出資料',kind,''); }
 
     window.toggleTermsDetails=function(){ const b=document.getElementById('terms-details-box'); if(b)b.classList.toggle('hidden'); }
     window.openTermsGate=function(){ const source=document.getElementById('terms-details-box'),modal=document.getElementById('terms-gate-modal'),content=document.getElementById('terms-gate-content'),cb=document.getElementById('terms-gate-checkbox'),ok=document.getElementById('terms-gate-accept'); if(!source||!modal)return; content.innerHTML=source.innerHTML; cb.checked=false; cb.disabled=true; ok.disabled=true; content.onscroll=function(){ if(content.scrollTop+content.clientHeight>=content.scrollHeight-5){cb.disabled=false;} }; cb.onchange=()=>ok.disabled=!cb.checked; modal.classList.remove('hidden'); }
     window.closeTermsGate=function(){ document.getElementById('terms-gate-modal')?.classList.add('hidden'); }
     window.acceptTermsGate=function(){ document.getElementById('agree-terms').checked=true; document.getElementById('terms-gate-modal').classList.add('hidden'); if(typeof checkAuthUnlock==='function')checkAuthUnlock(); }
 
-    function renderFeatureAdmin(){ ensureAllUsers(); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); }
-    function featureData(data){ boardDB=data?.messageBoard||[]; broadcastDB=data?.broadcasts||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; ensureAllUsers(); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
+    function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); }
+    function featureData(data){ boardDB=data?.messageBoard||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; timeGateConfig={...timeGateConfig,...(data?.timeGate||{})}; titlesCatalog=data?.titlesCatalog||[]; ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
     window.__rmsFeatureData = featureData;
     const originalInit=window.initFirebaseData; window.initFirebaseData=function(data){ featureData(data||{}); if(originalInit)originalInit(data); ensureAllUsers(); try{saveFeature('users',globalUsersDB);}catch(e){} };
     const originalSwitch=window.switchView; window.switchView=function(view){ if(view==='board'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#external-links-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('message-board-screen').classList.remove('hidden'); renderBoard(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='external'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('external-links-screen').classList.remove('hidden'); renderExternalLinks(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(originalSwitch)originalSwitch(view); if(view==='account')renderAccountExtras(); if(view==='admin')renderFeatureAdmin(); };
     const originalSetup=window.setupAdminConsole; window.setupAdminConsole=function(){ if(originalSetup)originalSetup(); renderFeatureAdmin(); };
-    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; setTimeout(showPendingBroadcast,250); };
+    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; if(!isAdmin&&!hasGateBypass(currentProfile()))setTimeout(()=>{if(gateActive())showTimeGateNotice();},250); };
+    const originalConfirmQuiz=window.confirmQuizEntry; window.confirmQuizEntry=function(){ if(!canPassGate(true))return; if(originalConfirmQuiz)originalConfirmQuiz(); };
     const originalSave=window.saveToFirebase; window.saveToFirebase=function(path,value){ if(originalSave)originalSave(path,value); };
-    const originalSubmit=window.handleAuthSubmit; window.handleAuthSubmit=function(){ if(!document.getElementById('agree-terms').checked){ openTermsGate(); return; } if(originalSubmit)originalSubmit(); setTimeout(()=>{ensureAllUsers();renderAccountExtras();showPendingBroadcast();},300); };
-    window.addEventListener('DOMContentLoaded',()=>{ const i=document.getElementById('board-message-input'); if(i)i.addEventListener('input',updateBoardCount); document.getElementById('broadcast-notice-modal')?.classList.add('hidden'); });
+    const originalSubmit=window.handleAuthSubmit; window.handleAuthSubmit=function(){ if(!document.getElementById('agree-terms').checked){ openTermsGate(); return; } if(originalSubmit)originalSubmit(); setTimeout(()=>{ensureAllUsers();renderAccountExtras();},300); };
+    window.addEventListener('DOMContentLoaded',()=>{ const i=document.getElementById('board-message-input'); if(i)i.addEventListener('input',updateBoardCount); });
     const nativeAlert=window.alert; window.alert=function(message){ const modal=document.getElementById('ui-message-modal'); if(!modal)return nativeAlert(message); document.getElementById('ui-message-title').textContent='系統訊息'; document.getElementById('ui-message-content').textContent=String(message??''); modal.classList.remove('hidden'); };
     window.closeUiMessage=function(){ document.getElementById('ui-message-modal')?.classList.add('hidden'); };
-    setInterval(()=>{ if(currentUser&&!document.getElementById('broadcast-notice-modal')?.classList.contains('hidden')){} else showPendingBroadcast(); },1500);
+    setInterval(()=>{ const modal=document.getElementById('time-gate-modal'); if(modal&&!gateActive())modal.classList.add('hidden'); },1000);
 })();
 </script>
-<div id="broadcast-notice-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="broadcast-notice-title" style="color:#fff"></h3><div id="broadcast-notice-content" class="notice-modal-content"></div><p id="broadcast-notice-time" class="muted-note"></p><button class="main-btn btn-success" onclick="confirmBroadcast()">我已確認</button></div></div>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>
 
 <!-- Firebase SDK 模組初始化與資料同步 -->
@@ -3573,8 +3688,9 @@
                 testHistory: [],
                 feedback: [],
                 messageBoard: [],
+                timeGate: { enabled:false, start:'', end:'', message:'' },
+                titlesCatalog: [],
                 boardSettings: { enabled: true, maxLength: 1000, notice: '', bannedWords: ['髒話', '幹你娘', '操你媽', '廢物'] },
-                broadcasts: [],
                 externalLinks: [],
                 adminAudit: []
             };
