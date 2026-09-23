@@ -2838,6 +2838,7 @@
     function quickStartQuiz(quizCode) {
         openQuizEntryFlow(quizCode, true);
     }
+    window.quickStartQuiz = quickStartQuiz;
 
     function openQuizEntryFlow(quizCode, fromPublic) {
         quizCode = String(quizCode || '').trim();
@@ -3383,7 +3384,7 @@
 
     function evalQuiz() {
         if (!isWrongQuestionsMode && !window.__rmsContestContext && !quizAttemptCounted) {
-            recordCompletedQuizAttempt(document.getElementById('quiz-code')?.value.trim() || 'test01');
+            try { recordCompletedQuizAttempt(document.getElementById('quiz-code')?.value.trim() || 'test01'); } catch (counterError) { console.warn('答題次數寫入略過：', counterError); }
             quizAttemptCounted = true;
         }
         quizActive = false;
@@ -4142,6 +4143,7 @@
   function typeFrom(ans){let t=''; [['E','I'],['S','N'],['T','F'],['J','P']].forEach(pair=>{const a=ans.filter(x=>x===pair[0]).length,b=ans.filter(x=>x===pair[1]).length;t+=a>=b?pair[0]:pair[1]});return t}
   function injectUi(){
     const menu=document.getElementById('dropdown-menu'); if(menu&&!document.getElementById('menu-mbti-item')){const d=document.createElement('div');d.id='menu-mbti-item';d.className='dropdown-item';d.textContent='我的 MBTI';d.onclick=()=>showMbti();menu.insertBefore(d,document.getElementById('menu-admin-item'));}
+    ['auth-name','auth-verify-code'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.dataset.authBound){el.dataset.authBound='1';el.addEventListener('input',()=>{if(typeof window.checkAuthUnlock==='function')window.checkAuthUnlock()})}});
     const terms=document.getElementById('terms-details-box'); if(terms&&!terms.dataset.mbti){terms.dataset.mbti='1';terms.insertAdjacentHTML('beforeend','<p><strong>第八條：MBTI 個人特性測驗（必要服務）</strong><br>新使用者完成第一次操作流程教學後，必須完成 MBTI 個人特性測驗；此後每 30 天重新測驗一次。MBTI 測驗為本系統必要服務，拒絕或未完成者將暫停使用其他系統功能。測驗結果、完成時間及必要的帳戶辨識資料可供管理員於「用戶特性」查詢與管理。</p>');const lab=document.querySelector('#agree-terms')?.parentElement;if(lab&&!lab.dataset.mbti){lab.dataset.mbti='1';lab.innerHTML=lab.innerHTML.replace('IP存取授權','IP存取授權、MBTI必要測驗與每30日重測規範');const cb=document.getElementById('agree-terms');cb?.addEventListener('change',()=>{if(typeof window.checkAuthUnlock==='function')window.checkAuthUnlock()});if(typeof window.checkAuthUnlock==='function')window.checkAuthUnlock();}}
     if(!document.getElementById('mbti-screen')){const c=document.querySelector('.container');const el=document.createElement('div');el.id='mbti-screen';el.className='hidden sub-view mbti-screen';c.appendChild(el)}
     if(!document.getElementById('mbti-lock-modal')){const m=document.createElement('div');m.id='mbti-lock-modal';m.className='modal-overlay hidden';m.style.zIndex='30000';m.innerHTML='<div class="modal-card mbti-card" style="color:#1e293b;text-align:left;border-top:5px solid #f59e0b"><div style="font-size:2em;text-align:center">🔒</div><h3 id="mbti-lock-title" style="color:#20344d">必須完成 MBTI 測驗</h3><p id="mbti-lock-message" class="mbti-muted">您尚未完成 MBTI 測驗，完成前無法使用題測系統及其他功能。</p><button class="main-btn btn-accent" onclick="window.startMbti(true)">開始／繼續 MBTI 測驗</button></div>';document.body.appendChild(m)}
