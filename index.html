@@ -761,6 +761,66 @@
                 min-width: 520px;
             }
         }
+        /* Responsive top-right mail/menu alignment: layout-only override */
+        .top-navbar {
+            box-sizing: border-box;
+            padding-left: clamp(8px, 3vw, 20px);
+            padding-right: clamp(8px, 3vw, 20px);
+        }
+        .top-navbar .menu-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex: 0 0 auto;
+            min-width: 0;
+        }
+        .top-navbar .mail-quick-btn {
+            position: relative;
+            flex: 0 0 auto;
+            width: 40px;
+            min-width: 40px;
+            box-sizing: border-box;
+        }
+        .top-navbar .menu-btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        .top-navbar .dropdown-menu {
+            right: 0;
+            width: min(200px, calc(100vw - 16px));
+            max-width: calc(100vw - 16px);
+            box-sizing: border-box;
+        }
+        @media (max-width: 600px) {
+            .top-navbar {
+                gap: 8px;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            .top-navbar .taipei-clock {
+                min-width: 0;
+                max-width: calc(100vw - 150px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            .top-navbar .menu-container {
+                gap: 6px;
+            }
+            .top-navbar .mail-quick-btn {
+                width: 36px;
+                min-width: 36px;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            .top-navbar .menu-btn {
+                padding-left: 9px;
+                padding-right: 9px;
+            }
+        }
     </style>
 </head>
 <body oncontextmenu="return false">
