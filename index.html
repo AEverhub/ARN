@@ -1468,7 +1468,7 @@
         <h3 style="color:#fff">時效閘門已開啟</h3>
         <p id="time-gate-range" class="gate-time-range"></p>
         <div id="time-gate-message" class="notice-modal-content"></div>
-        <button class="main-btn btn-secondary" onclick="closeTimeGateNotice()">知道了</button>
+        
     </div>
 </div>
 
@@ -1666,6 +1666,7 @@
     let quizCodesMap = {};
     let userQuizLimitsMap = {};
     let quizUsageMap = {};
+    let quizAttemptCounted = false;
     let testHistoryRecords = []; 
     let feedbackDB = []; 
     let globalApiConfig = {};
@@ -2630,6 +2631,17 @@
         return true;
     }
 
+    function recordCompletedQuizAttempt(code) {
+        if (!currentUser || currentUser.role === 'admin') return;
+        const limit = getQuizLimitForUser(code);
+        if (!limit || limit.mode === 'none') return;
+        const usage = getQuizUsage(currentUser.email, code);
+        usage.globalCount = (usage.globalCount || 0) + 1;
+        if (limit.mode === 'time') usage.dailyCount = (usage.dailyCount || 0) + 1;
+        saveToFirebase('quizUsage', quizUsageMap);
+        renderPublicQuizzesList();
+    }
+
     function toggleAdminQuizPublic(checkbox) {
         const code = document.getElementById('adminQuizCodeInput').value.trim();
         if (!code) return;
@@ -2914,7 +2926,7 @@
         if (!state.allowed) return alert(state.message);
         const entryDataset = normalizeQuizDataset(window.currentQuiz);
         if (!ensureLocalApiForQuestions(entryDataset)) return;
-        if (!window.__rmsContestContext && !isWrongQuestionsMode && !consumeQuizAttempt(pendingQuizCode)) return;
+        
         requestFullScreen();
         setMenuDisabledState(true);
         isWrongQuestionsMode = false;
@@ -3366,6 +3378,10 @@
     }
 
     function evalQuiz() {
+        if (!isWrongQuestionsMode && !window.__rmsContestContext && !quizAttemptCounted) {
+            recordCompletedQuizAttempt(document.getElementById('quiz-code')?.value.trim() || 'test01');
+            quizAttemptCounted = true;
+        }
         quizActive = false;
         clearInterval(timerInterval);
         endTimeObj = new Date();
