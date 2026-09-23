@@ -659,6 +659,23 @@
         .board-reply-form input { flex:1; min-width:0; }
         .external-link-card { display:flex; justify-content:space-between; gap:15px; align-items:center; }
         .external-link-card h4 { margin:0 0 5px; color:#20344d; }
+        .uid-hint { margin:-5px 0 12px; color:#64748b; font-size:.78em; line-height:1.5; }
+        .mail-quick-btn { position:relative; width:40px; height:36px; border:1px solid #cbd5e1; background:#fff; color:#20344d; border-radius:8px; font-size:1.15em; cursor:pointer; box-shadow:0 4px 10px rgba(15,23,42,.08); }
+        .mail-unread-badge { position:absolute; top:-8px; right:-8px; min-width:18px; height:18px; padding:0 4px; border-radius:99px; display:grid; place-items:center; background:#dc2626; color:#fff; font-size:10px; font-weight:900; border:2px solid #fff; }
+        .mail-layout { display:grid; grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr); gap:14px; }
+        .mail-compose-card,.mail-inbox-card,.contest-entry-card,.contest-history-card { background:#fff; border:1px solid #d7e0ea; border-radius:10px; padding:16px; box-shadow:0 5px 15px rgba(15,23,42,.06); }
+        .mail-compose-card h4,.mail-inbox-card h4,.contest-entry-card h4,.contest-history-card h4 { color:#20344d; margin-top:0; }
+        .mail-section-head { display:flex; justify-content:space-between; align-items:center; }
+        .mail-list,.contest-list { display:flex; flex-direction:column; gap:8px; max-height:520px; overflow:auto; }
+        .mail-item,.contest-item { padding:12px; border:1px solid #dbe3ec; border-radius:8px; background:#f8fafc; cursor:pointer; }
+        .mail-item.unread { border-left:4px solid #dc2626; background:#fff7f7; }
+        .mail-item strong { color:#20344d; }
+        .mail-item small,.contest-item small { color:#64748b; }
+        .mail-body-preview { white-space:pre-wrap; color:#334155; margin-top:7px; line-height:1.55; }
+        .contest-entry-card { margin-bottom:14px; max-width:560px; }
+        .contest-entry-card .main-btn { width:auto; }
+        .reset-action-grid { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:10px; }
+        @media (max-width:600px){ .mail-layout { grid-template-columns:1fr; } .mail-quick-btn { width:36px; } .reset-action-grid { grid-template-columns:1fr; } .contest-entry-card .main-btn { width:100%; } }
         .admin-section-title { margin-top:22px; color:var(--primary); border-top:1px solid #dbe3ec; padding-top:16px; }
         .admin-tool-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
         .admin-tool-grid label { display:flex; flex-direction:column; gap:5px; color:#475569; font-weight:700; font-size:.86em; }
@@ -753,12 +770,15 @@
         <span>台北時間: 載入中...</span>
     </div>
     <div class="menu-container">
+        <button class="mail-quick-btn" id="mail-quick-btn" onclick="switchView('mail')" aria-label="站內郵件">✉<span id="mail-unread-badge" class="mail-unread-badge hidden">0</span></button>
         <button class="menu-btn" id="top-menu-btn" onclick="toggleMenu()">
             <span>選單 MENU</span>
         </button>
         <div class="dropdown-menu" id="dropdown-menu">
             <div class="dropdown-item" onclick="switchView('login')">測驗首頁</div>
             <div class="dropdown-item" onclick="switchView('account')">帳號中心</div>
+            <div class="dropdown-item" onclick="switchView('mail')">站內郵件</div>
+            <div class="dropdown-item" onclick="switchView('contest')">競賽／考試</div>
             <div class="dropdown-item" onclick="openLocalApiModal()">本地 API 配置</div>
             <div class="dropdown-item" id="menu-lobby-item" onclick="switchView('chat')">異常回覆</div>
             <div class="dropdown-item" id="menu-board-item" onclick="switchView('board')">留言板</div>
@@ -781,11 +801,12 @@
             <button type="button" id="auth-register-tab" class="auth-mode-tab" onclick="setAuthMode('register')">註冊</button>
         </div>
         <div class="input-group">
-            <input type="email" id="auth-email" class="code-input" placeholder="電子郵件 (例如: admin@rms.com 或一般信箱)">
+            <input type="text" id="auth-email" class="code-input" autocomplete="username" placeholder="請輸入站內 UID（例如 admin）">
             <input type="password" id="auth-pass" class="code-input" placeholder="密碼">
 
             <div id="register-extra-fields">
-                <input type="text" id="auth-name" class="code-input" placeholder="考生姓名 (僅註冊時需要)">
+                <input type="text" id="auth-name" class="code-input" placeholder="考生姓名（僅註冊時需要）">
+                <p class="uid-hint">註冊與登入請輸入站內 UID；系統會自動以 @rms.com 作為實際儲存後綴。</p>
             </div>
 
             <div id="verification-code-area" class="hidden">
@@ -990,6 +1011,25 @@
     <div id="external-links-screen" class="hidden sub-view" style="color:#333;">
         <div class="board-hero"><h3>前往其他網域</h3><p>管理員發布的服務入口與說明會顯示於此；尚未發布時保持空白。</p></div>
         <div id="external-links-list" class="external-links-list"></div>
+    </div>
+
+    <div id="contest-screen" class="hidden sub-view" style="color:#333;">
+        <div class="board-hero"><h3>競賽／考試中心</h3><p>輸入管理員提供的考場編碼與密碼進入指定考場；完成後可查詢已公布的排名與成績。</p></div>
+        <div class="contest-entry-card">
+            <h4>進入考場</h4>
+            <input id="contest-code-input" class="code-input" placeholder="考場編碼">
+            <input id="contest-password-input" type="password" class="code-input" placeholder="考場密碼">
+            <button class="main-btn btn-accent" onclick="enterContest()">驗證並進入考場</button>
+        </div>
+        <div class="contest-history-card"><h4>歷屆競賽／考試</h4><div id="contest-public-list" class="contest-list"></div></div>
+    </div>
+
+    <div id="mail-screen" class="hidden sub-view" style="color:#333;">
+        <div class="board-hero"><h3>站內郵件</h3><p>使用站內 UID 寄送郵件；實際帳號格式為 UID@rms.com。</p></div>
+        <div class="mail-layout">
+            <section class="mail-compose-card"><h4>撰寫郵件</h4><input id="mail-to" class="code-input" placeholder="收件人 UID（例如 user01）"><input id="mail-subject" class="code-input" placeholder="主旨"><textarea id="mail-body" class="chat-textarea" placeholder="郵件內容"></textarea><button class="main-btn btn-accent" onclick="sendRmsMail()">寄出郵件</button></section>
+            <section class="mail-inbox-card"><div class="mail-section-head"><h4>收件匣</h4><span id="mail-inbox-count" class="muted-note"></span></div><div id="mail-inbox-list" class="mail-list"></div></section>
+        </div>
     </div>
 
     <div id="chat-screen" class="hidden sub-view" style="color:#333;">
@@ -1241,6 +1281,39 @@
                 <button class="main-btn btn-secondary" onclick="restoreDeniedTitleAdmin()">解除永久剝奪</button>
             </div>
             <div id="admin-title-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title">15. 資料重置與資訊面板管理</h4>
+            <p class="muted-note">重置會直接更新 Firebase，刪除或清空後無法由本頁復原；請確認選擇的範圍。</p>
+            <div class="admin-tool-grid">
+                <label>考試紀錄範圍<select id="admin-reset-history-scope" class="code-input"><option value="all">全部考試紀錄</option><option value="user">指定帳號紀錄</option></select></label>
+                <label>指定帳號<select id="admin-reset-history-user" class="code-input"></select></label>
+                <label>資訊面板資料<select id="admin-reset-info-kind" class="code-input"><option value="history">測驗紀錄統計</option><option value="usage">答題使用次數統計</option><option value="both">測驗紀錄與使用次數</option></select></label>
+            </div>
+            <div class="export-button-grid reset-action-grid">
+                <button class="main-btn btn-danger" onclick="resetExamRecordsAdmin()">清除選定考試紀錄</button>
+                <button class="main-btn btn-danger" onclick="resetInfoPanelAdmin()">重置資訊面板數據</button>
+            </div>
+            <div id="admin-reset-status" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title">16. 競賽／考試管理</h4>
+            <p class="muted-note">建立考場後，普通用戶可用考場編碼與密碼進入指定題庫；排名在設定的公布時間後開放查詢。</p>
+            <div class="admin-tool-grid">
+                <label>比賽／考試名稱<input id="admin-contest-name" class="code-input" placeholder="例如：第一次月考"></label>
+                <label>考場編碼<input id="admin-contest-code" class="code-input" placeholder="留空由系統產生"></label>
+                <label>考場密碼<input id="admin-contest-password" class="code-input" placeholder="提供給參賽者"></label>
+                <label>指定題庫代碼<input id="admin-contest-quiz" class="code-input" placeholder="例如 test01"></label>
+                <label>可作答次數<input id="admin-contest-attempts" class="code-input" type="number" min="1" max="100" value="1"></label>
+                <label>開始時間<input id="admin-contest-start" class="code-input" type="datetime-local"></label>
+                <label>結束時間<input id="admin-contest-end" class="code-input" type="datetime-local"></label>
+                <label>公布排名時間<input id="admin-contest-publish" class="code-input" type="datetime-local"></label>
+                <label class="full-width">題庫順序<select id="admin-contest-order" class="code-input"><option value="original">依題庫原順序</option><option value="random">每次隨機排序</option></select></label>
+            </div>
+            <button class="main-btn btn-accent admin-wide-btn" onclick="createContestAdmin()">建立比賽／考試</button>
+            <div id="admin-contest-list" class="admin-mini-list"></div>
+
+            <h4 class="admin-section-title">17. 站內郵件監督</h4>
+            <p class="muted-note">管理員可以查看每一則站內郵件與已讀／未讀狀態，不會改變一般寄信流程。</p>
+            <div id="admin-mail-list" class="admin-mini-list"></div>
 
             <h4 class="admin-section-title" id="admin-section-export">14. 文件輸出中心</h4>
             <p class="muted-note">可輸出帳號、成績、回報、留言、操作紀錄與外部連結資料。</p>
@@ -1739,6 +1812,8 @@
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('mail-screen')?.classList.add('hidden');
+        document.getElementById('contest-screen')?.classList.add('hidden');
         document.getElementById('admin-screen').classList.add('hidden');
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('auth-email').value = '';
@@ -2684,13 +2759,14 @@
         if (!state.allowed) return alert(state.message);
         const entryDataset = normalizeQuizDataset(window.currentQuiz);
         if (!ensureLocalApiForQuestions(entryDataset)) return;
-        if (!isWrongQuestionsMode && !consumeQuizAttempt(pendingQuizCode)) return;
+        if (!window.__rmsContestContext && !isWrongQuestionsMode && !consumeQuizAttempt(pendingQuizCode)) return;
         requestFullScreen();
         setMenuDisabledState(true);
         isWrongQuestionsMode = false;
         const dataset = entryDataset;
         if (!dataset.length) return alert('題庫沒有可用的題目，請確認 data／questions 是否為題目陣列。');
-        beginQuiz(JSON.parse(JSON.stringify(dataset)).sort(() => Math.random() - 0.5));
+        const orderedDataset = window.__rmsContestContext && window.__rmsContestContext.questionOrder === 'original' ? JSON.parse(JSON.stringify(dataset)) : JSON.parse(JSON.stringify(dataset)).sort(() => Math.random() - 0.5);
+        beginQuiz(orderedDataset);
     }
 
     function loadQuizScript(code, callback) {
@@ -3179,6 +3255,7 @@
                 quizCode: currentQuizCode,
                 userName: currentUser ? currentUser.name : '訪客',
                 userEmail: currentUser ? currentUser.email : '',
+                contestId: window.__rmsContestContext?.id || '',
                 correctCount: correctCount,
                 questionCount: totalQ,
                 score: calculatedScore,
@@ -3194,6 +3271,7 @@
                 window.syncAutomaticTitles(currentUser);
                 saveToFirebase('users', globalUsersDB);
             }
+            window.__rmsContestContext = null;
         }
 
         document.getElementById('res-subject').innerText = window.currentQuiz.name;
@@ -3589,6 +3667,27 @@
     function renderTutorialAdmin(){ const users=(globalUsersDB||[]).filter(x=>!x.forgotten), sel=document.getElementById('admin-tutorial-user-select'),stage=document.getElementById('admin-tutorial-stage-select'),status=document.getElementById('admin-tutorial-status'); if(!sel)return; sel.innerHTML=users.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無帳號</option>'; if(stage)stage.innerHTML=TUTORIAL_STAGES.map((x,i)=>`<option value="${i}">第 ${i+1} 階：${esc(x.title)}</option>`).join(''); const u=users.find(x=>x.email===sel.value)||users[0]; if(u&&stage)stage.value=String(Math.min(TUTORIAL_STAGES.length-1,Math.max(0,Number(u.tutorialStage)||0))); if(status)status.innerHTML=u?`<div class="admin-mini-card">${esc(u.name)}：${u.tutorialDone?'已完成完整教學':'尚未完成'}；目前階段 ${Math.min(TUTORIAL_STAGES.length,Number(u.tutorialStage)||0)} / ${TUTORIAL_STAGES.length}</div>`:'<div class="muted-note">目前沒有可管理的帳號。</div>'; }
     window.resetUserTutorialAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-tutorial-user-select').value, stage=Math.max(0,Math.min(TUTORIAL_STAGES.length-1,Number(document.getElementById('admin-tutorial-stage-select').value)||0)),u=globalUsersDB.find(x=>x.email===email); if(!u)return; ensureUser(u); u.tutorialDone=false; u.tutorialStage=stage; saveFeature('users',globalUsersDB); audit('重置操作流程教學',email,`第${stage+1}階`); renderTutorialAdmin(); alert(`已設定${u.name}從「${TUTORIAL_STAGES[stage].title}」重新開始教學。`); };
 
+    let rmsMailDB = [], contestsDB = [];
+    function rmsEmail(v){ const raw=String(v||'').trim().toLowerCase(); return raw.includes('@') ? raw : `${raw}@rms.com`; }
+    function rmsUid(v){ return String(v||'').trim().toLowerCase().replace(/@rms\.com$/i,''); }
+    function mailId(){ return 'MAIL-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7); }
+    function contestId(){ return 'CON-'+Date.now().toString(36).toUpperCase(); }
+    function renderMailBadge(){ const u=currentProfile(); const count=u ? rmsMailDB.filter(m=>m.to===u.email&&!m.read).length : 0; const badge=document.getElementById('mail-unread-badge'); if(badge){badge.textContent=count>99?'99+':String(count); badge.classList.toggle('hidden',count===0);} }
+    function renderMailScreen(){ const u=currentProfile(); if(!u)return; const inbox=rmsMailDB.filter(m=>m.to===u.email).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))); const list=document.getElementById('mail-inbox-list'); if(list)list.innerHTML=inbox.map(m=>`<article class="mail-item ${m.read?'':'unread'}" onclick="openRmsMail('${esc(m.id)}')"><strong>${esc(m.subject||'(無主旨)')}</strong><br><small>寄件人：${esc(m.from)}　${esc(m.createdAt)}</small><div class="mail-body-preview">${esc(m.body)}</div><small>${m.read?'已讀':'未讀'}</small></article>`).join('')||'<div class="muted-note">目前沒有郵件。</div>'; const count=document.getElementById('mail-inbox-count'); if(count)count.textContent=`共 ${inbox.length} 封；未讀 ${inbox.filter(m=>!m.read).length} 封`; renderMailBadge(); }
+    window.openRmsMail=function(id){ const u=currentProfile(),m=rmsMailDB.find(x=>x.id===id&&x.to===u?.email); if(!m)return; m.read=true; saveFeature('rmsMail',rmsMailDB); renderMailScreen(); };
+    window.sendRmsMail=function(){ const u=currentProfile(); if(!u)return alert('請先登入！'); const toUid=rmsUid(document.getElementById('mail-to').value),to=rmsEmail(toUid),subject=document.getElementById('mail-subject').value.trim(),body=document.getElementById('mail-body').value.trim(); if(!toUid||!subject||!body)return alert('請填寫收件人 UID、主旨與內容。'); const target=globalUsersDB.find(x=>x.email===to); if(!target)return alert('查無此站內 UID。'); rmsMailDB.push({id:mailId(),from:u.email,to,subject,body,read:false,createdAt:nowMs()}); saveFeature('rmsMail',rmsMailDB); document.getElementById('mail-to').value=''; document.getElementById('mail-subject').value=''; document.getElementById('mail-body').value=''; audit('寄送站內郵件',to,subject); alert('郵件已寄出。'); renderMailScreen(); };
+    function renderAdminMail(){ const el=document.getElementById('admin-mail-list'); if(!el)return; el.innerHTML=rmsMailDB.slice().reverse().map(m=>`<div class="admin-mini-card"><b>${esc(m.subject||'(無主旨)')}</b>　${m.read?'已讀':'未讀'}<br><small>寄件人：${esc(m.from)} → 收件人：${esc(m.to)}　${esc(m.createdAt)}</small><div style="white-space:pre-wrap;margin-top:6px">${esc(m.body)}</div></div>`).join('')||'<div class="muted-note">尚無站內郵件。</div>'; }
+    function renderContestList(){ const publicEl=document.getElementById('contest-public-list'); const now=Date.now(); const rows=contestsDB.slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))); if(publicEl)publicEl.innerHTML=rows.map(c=>{const published=c.publishAt&&now>=new Date(c.publishAt).getTime();return `<article class="contest-item"><b>${esc(c.name)}</b><br><small>考場編碼：${esc(c.code)}　公布：${esc(c.publishAt||'未設定')}</small><br><small>${published?'排名已公布，可查詢':'排名將於設定時間公布'}</small>${published?`<button class="btn-sm btn-rank" style="margin-top:8px" onclick="openContestRank('${esc(c.id)}')">查看排行榜</button>`:''}</article>`}).join('')||'<div class="muted-note">目前沒有競賽／考試。</div>'; }
+    function renderAdminContests(){ const el=document.getElementById('admin-contest-list'); if(!el)return; el.innerHTML=contestsDB.slice().reverse().map(c=>`<div class="admin-mini-card"><b>${esc(c.name)}</b>　編碼：${esc(c.code)}　題庫：${esc(c.quizCode)}<br><small>時間：${esc(c.startAt||'不限')} ～ ${esc(c.endAt||'不限')}；公布：${esc(c.publishAt||'未設定')}</small><button class="btn-sm btn-rank" style="float:right" onclick="openContestRank('${esc(c.id)}')">查看排名</button></div>`).join('')||'<div class="muted-note">尚未建立競賽。</div>'; }
+    window.enterContest=function(){ const code=document.getElementById('contest-code-input').value.trim(),pass=document.getElementById('contest-password-input').value, c=contestsDB.find(x=>x.code===code); if(!c)return alert('查無此考場編碼。'); if(c.password!==pass)return alert('考場密碼錯誤。'); const now=Date.now(); if(c.startAt&&now<new Date(c.startAt).getTime())return alert(`考場尚未開放，開始時間：${fmtGateTime(c.startAt)}`); if(c.endAt&&now>=new Date(c.endAt).getTime())return alert('考場已結束，無法進入。'); const u=currentProfile(); const used=testHistoryRecords.filter(r=>r.contestId===c.id&&r.userEmail===u?.email).length; if(used>=Number(c.attempts||1))return alert('你的作答次數已達上限。'); window.__rmsContestContext={id:c.id,code:c.code,attempts:c.attempts,questionOrder:c.questionOrder||'random'}; openQuizEntryFlow(c.quizCode,false); };
+    window.openContestRank=function(id){ const c=contestsDB.find(x=>x.id===id); if(!c)return; if(c.publishAt&&Date.now()<new Date(c.publishAt).getTime())return alert(`排名尚未公布：${fmtGateTime(c.publishAt)}`); const rows=testHistoryRecords.filter(r=>r.contestId===id&&!r.isCheated).sort((a,b)=>b.score-a.score); const text=rows.length?rows.map((r,i)=>`${i+1}. ${r.userName}　${r.score} 分`).join('\n'):'尚無有效成績。'; alert(`${c.name}\n\n${text}`); };
+    window.createContestAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const name=document.getElementById('admin-contest-name').value.trim(),quiz=document.getElementById('admin-contest-quiz').value.trim(),password=document.getElementById('admin-contest-password').value,code=document.getElementById('admin-contest-code').value.trim()||('RMS-'+Math.random().toString(36).slice(2,8).toUpperCase()); if(!name||!quiz||!password)return alert('請填寫名稱、題庫代碼與考場密碼。'); if(contestsDB.some(x=>x.code===code))return alert('考場編碼已存在。'); const c={id:contestId(),name,code,password,quizCode:quiz,attempts:Math.max(1,Number(document.getElementById('admin-contest-attempts').value)||1),startAt:document.getElementById('admin-contest-start').value,endAt:document.getElementById('admin-contest-end').value,publishAt:document.getElementById('admin-contest-publish').value,questionOrder:document.getElementById('admin-contest-order').value.trim(),createdAt:nowMs()}; contestsDB.push(c); saveFeature('contests',contestsDB); audit('建立競賽／考試',c.id,c.code); renderContestList(); renderAdminContests(); alert(`考場已建立。考場編碼：${code}`); };
+    function resetScopeUser(){ const scope=document.getElementById('admin-reset-history-scope')?.value; const email=document.getElementById('admin-reset-history-user')?.value; return scope==='user'?email:''; }
+    window.resetExamRecordsAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=resetScopeUser(),target=email?globalUsersDB.find(x=>x.email===email):null; const before=testHistoryRecords.length; testHistoryRecords=email?testHistoryRecords.filter(r=>r.userEmail!==email&&r.userName!==target?.name):[]; saveToFirebase('testHistory',testHistoryRecords); audit('重置考試紀錄',email||'全部',`${before-testHistoryRecords.length} 筆`); renderAdminReset(); alert(email?'指定帳號考試紀錄已清除。':'全部考試紀錄已清除。'); };
+    window.resetInfoPanelAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const kind=document.getElementById('admin-reset-info-kind').value; if(kind==='history'||kind==='both'){testHistoryRecords=[];saveToFirebase('testHistory',testHistoryRecords);} if(kind==='usage'||kind==='both'){quizUsageMap={};saveToFirebase('quizUsage',quizUsageMap);} audit('重置資訊面板',kind,''); renderAdminReset(); alert('選定的資訊面板數據已重置。'); };
+    function renderAdminReset(){ const us=(globalUsersDB||[]).filter(x=>!x.forgotten),sel=document.getElementById('admin-reset-history-user'),status=document.getElementById('admin-reset-status'); if(sel)sel.innerHTML=us.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無帳號</option>'; if(status)status.innerHTML=`<div class="admin-mini-card">目前考試紀錄：${testHistoryRecords.length} 筆；答題使用統計：${Object.keys(quizUsageMap||{}).length} 項。</div>`; }
+    function renderNewAdminFeatures(){ renderAdminReset(); renderAdminContests(); renderAdminMail(); }
+
     function renderAdminFeatureLists(){ const el=document.getElementById('admin-external-links-list'); if(el)el.innerHTML=(externalLinksDB||[]).map((x,i)=>`<div class="admin-mini-card"><b>${esc(x.label)}</b> · ${esc(x.url)} <button class="btn-sm btn-danger" onclick="deleteExternalLinkAdmin(${i})">刪除</button></div>`).join('')||'<div class="muted-note">尚無分享連結</div>'; }
     function renderBoardModeration(){ const el=document.getElementById('admin-board-moderation-list'); if(!el)return; const items=(boardDB||[]).slice().reverse(); el.innerHTML='<h5 style="margin:14px 0 5px;color:#20344d">留言／回覆審核清單</h5>'+(items.length?items.map(x=>`<div class="admin-mini-card"><b>${x.parentId?'回覆':'留言'}</b> · ${esc(x.name)} (${esc(x.country||'未知國家')}) · ${esc(x.timestamp)}<div style="white-space:pre-wrap;margin:7px 0">${esc(x.content)}</div><button class="btn-sm btn-accent" onclick="editBoardItemAdmin('${esc(x.id)}')">修改</button> <button class="btn-sm btn-danger" onclick="deleteBoardItemAdmin('${esc(x.id)}')">刪除</button></div>`).join(''):'<div class="muted-note">目前沒有留言或回覆。</div>'); }
     window.editBoardItemAdmin=function(id){ const x=boardDB.find(v=>v.id===id); if(!x)return; const value=prompt('請輸入新的留言／回覆內容：',x.content||''); if(value===null)return; x.content=cleanText(value.trim()); x.editedAt=nowMs(); saveFeature('messageBoard',boardDB); audit('修改留言',id,''); renderBoard(); renderBoardModeration(); alert('留言內容已修改。'); }
@@ -3613,16 +3712,16 @@
     window.closeTermsGate=function(){ document.getElementById('terms-gate-modal')?.classList.add('hidden'); }
     window.acceptTermsGate=function(){ document.getElementById('agree-terms').checked=true; document.getElementById('terms-gate-modal').classList.add('hidden'); if(typeof checkAuthUnlock==='function')checkAuthUnlock(); }
 
-    function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); renderTutorialAdmin(); }
-    function featureData(data){ boardDB=data?.messageBoard||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; timeGateConfig={...timeGateConfig,...(data?.timeGate||{})}; titlesCatalog=data?.titlesCatalog||[]; ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
+    function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); renderTutorialAdmin(); renderNewAdminFeatures(); }
+    function featureData(data){ boardDB=data?.messageBoard||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; rmsMailDB=data?.rmsMail||[]; contestsDB=data?.contests||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; timeGateConfig={...timeGateConfig,...(data?.timeGate||{})}; titlesCatalog=data?.titlesCatalog||[]; ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
     window.__rmsFeatureData = featureData;
     const originalInit=window.initFirebaseData; window.initFirebaseData=function(data){ featureData(data||{}); if(originalInit)originalInit(data); ensureAllUsers(); try{saveFeature('users',globalUsersDB);}catch(e){} };
-    const originalSwitch=window.switchView; window.switchView=function(view){ if(view==='board'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#external-links-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('message-board-screen').classList.remove('hidden'); renderBoard(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='external'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('external-links-screen').classList.remove('hidden'); renderExternalLinks(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(originalSwitch)originalSwitch(view); if(view==='account')renderAccountExtras(); if(view==='admin')renderFeatureAdmin(); };
+    const originalSwitch=window.switchView; window.switchView=function(view){ if(view!=='mail'&&view!=='contest'){document.getElementById('mail-screen')?.classList.add('hidden');document.getElementById('contest-screen')?.classList.add('hidden');} if(view==='mail'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen,#external-links-screen,#contest-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('mail-screen').classList.remove('hidden'); renderMailScreen(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='contest'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen,#external-links-screen,#mail-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('contest-screen').classList.remove('hidden'); renderContestList(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='board'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#external-links-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('message-board-screen').classList.remove('hidden'); renderBoard(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='external'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('external-links-screen').classList.remove('hidden'); renderExternalLinks(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(originalSwitch)originalSwitch(view); if(view==='account')renderAccountExtras(); if(view==='admin')renderFeatureAdmin(); };
     const originalSetup=window.setupAdminConsole; window.setupAdminConsole=function(){ if(originalSetup)originalSetup(); renderFeatureAdmin(); };
-    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; if(!currentUser?.disabled)setTimeout(()=>{ startTutorialIfNeeded(false,Number(currentUser?.tutorialStage)||0); if(!isAdmin&&!hasGateBypass(currentProfile())&&gateActive())showTimeGateNotice(); },350); };
+    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); renderMailBadge(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; if(!currentUser?.disabled)setTimeout(()=>{ startTutorialIfNeeded(false,Number(currentUser?.tutorialStage)||0); if(!isAdmin&&!hasGateBypass(currentProfile())&&gateActive())showTimeGateNotice(); },350); };
     const originalConfirmQuiz=window.confirmQuizEntry; window.confirmQuizEntry=function(){ if(!canPassGate(true))return; if(originalConfirmQuiz)originalConfirmQuiz(); };
     const originalSave=window.saveToFirebase; window.saveToFirebase=function(path,value){ if(originalSave)originalSave(path,value); };
-    const originalSubmit=window.handleAuthSubmit; window.handleAuthSubmit=function(){ if(!document.getElementById('agree-terms').checked){ openTermsGate(); return; } if(originalSubmit)originalSubmit(); setTimeout(()=>{ensureAllUsers();renderAccountExtras();},300); };
+    const originalSubmit=window.handleAuthSubmit; window.handleAuthSubmit=function(){ if(!document.getElementById('agree-terms').checked){ openTermsGate(); return; } const input=document.getElementById('auth-email'),raw=input?.value.trim(); if(input&&raw){ const normalized=rmsEmail(raw); const rmsExists=(globalUsersDB||[]).some(x=>x.email===normalized); const legacyExists=(globalUsersDB||[]).some(x=>x.email===raw); input.value=(authMode==='login'&&legacyExists&&!rmsExists)?raw:normalized; } if(originalSubmit)originalSubmit(); setTimeout(()=>{ensureAllUsers();renderAccountExtras();renderMailBadge();},300); };
     window.addEventListener('DOMContentLoaded',()=>{ const i=document.getElementById('board-message-input'); if(i)i.addEventListener('input',updateBoardCount); const u=document.getElementById('admin-tutorial-user-select'); if(u)u.addEventListener('change',renderTutorialAdmin); });
     const nativeAlert=window.alert; window.alert=function(message){ const modal=document.getElementById('ui-message-modal'); if(!modal)return nativeAlert(message); document.getElementById('ui-message-title').textContent='系統訊息'; document.getElementById('ui-message-content').textContent=String(message??''); modal.classList.remove('hidden'); };
     window.closeUiMessage=function(){ document.getElementById('ui-message-modal')?.classList.add('hidden'); };
@@ -3761,6 +3860,8 @@
                 testHistory: [],
                 feedback: [],
                 messageBoard: [],
+                rmsMail: [],
+                contests: [],
                 timeGate: { enabled:false, start:'', end:'', message:'' },
                 titlesCatalog: [],
                 boardSettings: { enabled: true, maxLength: 1000, notice: '', bannedWords: ['髒話', '幹你娘', '操你媽', '廢物'] },
