@@ -86,7 +86,10 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex: 1 1 auto;
+            min-width: 0;
         }
+        .taipei-clock > span { display:block; min-width:0; white-space:nowrap; }
         .menu-container {
             position: relative;
         }
@@ -693,6 +696,13 @@
         .mail-item,.contest-item { padding:12px; border:1px solid #dbe3ec; border-radius:8px; background:#f8fafc; cursor:pointer; }
         .mail-item.unread { border-left:4px solid #dc2626; background:#fff7f7; }
         .mail-item strong { color:#20344d; }
+        .mail-delete-btn { width:auto; min-height:36px; padding:6px 10px; margin-top:8px; }
+        .board-avatar, .avatar-choice { overflow:hidden; border-radius:50%; }
+        .board-avatar { width:38px; height:38px; flex:0 0 38px; }
+        .board-avatar svg, .avatar-choice svg { display:block; width:100%; height:100%; border-radius:50%; }
+        .avatar-choice { width:56px; height:56px; padding:0; border:2px solid transparent; background:#f8fafc; }
+        .avatar-choice.selected { border-color:#2980b9; box-shadow:0 0 0 2px rgba(41,128,185,.2); }
+
         .mail-item small,.contest-item small { color:#64748b; }
         .mail-body-preview { white-space:pre-wrap; color:#334155; margin-top:7px; line-height:1.55; }
         .contest-entry-card { margin-bottom:14px; max-width:560px; }
@@ -822,14 +832,14 @@
                 padding-right: 8px;
             }
             .top-navbar .taipei-clock {
-                min-width: 0;
-                max-width: calc(100vw - 150px);
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                padding-left: 8px;
-                padding-right: 8px;
+                flex: 1 1 auto;
+                width: auto;
+                max-width: none;
+                overflow: visible;
+                font-size: .78em;
+                padding: 6px 7px;
             }
+            .top-navbar .taipei-clock > span { overflow: visible; text-overflow: clip; }
             .top-navbar .menu-container {
                 gap: 6px;
             }
@@ -1206,7 +1216,31 @@
         <div class="admin-panel-group admin-operation-group" style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <div class="admin-group-kicker">操作項</div>
             <p class="admin-group-description">建立設定、管理帳號、審核內容與輸出資料的操作區。</p>
-            <h4 class="admin-section-title">操作流程教學管理</h4>
+            <div class="admin-section-picker">
+                <label for="admin-section-select">管理功能分區</label>
+                <select id="admin-section-select" class="code-input" onchange="jumpAdminSection(this.value)">
+                    <option value="">請選擇功能……</option>
+                    <option value="admin-section-tutorial">操作流程教學</option>
+                    <option value="admin-section-users">帳號停用與啟用</option>
+                    <option value="admin-section-history">歷史成績查詢</option>
+                    <option value="admin-section-rename">強制改名與鎖定</option>
+                    <option value="admin-section-logout">設備登出許可碼</option>
+                    <option value="admin-section-global-api">全域 AI API 設定</option>
+                    <option value="admin-section-verify">重複註冊驗證碼</option>
+                    <option value="admin-section-quizzes">題庫公開管理</option>
+                    <option value="admin-section-limits">答題次數覆寫</option>
+                    <option value="admin-section-board">留言板與敏感詞</option>
+                    <option value="admin-section-profiles">帳號資料管理</option>
+                    <option value="admin-section-links">外部分享連結</option>
+                    <option value="admin-section-gate">時效性禁用閘門</option>
+                    <option value="admin-section-titles">稱號管理</option>
+                    <option value="admin-section-reset">資料重置</option>
+                    <option value="admin-section-contests">競賽／考試管理</option>
+                    <option value="admin-section-mail">站內郵件監督</option>
+                    <option value="admin-section-export">文件輸出中心</option>
+                </select>
+            </div>
+            <h4 class="admin-section-title" id="admin-section-tutorial">操作流程教學管理</h4>
             <p class="muted-note">首次登入者必須完成完整教學。管理員可讓指定帳號從某個階段重新開始，並保留既有功能與資料。</p>
             <div class="admin-tool-grid tutorial-admin-grid">
                 <label>指定帳號<select id="admin-tutorial-user-select" class="code-input"></select></label>
@@ -1215,7 +1249,7 @@
             <button class="main-btn btn-secondary admin-wide-btn" onclick="resetUserTutorialAdmin()">指定帳號重新開始教學</button>
             <div id="admin-tutorial-status" class="admin-mini-list"></div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">1. 用戶帳戶停用與啟用管理</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-users">1. 用戶帳戶停用與啟用管理</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-user-select" class="code-input" style="margin-bottom:0; flex:1;" onchange="onAdminUserSelectChange()">
                     <option value="">載入中用戶...</option>
@@ -1224,7 +1258,7 @@
                 <button id="admin-ban-action-btn" class="main-btn btn-danger" style="width:auto; margin-top:0;" onclick="adminToggleUserStatus()">停用帳戶</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">2. 考生歷史成績查詢</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-history">2. 考生歷史成績查詢</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-history-user-select" class="code-input" style="margin-bottom:0; flex:1;">
                     <option value="">選擇要查詢的考生...</option>
@@ -1232,7 +1266,7 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminViewUserHistory()">查詢成績紀錄</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">3. 管理員強制改名與鎖定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-rename">3. 管理員強制改名與鎖定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-rename-user-select" class="code-input" style="margin-bottom:0; flex:1;">
                     <option value="">選擇用戶...</option>
@@ -1241,15 +1275,15 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminForceRenameUser()">強制改名並鎖定</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">4. 設備登出許可碼設定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-logout">4. 設備登出許可碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-logout-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入設備登出許可碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateLogoutCode()">更新登出許可碼</button>
             </div>
             <p style="font-size:.82em;color:#64748b;margin-top:-4px;">普通用戶登出時需輸入此許可碼；設定會記錄於 Firebase。</p>
 
-            <h4 style="margin-top:20px; color:#64748b;">4.5 全域 AI API 設定（目前停用）</h4>
-            <p style="font-size:.82em;color:#64748b;margin-top:-4px;">目前系統只允許各使用者使用自己的本地 API；此區塊保留相容性但不會參與 AI 批改，也不會使用 Firebase 全域 API。</p>
+            <h4 style="margin-top:20px; color:#64748b;" id="admin-section-global-api">4.5 全域 AI API 設定</h4>
+            <p style="font-size:.82em;color:#64748b;margin-top:-4px;">可由管理員設定共用 API；設定直接儲存於 Firebase。使用時優先採用使用者本地 API，未設定本地 API 時才使用此全域 API。</p>
             <div style="display:grid; gap:8px; margin-bottom:10px;">
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <select id="global-api-provider" class="code-input" style="margin:0; flex:1; min-width:150px;" onchange="updateApiProviderFields('global')">
@@ -1257,23 +1291,23 @@
                         <option value="openai">OpenAI 相容 API</option>
                         <option value="custom">自訂 OpenAI 相容服務</option>
                     </select>
-                    <input type="password" id="global-api-key" class="code-input" style="margin:0; flex:2; min-width:220px;" placeholder="全域 Key 由 Firebase Secret Manager 管理" autocomplete="off">
+                    <input type="password" id="global-api-key" class="code-input" style="margin:0; flex:2; min-width:220px;" placeholder="輸入全域 API Key（將儲存於 Firebase）" autocomplete="off">
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <input type="text" id="global-api-model" class="code-input" style="margin:0; flex:1;" placeholder="模型，例如 gemini-flash-latest">
                     <input type="url" id="global-api-endpoint" class="code-input" style="margin:0; flex:2;" placeholder="自訂端點（OpenAI 相容 API 使用）">
                     <label style="display:flex; align-items:center; gap:6px; color:#334155;"><input type="checkbox" id="global-api-enabled"> 啟用全域 API</label>
                 </div>
-                <button class="main-btn btn-secondary" style="width:auto; margin-top:0;" disabled>全域 API 已停用</button>
+                <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="saveGlobalApiConfig()">儲存全域 API 設定</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">5. 重複註冊驗證碼設定</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-verify">5. 重複註冊驗證碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">6. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-quizzes">6. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
             <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
 
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -1303,7 +1337,7 @@
                 </div>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);">7. 特定用戶／特定題庫答題次數覆寫</h4>
+            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-limits">7. 特定用戶／特定題庫答題次數覆寫</h4>
             <p style="font-size:0.88em; color:#64748b;">可個別設定每日次數、全域總次數或不受限制；個別設定會優先於題庫公開設定。</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
                 <select id="admin-limit-user-select" class="code-input" style="margin:0; flex:1; min-width:180px;"><option value="">選擇用戶...</option></select>
@@ -1317,7 +1351,7 @@
                 <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminUserQuizLimit()">儲存個別限制</button>
             </div>
 
-            <h4 class="admin-section-title">8. 留言板、敏感詞與資料管理</h4>
+            <h4 class="admin-section-title" id="admin-section-board">8. 留言板、敏感詞與資料管理</h4>
             <div class="admin-tool-grid">
                 <label>留言板狀態<select id="admin-board-enabled" class="code-input"><option value="true">啟用</option><option value="false">停用</option></select></label>
                 <label>每則留言上限<input id="admin-board-max-length" class="code-input" type="number" min="50" max="5000" value="1000"></label>
@@ -1327,7 +1361,7 @@
             <button class="main-btn btn-accent admin-wide-btn" onclick="saveBoardSettingsAdmin()">儲存留言板設定</button>
             <div id="admin-board-moderation-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title">9. 帳號資料與遺忘帳號管理</h4>
+            <h4 class="admin-section-title" id="admin-section-profiles">9. 帳號資料與遺忘帳號管理</h4>
             <div class="admin-tool-grid">
                 <label>帳號<select id="admin-profile-user-select" class="code-input" onchange="loadAdminProfileEditor()"></select></label>
                 <label>系統辨識碼<input id="admin-profile-uid" class="code-input" placeholder="可由管理員設定初始碼"></label>
@@ -1340,7 +1374,7 @@
             <button class="main-btn btn-secondary admin-wide-btn" onclick="renderForgottenAccountsAdmin()">開啟遺忘帳號復原設定</button>
             <div id="admin-forgotten-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title">10. 外部網域分享連結</h4>
+            <h4 class="admin-section-title" id="admin-section-links">10. 外部網域分享連結</h4>
             <div class="admin-tool-grid">
                 <label>按鈕文字<input id="admin-link-label" class="code-input" placeholder="服務入口"></label>
                 <label>網址<input id="admin-link-url" class="code-input" placeholder="https://example.com"></label>
@@ -1350,7 +1384,7 @@
             <div id="admin-external-links-list" class="admin-mini-list"></div>
 
 
-            <h4 class="admin-section-title">12. 時效性禁用閘門</h4>
+            <h4 class="admin-section-title" id="admin-section-gate">12. 時效性禁用閘門</h4>
             <p class="muted-note">在指定時間區間禁止普通用戶進入測驗；管理員不受影響。時間到期後會自動放行。</p>
             <div class="admin-tool-grid">
                 <label>閘門狀態<select id="admin-gate-enabled" class="code-input"><option value="false">關閉</option><option value="true">啟用</option></select></label>
@@ -1366,7 +1400,7 @@
             </div>
             <button class="main-btn btn-secondary admin-wide-btn" onclick="saveGateImmunityAdmin()">儲存個別免疫</button>
 
-            <h4 class="admin-section-title">13. 稱號創作與授予</h4>
+            <h4 class="admin-section-title" id="admin-section-titles">13. 稱號創作與授予</h4>
             <div class="admin-tool-grid">
                 <label>稱號名稱<input id="admin-title-name" class="code-input" maxlength="24" placeholder="例如：題庫守護者"></label>
                 <label>背景顏色<input id="admin-title-bg" class="code-input" type="color" value="#7c3aed"></label>
@@ -1383,7 +1417,7 @@
             </div>
             <div id="admin-title-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title">15. 資料重置與資訊面板管理</h4>
+            <h4 class="admin-section-title" id="admin-section-reset">15. 資料重置與資訊面板管理</h4>
             <p class="muted-note">重置會直接更新 Firebase，刪除或清空後無法由本頁復原；請確認選擇的範圍。</p>
             <div class="admin-tool-grid">
                 <label>考試紀錄範圍<select id="admin-reset-history-scope" class="code-input"><option value="all">全部考試紀錄</option><option value="user">指定帳號紀錄</option></select></label>
@@ -1396,7 +1430,7 @@
             </div>
             <div id="admin-reset-status" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title">16. 競賽／考試管理</h4>
+            <h4 class="admin-section-title" id="admin-section-contests">16. 競賽／考試管理</h4>
             <p class="muted-note">建立考場後，普通用戶可用考場編碼與密碼進入指定題庫；排名在設定的公布時間後開放查詢。</p>
             <div class="admin-tool-grid">
                 <label>比賽／考試名稱<input id="admin-contest-name" class="code-input" placeholder="例如：第一次月考"></label>
@@ -1412,7 +1446,7 @@
             <button class="main-btn btn-accent admin-wide-btn" onclick="createContestAdmin()">建立比賽／考試</button>
             <div id="admin-contest-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title">17. 站內郵件監督</h4>
+            <h4 class="admin-section-title" id="admin-section-mail">17. 站內郵件監督</h4>
             <p class="muted-note">管理員可以查看每一則站內郵件與已讀／未讀狀態，不會改變一般寄信流程。</p>
             <div id="admin-mail-list" class="admin-mini-list"></div>
 
@@ -1610,7 +1644,11 @@
             if (p.type === 'second') second = p.value;
             if (p.type === 'fractionalSecond') millisecond = p.value;
         });
-        document.getElementById('taipei-clock').innerHTML = `<span>台北時間: ${year}/${month}/${day} ${hour}:${minute}:${second}.${millisecond} (GMT+8)</span>`;
+        const mobileClock = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+        const clockText = mobileClock
+            ? `台北時間: ${hour}:${minute}:${second}`
+            : `台北時間: ${year}/${month}/${day} ${hour}:${minute}:${second}.${millisecond} (GMT+8)`;
+        document.getElementById('taipei-clock').innerHTML = `<span>${clockText}</span>`;
     }
     setInterval(updateTaipeiClock, 47);
     updateTaipeiClock();
@@ -1645,7 +1683,10 @@
 
     function getEffectiveApiConfig() {
         const local = readLocalApiConfig();
-        return { ...local, source: 'local-only' };
+        const global = { ...defaultApiConfig(), ...(globalApiConfig || {}) };
+        if (local.enabled && local.apiKey) return { ...local, source: 'local' };
+        if (global.enabled && global.apiKey) return { ...global, source: 'global' };
+        return { ...local, source: 'none' };
     }
 
     function updateApiProviderFields(scope) {
@@ -1737,7 +1778,7 @@
             quizUsageMap = data.quizUsage || {};
             testHistoryRecords = data.testHistory || [];
             feedbackDB = data.feedback || [];
-            globalApiConfig = {};
+            globalApiConfig = { ...defaultApiConfig(), ...(data.globalApiConfig || {}) };
         } else {
             publicQuizzesMap = cachedPublicQuizzes;
         }
@@ -2315,7 +2356,7 @@
         document.getElementById('adminQuizCodeInput').value = '';
         document.getElementById('adminQuizStatusContainer').style.display = 'none';
         document.getElementById('admin-logout-code-input').value = deviceLogoutCode || '';
-        const globalCfg = { ...defaultApiConfig(), ...(globalApiConfig || {}), apiKey: '' };
+        const globalCfg = { ...defaultApiConfig(), ...(globalApiConfig || {}) };
         document.getElementById('global-api-provider').value = globalCfg.provider;
         document.getElementById('global-api-key').value = globalCfg.apiKey || '';
         document.getElementById('global-api-model').value = globalCfg.model || '';
@@ -2349,14 +2390,26 @@
         alert('設備登出許可碼已更新並記錄於 Firebase。');
     }
 
-    function saveGlobalApiConfig() {
+    async function saveGlobalApiConfig() {
         if (!currentUser || currentUser.role !== 'admin') return alert('您無權執行此操作！');
         const cfg = collectApiConfig('global');
-        cfg.apiKey = '';
+        if (cfg.enabled && !cfg.apiKey) return alert('啟用全域 API 時必須輸入 API Key。');
         if (cfg.enabled && !cfg.model) cfg.model = 'gemini-2.5-flash';
+        if (cfg.enabled) {
+            try {
+                await window.testLocalApiConfig(cfg);
+                cfg.lastTestOk = true;
+                cfg.lastTestAt = new Date().toISOString();
+                cfg.lastTestError = '';
+            } catch (error) {
+                cfg.lastTestOk = false;
+                cfg.lastTestError = error?.message || 'API 驗證失敗';
+                return alert(`全域 API 驗證失敗，未寫入 Firebase：${cfg.lastTestError}`);
+            }
+        }
         globalApiConfig = cfg;
         saveToFirebase('globalApiConfig', globalApiConfig);
-        alert('全域 API 設定已儲存至 Firebase，所有使用者將可依優先順序使用。');
+        alert(cfg.enabled ? '全域 API 驗證成功，設定已儲存至 Firebase。' : '全域 API 已停用，設定已儲存至 Firebase。');
     }
 
     // 當停用區塊的下拉選單變更時，自動切換按鈕文字與樣式
@@ -2839,9 +2892,10 @@
 
     function ensureLocalApiForQuestions(questions) {
         if (!quizNeedsAI(questions)) return true;
-        const local = readLocalApiConfig();
-        if (local.enabled && local.apiKey && local.lastTestOk !== false) return true;
-        alert('此題庫包含需要 AI 辨識／批改的簡答題或手寫題，但尚未設定本地 API。請先在「本地 API 配置」輸入並啟用 API；純選擇題不需要 API。');
+        const effective = getEffectiveApiConfig();
+        if (effective.enabled && effective.apiKey && effective.source === 'local' && effective.lastTestOk !== false) return true;
+        if (effective.enabled && effective.apiKey && effective.source === 'global') return true;
+        alert('此題庫包含需要 AI 辨識／批改的簡答題或手寫題；目前沒有可用 API，請設定本地 API，或請管理員啟用全域 API。');
         openLocalApiModal();
         return false;
     }
@@ -3138,14 +3192,14 @@
         if (type === 'multiple') {
             return answerArray(q).map(key => {
                 const entry = resolveCorrectOption(q, key);
-                return entry ? `${entry.label} 是 ${formatAnswerText(q, entry.content)}` : formatAnswerText(q, key);
+                return entry ? `（${entry.label.toUpperCase()}）${formatAnswerText(q, entry.content)}` : formatAnswerText(q, key);
             }).join('、');
         }
         if (type === 'handwriting' || type === 'short') {
             return formatAnswerText(q, q.answer || q.a || '未設定');
         }
         const entry = resolveCorrectOption(q, q.a);
-        if (entry) return `${entry.label} 是 ${formatAnswerText(q, entry.content)}`;
+        if (entry) return `（${entry.label.toUpperCase()}）${formatAnswerText(q, entry.content)}`;
         return formatAnswerText(q, q.a || '未設定');
     }
 
@@ -3356,7 +3410,7 @@
             const subjective = hand || type === 'short';
             reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (subjective && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
                 <p><b>題目 ${i+1}: ${q.q}</b></p>
-                <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">標準答案：${correctContent}</span></p>
+                <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">正確答案${correctContent}</span></p>
                 ${subjective ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
             </div>`;
         });
@@ -3671,7 +3725,7 @@
                 const options = Array.isArray(q.o) ? q.o.join(' | ') : '非選擇題';
                 const correctContent = displayCorrectAnswer(q);
                 const userAnsText = Array.isArray(item.userAns) ? item.userAns.join(', ') : (item.userAns || '未填答');
-                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(userAnsText))}</span> | 正確答案：<span style="color:#22c55e; font-weight:bold;">${correctContent}</span></div></div>`;
+                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(userAnsText))}</span> | 正確答案<span style="color:#22c55e; font-weight:bold;">${correctContent}</span></div></div>`;
             });
             html += '</div>';
             pdfWrongList.innerHTML = html;
@@ -3704,14 +3758,14 @@
     let boardDB = [], externalLinksDB = [], adminAuditDB = [];
     let boardSettings = { enabled:true, maxLength:1000, notice:'', bannedWords:['髒話','幹你娘','操你媽','廢物'] };
     let featureDataLoaded = false;
-    const AVATAR_IDS = ['circle','diamond','triangle','hex','bars','sun'];
+    const AVATAR_IDS = ['taiwan-flag','circle','diamond','triangle','hex','bars','sun'];
 
     function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     function nowMs(){ return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false}) + '.' + String(Date.now()%1000).padStart(3,'0'); }
     function makeUid(){ return 'ST-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,8).toUpperCase(); }
     function ensureUser(u){ if(!u.systemUid) u.systemUid = makeUid(); if(!u.avatarId || !AVATAR_IDS.includes(u.avatarId)) u.avatarId = AVATAR_IDS[0]; if(u.forgotten === undefined) u.forgotten=false; if(u.tutorialDone === undefined) u.tutorialDone=false; if(!Number.isInteger(u.tutorialStage)) u.tutorialStage=0; return u; }
     function ensureAllUsers(){ (globalUsersDB||[]).forEach(ensureUser); if(currentUser) ensureUser(currentUser); }
-    function avatarSvg(id){ const colors=['#2563eb','#7c3aed','#059669','#ea580c','#db2777','#0891b2']; const i=Math.max(0,AVATAR_IDS.indexOf(id)); const c=colors[i]||colors[0]; const shapes=[`<circle cx="32" cy="32" r="21" fill="${c}"/><circle cx="25" cy="27" r="3" fill="#fff"/><circle cx="39" cy="27" r="3" fill="#fff"/><path d="M22 40 Q32 49 42 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,`<path d="M32 5 L58 32 32 59 6 32Z" fill="${c}"/><circle cx="25" cy="30" r="3" fill="#fff"/><circle cx="39" cy="30" r="3" fill="#fff"/><path d="M23 40 Q32 46 41 40" fill="none" stroke="#fff" stroke-width="3"/>`,`<path d="M32 5 L59 57 H5Z" fill="${c}"/><circle cx="25" cy="34" r="3" fill="#fff"/><circle cx="39" cy="34" r="3" fill="#fff"/><path d="M24 43 H40" stroke="#fff" stroke-width="3"/>`,`<path d="M17 7 H47 L59 19 V47 L47 59 H17 L5 47 V19Z" fill="${c}"/><circle cx="25" cy="31" r="3" fill="#fff"/><circle cx="39" cy="31" r="3" fill="#fff"/><path d="M22 42 Q32 48 42 42" fill="none" stroke="#fff" stroke-width="3"/>`,`<rect x="7" y="11" width="50" height="10" rx="5" fill="${c}"/><rect x="7" y="27" width="35" height="10" rx="5" fill="${c}"/><rect x="7" y="43" width="43" height="10" rx="5" fill="${c}"/>`,`<circle cx="32" cy="32" r="12" fill="${c}"/><path d="M32 4 V16 M32 48 V60 M4 32 H16 M48 32 H60 M12 12 L21 21 M43 43 L52 52 M52 12 L43 21 M21 43 L12 52" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`]; return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${shapes[i]}</svg>`; }
+    function avatarSvg(id){ if(id==='taiwan-flag') return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="台灣國旗"><g clip-path="circle(32px at 32px 32px)"><rect width="64" height="64" fill="#d80027"/><rect width="32" height="32" fill="#174a9c"/><circle cx="16" cy="16" r="7" fill="#fff"/><path d="M16 5v22M5 16h22M8.2 8.2l15.6 15.6M23.8 8.2L8.2 23.8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g></svg>`; const colors=['#2563eb','#7c3aed','#059669','#ea580c','#db2777','#0891b2']; const i=Math.max(0,AVATAR_IDS.indexOf(id)-1); const c=colors[i]||colors[0]; const shapes=[`<circle cx="32" cy="32" r="21" fill="${c}"/><circle cx="25" cy="27" r="3" fill="#fff"/><circle cx="39" cy="27" r="3" fill="#fff"/><path d="M22 40 Q32 49 42 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,`<path d="M32 5 L58 32 32 59 6 32Z" fill="${c}"/><circle cx="25" cy="30" r="3" fill="#fff"/><circle cx="39" cy="30" r="3" fill="#fff"/><path d="M23 40 Q32 46 41 40" fill="none" stroke="#fff" stroke-width="3"/>`,`<path d="M32 5 L59 57 H5Z" fill="${c}"/><circle cx="25" cy="34" r="3" fill="#fff"/><circle cx="39" cy="34" r="3" fill="#fff"/><path d="M24 43 H40" stroke="#fff" stroke-width="3"/>`,`<path d="M17 7 H47 L59 19 V47 L47 59 H17 L5 47 V19Z" fill="${c}"/><circle cx="25" cy="31" r="3" fill="#fff"/><circle cx="39" cy="31" r="3" fill="#fff"/><path d="M22 42 Q32 48 42 42" fill="none" stroke="#fff" stroke-width="3"/>`,`<rect x="7" y="11" width="50" height="10" rx="5" fill="${c}"/><rect x="7" y="27" width="35" height="10" rx="5" fill="${c}"/><rect x="7" y="43" width="43" height="10" rx="5" fill="${c}"/>`,`<circle cx="32" cy="32" r="12" fill="${c}"/><path d="M32 4 V16 M32 48 V60 M4 32 H16 M48 32 H60 M12 12 L21 21 M43 43 L52 52 M52 12 L43 21 M21 43 L12 52" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`]; return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${shapes[i]}</svg>`; }
     function currentProfile(){ ensureAllUsers(); return currentUser ? (globalUsersDB.find(u=>u.email===currentUser.email)||currentUser) : null; }
     function saveFeature(path,value){ if(typeof saveToFirebase==='function') saveToFirebase(path,value); }
     function cleanText(text){ let out=String(text||''); const words=(boardSettings.bannedWords||[]).filter(Boolean).sort((a,b)=>b.length-a.length); words.forEach(w=>{ out=out.split(w).join('*'.repeat(Math.max(1,w.length))); }); return out; }
@@ -3721,7 +3775,7 @@
     function renderAccountExtras(){ const u=currentProfile(); if(!u) return; ensureTitleFields(u); syncAutomaticTitles(u); renderAccountTitles(); const uid=document.getElementById('acc-system-uid'); if(uid) uid.textContent=u.systemUid; const box=document.getElementById('avatar-picker'); if(box){ box.innerHTML=AVATAR_IDS.map(id=>`<button class="avatar-choice ${u.avatarId===id?'selected':''}" title="幾何頭像 ${id}" onclick="selectAvatar('${id}')">${avatarSvg(id)}</button>`).join(''); } }
     window.selectAvatar=function(id){ const u=currentProfile(); if(!u||!AVATAR_IDS.includes(id)) return; u.avatarId=id; const db=globalUsersDB.find(x=>x.email===u.email); if(db) db.avatarId=id; saveFeature('users',globalUsersDB); renderAccountExtras(); audit('修改頭像',u.email,id); }
 
-    function renderBoard(){ const list=document.getElementById('message-board-list'); if(!list) return; if(!boardSettings.enabled){ list.innerHTML='<div class="board-card">留言板目前由管理員暫停。</div>'; return; } const roots=boardDB.filter(x=>!x.parentId&&!x.deleted); if(!roots.length){ list.innerHTML='<div class="board-card">目前尚無留言。</div>'; return; } list.innerHTML=roots.slice().reverse().map(item=>{ const replies=boardDB.filter(x=>x.parentId===item.id&&!x.deleted); const avatar=avatarSvg(item.avatarId||'circle'); return `<article class="board-card"><div class="board-meta"><div class="board-avatar">${avatar}</div><b>${esc(item.name||'匿名')}</b><span class="inline-title-badges">${titleHtmlFor(item.email,item.name)}</span><span>${esc(item.country||'未知國家')}</span><span>${esc(item.timestamp||'')}</span></div><div class="board-content">${esc(item.content)}</div><div class="board-replies">${replies.map(r=>`<div class="board-reply"><div class="board-meta"><div class="board-avatar">${avatarSvg(r.avatarId||'circle')}</div><b>${esc(r.name||'匿名')}</b><span class="inline-title-badges">${titleHtmlFor(r.email,r.name)}</span><span>${esc(r.country||'未知國家')}</span><span>${esc(r.timestamp||'')}</span></div><div class="board-content">${esc(r.content)}</div></div>`).join('')}</div><div class="board-reply-form"><input class="code-input" id="reply-${esc(item.id)}" maxlength="1000" placeholder="回覆此留言"><button class="btn-sm btn-accent" onclick="replyBoardMessage('${esc(item.id)}')">回覆</button></div></article>`; }).join(''); }
+    function renderBoard(){ const list=document.getElementById('message-board-list'); if(!list) return; if(!boardSettings.enabled){ list.innerHTML='<div class="board-card">留言板目前由管理員暫停。</div>'; return; } const roots=boardDB.filter(x=>!x.parentId&&!x.deleted); if(!roots.length){ list.innerHTML='<div class="board-card">目前尚無留言。</div>'; return; } list.innerHTML=roots.slice().reverse().map(item=>{ const replies=boardDB.filter(x=>x.parentId===item.id&&!x.deleted); const avatar=avatarSvg(item.avatarId||'taiwan-flag'); return `<article class="board-card"><div class="board-meta"><div class="board-avatar">${avatar}</div><b>${esc(item.name||'匿名')}</b><span class="inline-title-badges">${titleHtmlFor(item.email,item.name)}</span><span>${esc(item.country||'未知國家')}</span><span>${esc(item.timestamp||'')}</span></div><div class="board-content">${esc(item.content)}</div><div class="board-replies">${replies.map(r=>`<div class="board-reply"><div class="board-meta"><div class="board-avatar">${avatarSvg(r.avatarId||'taiwan-flag')}</div><b>${esc(r.name||'匿名')}</b><span class="inline-title-badges">${titleHtmlFor(r.email,r.name)}</span><span>${esc(r.country||'未知國家')}</span><span>${esc(r.timestamp||'')}</span></div><div class="board-content">${esc(r.content)}</div></div>`).join('')}</div><div class="board-reply-form"><input class="code-input" id="reply-${esc(item.id)}" maxlength="1000" placeholder="回覆此留言"><button class="btn-sm btn-accent" onclick="replyBoardMessage('${esc(item.id)}')">回覆</button></div></article>`; }).join(''); }
     window.submitBoardMessage=async function(){ const u=currentProfile(); if(!u) return alert('請先登入！'); if(!boardSettings.enabled) return alert('留言板目前暫停使用。'); const input=document.getElementById('board-message-input'); const raw=input?.value.trim(); if(!raw) return alert('請填寫留言內容！'); if(raw.length>Number(boardSettings.maxLength||1000)) return alert(`留言不可超過 ${boardSettings.maxLength} 字。`); const meta=await clientMeta(); const content=cleanText(raw); boardDB.push({id:'MSG-'+Date.now(),email:u.email,name:u.name,uid:u.systemUid,avatarId:u.avatarId,ip:meta.ip,country:meta.country,platform:meta.platform,content,parentId:null,timestamp:nowMs(),editedAt:''}); saveFeature('messageBoard',boardDB); audit('新增留言',u.email,''); input.value=''; updateBoardCount(); renderBoard(); alert('留言已發表。'); }
     window.replyBoardMessage=async function(parentId){ const u=currentProfile(); const input=document.getElementById('reply-'+parentId); const raw=input?.value.trim(); if(!u||!raw) return; if(raw.length>Number(boardSettings.maxLength||1000)) return alert(`回覆不可超過 ${boardSettings.maxLength} 字。`); const meta=await clientMeta(); boardDB.push({id:'REP-'+Date.now(),parentId,email:u.email,name:u.name,uid:u.systemUid,avatarId:u.avatarId,ip:meta.ip,country:meta.country,platform:meta.platform,content:cleanText(raw),timestamp:nowMs(),editedAt:''}); saveFeature('messageBoard',boardDB); audit('新增留言回覆',u.email,parentId); renderBoard(); alert('回覆已發表。'); }
     function updateBoardCount(){ const i=document.getElementById('board-message-input'), c=document.getElementById('board-char-count'); if(i&&c)c.textContent=`${i.value.length} / ${boardSettings.maxLength||1000}`; }
@@ -3816,10 +3870,11 @@
     function mailId(){ return 'MAIL-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7); }
     function contestId(){ return 'CON-'+Date.now().toString(36).toUpperCase(); }
     function renderMailBadge(){ const u=currentProfile(); const count=u ? rmsMailDB.filter(m=>m.to===u.email&&!m.read).length : 0; const badge=document.getElementById('mail-unread-badge'); if(badge){badge.textContent=count>99?'99+':String(count); badge.classList.toggle('hidden',count===0);} }
-    function renderMailScreen(){ const u=currentProfile(); if(!u)return; const inbox=rmsMailDB.filter(m=>m.to===u.email).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))); const list=document.getElementById('mail-inbox-list'); if(list)list.innerHTML=inbox.map(m=>`<article class="mail-item ${m.read?'':'unread'}" onclick="openRmsMail('${esc(m.id)}')"><strong>${esc(m.subject||'(無主旨)')}</strong><br><small>寄件人：${esc(m.from)}　${esc(m.createdAt)}</small><div class="mail-body-preview">${esc(m.body)}</div><small>${m.read?'已讀':'未讀'}</small></article>`).join('')||'<div class="muted-note">目前沒有郵件。</div>'; const count=document.getElementById('mail-inbox-count'); if(count)count.textContent=`共 ${inbox.length} 封；未讀 ${inbox.filter(m=>!m.read).length} 封`; renderMailBadge(); }
+        function renderMailScreen(){ const u=currentProfile(); if(!u)return; const inbox=rmsMailDB.filter(m=>m.to===u.email && !m.deleted).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))); const list=document.getElementById('mail-inbox-list'); if(list)list.innerHTML=inbox.map(m=>`<article class="mail-item ${m.read?'':'unread'}" onclick="openRmsMail('${esc(m.id)}')"><strong>${esc(m.subject||'(無主旨)')}</strong><br><small>寄件人：${esc(m.from)}　${esc(m.createdAt)}</small><div class="mail-body-preview">${esc(m.body)}</div><small>${m.read?'已讀':'未讀'}</small><button type="button" class="btn-sm btn-danger mail-delete-btn" onclick="event.stopPropagation(); deleteRmsMail('${esc(m.id)}')">刪除</button></article>`).join('')||'<div class="muted-note">目前沒有郵件。</div>'; const count=document.getElementById('mail-inbox-count'); if(count)count.textContent=`共 ${inbox.length} 封；未讀 ${inbox.filter(m=>!m.read).length} 封`; renderMailBadge(); }
     window.openRmsMail=function(id){ const u=currentProfile(),m=rmsMailDB.find(x=>x.id===id&&x.to===u?.email); if(!m)return; m.read=true; saveFeature('rmsMail',rmsMailDB); renderMailScreen(); };
+    window.deleteRmsMail=function(id){ const u=currentProfile(); if(!u)return alert('請先登入！'); const index=rmsMailDB.findIndex(x=>x.id===id && x.to===u.email && !x.deleted); if(index<0)return; if(!confirm('確定刪除這封站內郵件？'))return; rmsMailDB[index].deleted=true; rmsMailDB[index].deletedAt=nowMs(); rmsMailDB[index].deletedBy=u.email; saveFeature('rmsMail',rmsMailDB); audit('刪除站內郵件',id,''); renderMailScreen(); renderAdminMail(); alert('郵件已刪除。'); };
     window.sendRmsMail=function(){ const u=currentProfile(); if(!u)return alert('請先登入！'); const toUid=rmsUid(document.getElementById('mail-to').value),to=rmsEmail(toUid),subject=document.getElementById('mail-subject').value.trim(),body=document.getElementById('mail-body').value.trim(); if(!toUid||!subject||!body)return alert('請填寫收件人 UID、主旨與內容。'); const target=globalUsersDB.find(x=>x.email===to); if(!target)return alert('查無此站內 UID。'); rmsMailDB.push({id:mailId(),from:u.email,to,subject,body,read:false,createdAt:nowMs()}); saveFeature('rmsMail',rmsMailDB); document.getElementById('mail-to').value=''; document.getElementById('mail-subject').value=''; document.getElementById('mail-body').value=''; audit('寄送站內郵件',to,subject); alert('郵件已寄出。'); renderMailScreen(); };
-    function renderAdminMail(){ const el=document.getElementById('admin-mail-list'); if(!el)return; el.innerHTML=rmsMailDB.slice().reverse().map(m=>`<div class="admin-mini-card"><b>${esc(m.subject||'(無主旨)')}</b>　${m.read?'已讀':'未讀'}<br><small>寄件人：${esc(m.from)} → 收件人：${esc(m.to)}　${esc(m.createdAt)}</small><div style="white-space:pre-wrap;margin-top:6px">${esc(m.body)}</div></div>`).join('')||'<div class="muted-note">尚無站內郵件。</div>'; }
+    function renderAdminMail(){ const el=document.getElementById('admin-mail-list'); if(!el)return; el.innerHTML=rmsMailDB.filter(m=>!m.deleted).slice().reverse().map(m=>`<div class="admin-mini-card"><b>${esc(m.subject||'(無主旨)')}</b>　${m.read?'已讀':'未讀'}<br><small>寄件人：${esc(m.from)} → 收件人：${esc(m.to)}　${esc(m.createdAt)}</small><div style="white-space:pre-wrap;margin-top:6px">${esc(m.body)}</div></div>`).join('')||'<div class="muted-note">尚無站內郵件。</div>'; }
     function renderContestList(){ const publicEl=document.getElementById('contest-public-list'); const now=Date.now(); const rows=contestsDB.slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))); if(publicEl)publicEl.innerHTML=rows.map(c=>{const published=c.publishAt&&now>=new Date(c.publishAt).getTime();return `<article class="contest-item"><b>${esc(c.name)}</b><br><small>考場編碼：${esc(c.code)}　公布：${esc(c.publishAt||'未設定')}</small><br><small>${published?'排名已公布，可查詢':'排名將於設定時間公布'}</small>${published?`<button class="btn-sm btn-rank" style="margin-top:8px" onclick="openContestRank('${esc(c.id)}')">查看排行榜</button>`:''}</article>`}).join('')||'<div class="muted-note">目前沒有競賽／考試。</div>'; }
     function renderAdminContests(){ const el=document.getElementById('admin-contest-list'); if(!el)return; el.innerHTML=contestsDB.slice().reverse().map(c=>`<div class="admin-mini-card"><b>${esc(c.name)}</b>　編碼：${esc(c.code)}　題庫：${esc(c.quizCode)}<br><small>時間：${esc(c.startAt||'不限')} ～ ${esc(c.endAt||'不限')}；公布：${esc(c.publishAt||'未設定')}</small><button class="btn-sm btn-rank" style="float:right" onclick="openContestRank('${esc(c.id)}')">查看排名</button></div>`).join('')||'<div class="muted-note">尚未建立競賽。</div>'; }
     window.enterContest=function(){ const code=document.getElementById('contest-code-input').value.trim(),pass=document.getElementById('contest-password-input').value, c=contestsDB.find(x=>x.code===code); if(!c)return alert('查無此考場編碼。'); if(c.password!==pass)return alert('考場密碼錯誤。'); const now=Date.now(); if(c.startAt&&now<new Date(c.startAt).getTime())return alert(`考場尚未開放，開始時間：${fmtGateTime(c.startAt)}`); if(c.endAt&&now>=new Date(c.endAt).getTime())return alert('考場已結束，無法進入。'); const u=currentProfile(); const used=testHistoryRecords.filter(r=>r.contestId===c.id&&r.userEmail===u?.email).length; if(used>=Number(c.attempts||1))return alert('你的作答次數已達上限。'); window.__rmsContestContext={id:c.id,code:c.code,attempts:c.attempts,questionOrder:c.questionOrder||'random'}; openQuizEntryFlow(c.quizCode,false); };
@@ -3832,7 +3887,7 @@
     function renderNewAdminFeatures(){ renderAdminReset(); renderAdminContests(); renderAdminMail(); }
 
     function renderAdminFeatureLists(){ const el=document.getElementById('admin-external-links-list'); if(el)el.innerHTML=(externalLinksDB||[]).map((x,i)=>`<div class="admin-mini-card"><b>${esc(x.label)}</b> · ${esc(x.url)} <button class="btn-sm btn-danger" onclick="deleteExternalLinkAdmin(${i})">刪除</button></div>`).join('')||'<div class="muted-note">尚無分享連結</div>'; }
-    function renderBoardModeration(){ const el=document.getElementById('admin-board-moderation-list'); if(!el)return; const items=(boardDB||[]).slice().reverse(); el.innerHTML='<h5 style="margin:14px 0 5px;color:#20344d">留言／回覆審核清單</h5>'+(items.length?items.map(x=>`<div class="admin-mini-card"><b>${x.parentId?'回覆':'留言'}</b> · ${esc(x.name)} (${esc(x.country||'未知國家')}) · ${esc(x.timestamp)}<div style="white-space:pre-wrap;margin:7px 0">${esc(x.content)}</div><button class="btn-sm btn-accent" onclick="editBoardItemAdmin('${esc(x.id)}')">修改</button> <button class="btn-sm btn-danger" onclick="deleteBoardItemAdmin('${esc(x.id)}')">刪除</button></div>`).join(''):'<div class="muted-note">目前沒有留言或回覆。</div>'); }
+    function renderBoardModeration(){ const el=document.getElementById('admin-board-moderation-list'); if(!el)return; const items=(boardDB||[]).filter(x=>!x.deleted).slice().reverse(); el.innerHTML='<h5 style="margin:14px 0 5px;color:#20344d">留言／回覆審核清單</h5>'+(items.length?items.map(x=>`<div class="admin-mini-card"><b>${x.parentId?'回覆':'留言'}</b> · ${esc(x.name)} (${esc(x.country||'未知國家')}) · ${esc(x.timestamp)}<div style="white-space:pre-wrap;margin:7px 0">${esc(x.content)}</div><button class="btn-sm btn-accent" onclick="editBoardItemAdmin('${esc(x.id)}')">修改</button> <button class="btn-sm btn-danger" onclick="deleteBoardItemAdmin('${esc(x.id)}')">刪除</button></div>`).join(''):'<div class="muted-note">目前沒有留言或回覆。</div>'); }
     window.editBoardItemAdmin=function(id){ const x=boardDB.find(v=>v.id===id); if(!x)return; const value=prompt('請輸入新的留言／回覆內容：',x.content||''); if(value===null)return; x.content=cleanText(value.trim()); x.editedAt=nowMs(); saveFeature('messageBoard',boardDB); audit('修改留言',id,''); renderBoard(); renderBoardModeration(); alert('留言內容已修改。'); }
     window.deleteBoardItemAdmin=function(id){ if(!confirm('確定刪除此留言／回覆？'))return; const x=boardDB.find(v=>v.id===id); if(x)x.deleted=true; saveFeature('messageBoard',boardDB); audit('刪除留言',id,''); renderBoard(); renderBoardModeration(); alert('留言已刪除。'); }
 
@@ -3841,7 +3896,7 @@
 
     window.saveBoardSettingsAdmin=function(){ const u=currentProfile(); if(!u||u.role!=='admin')return; boardSettings.enabled=document.getElementById('admin-board-enabled').value==='true'; boardSettings.maxLength=Math.max(50,Math.min(5000,Number(document.getElementById('admin-board-max-length').value)||1000)); boardSettings.notice=document.getElementById('admin-board-notice').value.trim(); boardSettings.bannedWords=document.getElementById('admin-banned-words').value.split(',').map(x=>x.trim()).filter(Boolean); saveFeature('boardSettings',boardSettings); audit('修改留言板設定','留言板',JSON.stringify(boardSettings)); alert('留言板設定已儲存。'); }
     function loadBoardAdmin(){ const a=document.getElementById('admin-board-enabled'); if(!a)return; a.value=String(boardSettings.enabled!==false); document.getElementById('admin-board-max-length').value=boardSettings.maxLength||1000; document.getElementById('admin-board-notice').value=boardSettings.notice||''; document.getElementById('admin-banned-words').value=(boardSettings.bannedWords||[]).join(','); }
-    window.loadAdminProfileEditor=function(){ const sel=document.getElementById('admin-profile-user-select'),u=(globalUsersDB||[]).find(x=>x.email===sel?.value); if(!u)return; document.getElementById('admin-profile-uid').value=u.systemUid||''; document.getElementById('admin-profile-name').value=u.name||''; document.getElementById('admin-profile-avatar').value=u.avatarId||'circle'; document.getElementById('admin-profile-disabled').value=String(!!u.disabled); document.getElementById('admin-profile-forgotten').value=String(!!u.forgotten); }
+    window.loadAdminProfileEditor=function(){ const sel=document.getElementById('admin-profile-user-select'),u=(globalUsersDB||[]).find(x=>x.email===sel?.value); if(!u)return; document.getElementById('admin-profile-uid').value=u.systemUid||''; document.getElementById('admin-profile-name').value=u.name||''; document.getElementById('admin-profile-avatar').value=u.avatarId||'taiwan-flag'; document.getElementById('admin-profile-disabled').value=String(!!u.disabled); document.getElementById('admin-profile-forgotten').value=String(!!u.forgotten); }
     window.saveAdminProfileEditor=function(){ const admin=currentProfile(); if(!admin||admin.role!=='admin')return; const email=document.getElementById('admin-profile-user-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u)return; const uid=document.getElementById('admin-profile-uid').value.trim(); if(uid&&!u.systemUid)u.systemUid=uid; else if(uid&&uid!==u.systemUid)return alert('系統辨識碼建立後不可修改；只有尚未建立初始碼的帳號可由管理員設定。'); u.name=document.getElementById('admin-profile-name').value.trim()||u.name; u.avatarId=document.getElementById('admin-profile-avatar').value; u.disabled=document.getElementById('admin-profile-disabled').value==='true'; u.forgotten=document.getElementById('admin-profile-forgotten').value==='true'; saveFeature('users',globalUsersDB); audit('修改帳號資料',email,JSON.stringify({name:u.name,disabled:u.disabled,forgotten:u.forgotten,avatarId:u.avatarId})); ensureAllUsers(); renderAdminProfiles(); renderForgottenAccountsAdmin(); alert('帳號資料已儲存。'); }
     function renderAdminProfiles(){ const sel=document.getElementById('admin-profile-user-select'); if(!sel)return; const visible=(globalUsersDB||[]).filter(x=>!x.forgotten); sel.innerHTML=visible.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無可顯示帳號</option>'; if(visible.length)loadAdminProfileEditor(); }
     window.renderForgottenAccountsAdmin=function(){ const el=document.getElementById('admin-forgotten-list'); if(!el)return; el.innerHTML=(globalUsersDB||[]).filter(x=>x.forgotten).map(x=>`<div class="admin-mini-card">${esc(x.name)} (${esc(x.email)}) <button class="btn-sm btn-success" onclick="restoreForgottenAccount('${esc(x.email)}')">復原到帳號選單</button></div>`).join('')||'<div class="muted-note">目前沒有遺忘帳號。</div>'; }
@@ -3855,6 +3910,7 @@
     window.closeTermsGate=function(){ document.getElementById('terms-gate-modal')?.classList.add('hidden'); }
     window.acceptTermsGate=function(){ document.getElementById('agree-terms').checked=true; document.getElementById('terms-gate-modal').classList.add('hidden'); if(typeof checkAuthUnlock==='function')checkAuthUnlock(); }
 
+    window.jumpAdminSection=function(id){ if(!id)return; const target=document.getElementById(id); if(target){ target.scrollIntoView({behavior:'smooth',block:'start'}); } };
     function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); renderTutorialAdmin(); renderNewAdminFeatures(); }
     function featureData(data){ boardDB=data?.messageBoard||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; rmsMailDB=data?.rmsMail||[]; contestsDB=data?.contests||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; timeGateConfig={...timeGateConfig,...(data?.timeGate||{})}; titlesCatalog=data?.titlesCatalog||[]; ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
     window.__rmsFeatureData = featureData;
@@ -3900,25 +3956,22 @@
 
     async function callGemini(prompt, imageData) {
         const cfg = getEffectiveApiConfig();
-        const local = readLocalApiConfig();
-        const useLocalDirect = local.enabled && !!local.apiKey;
-        if (!useLocalDirect) {
-            throw new Error('尚未設定本地 API。請從「選單 MENU → 本地 API 配置」輸入並啟用 API Key。');
+        if (!cfg.enabled || !cfg.apiKey) {
+            throw new Error('尚未設定可用的 API。請先設定本地 API，或由管理員啟用全域 API。');
         }
         let url, body, headers = { 'Content-Type': 'application/json' };
-        const localCfg = local;
-        if (localCfg.provider === 'gemini') {
+        if (cfg.provider === 'gemini') {
             const parts = [{ text: prompt }];
             if (imageData) parts.push({ inline_data: { mime_type: 'image/png', data: imageData.split(',')[1] } });
-            url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(localCfg.model || 'gemini-flash-latest')}:generateContent`;
-            headers['X-goog-api-key'] = localCfg.apiKey;
+            url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg.model || 'gemini-flash-latest')}:generateContent`;
+            headers['X-goog-api-key'] = cfg.apiKey;
             body = { contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } };
         } else {
-            url = localCfg.endpoint || 'https://api.openai.com/v1/chat/completions';
-            headers.Authorization = `Bearer ${localCfg.apiKey}`;
+            url = cfg.endpoint || 'https://api.openai.com/v1/chat/completions';
+            headers.Authorization = `Bearer ${cfg.apiKey}`;
             const content = [{ type: 'text', text: prompt }];
             if (imageData) content.push({ type: 'image_url', image_url: { url: imageData } });
-            body = { model: localCfg.model || 'gpt-4o-mini', messages: [{ role: 'user', content }], temperature: 0.1, response_format: { type: 'json_object' } };
+            body = { model: cfg.model || 'gpt-4o-mini', messages: [{ role: 'user', content }], temperature: 0.1, response_format: { type: 'json_object' } };
         }
         const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
         const responseBody = await response.json();
