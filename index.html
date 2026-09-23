@@ -4,16 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V12-formal</title>
+    <title>測驗系統-網頁版(Web ST) -V5-Pro</title>
 
     <script>
         window.MathJax = {
-            tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']], processEscapes: true },
+            tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
             options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
         };
+        window.__rmsMathJaxPromise = null;
+        window.loadRmsMathJax = function() {
+            if (window.MathJax && window.MathJax.startup && window.MathJax.typesetPromise) {
+                return Promise.resolve(window.MathJax);
+            }
+            if (window.__rmsMathJaxPromise) return window.__rmsMathJaxPromise;
+            window.__rmsMathJaxPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+                script.async = true;
+                script.onload = () => resolve(window.MathJax);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            return window.__rmsMathJaxPromise;
+        };
+        window.typesetRmsMath = function(root) {
+            if (!root) return;
+            const text = root.textContent || '';
+            if (!/[\$]|\\(?:frac|sqrt|text|times|cdot|pm|leq|geq|left|right)|\\\(|\\\[/.test(text)) return;
+            window.loadRmsMathJax()
+                .then(() => window.MathJax?.typesetPromise?.([root]))
+                .catch(error => console.warn('MathJax 載入略過：', error));
+        };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
 
     <style>
         :root { 
@@ -820,6 +843,24 @@
                 padding-left: 9px;
                 padding-right: 9px;
             }
+        }
+        /* Mobile performance and touch UX improvements */
+        html { overflow-x: hidden; }
+        body { max-width: 100%; overflow-x: hidden; }
+        button, .main-btn, .nav-btn, .menu-btn, .mail-quick-btn { min-height: 44px; }
+        input, select, textarea { min-height: 44px; font-size: 16px; }
+        .code-input, .mail-item, .mail-body-preview, .result-container-dark { overflow-wrap: anywhere; }
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 3px solid #38bdf8;
+            outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+        @media (max-width: 600px) {
+            .container { width: 100%; max-width: 100%; }
+            .modal-card { width: calc(100vw - 20px); max-width: calc(100vw - 20px); }
+            .action-btn-group { flex-direction: column; }
         }
     </style>
 </head>
@@ -3059,11 +3100,53 @@
         return false;
     }
 
+    function optionEntries(q) {
+        const options = Array.isArray(q && q.o) ? q.o : [];
+        return options.map((raw, index) => {
+            const original = String(raw ?? '').trim();
+            const letterMatch = original.match(/^\s*\(?([A-Za-z])\)?(?:[\.、：:、\s]+|$)/);
+            const label = (letterMatch ? letterMatch[1] : String.fromCharCode(65 + index)).toLowerCase();
+            const content = letterMatch ? original.slice(letterMatch[0].length).trim() : original;
+            return { label, content, original };
+        });
+    }
+    function isMathAnswer(q, value) {
+        const raw = String(value ?? '');
+        const meta = [q && q.type, q && q.category, q && q.subject, q && q.topic, q && q.tags].join(' ').toLowerCase();
+        return !!(q && (q.math === true || q.isMath === true || q.latex === true))
+            || /math|數學|計算|代數|幾何|方程|公式/.test(meta)
+            || /\\(?:frac|sqrt|cdot|times|pm|leq|geq)|\$\$?|\\\\\(|\\\\\[/.test(raw)
+            || (/\d/.test(raw) && /[+\-*/=^<>÷×√]/.test(raw));
+    }
+    function formatAnswerText(q, value) {
+        const raw = String(value ?? '').trim() || '未設定';
+        const safe = escapeHtml(raw);
+        if (isMathAnswer(q, raw) && !/[\\$]|\\\\\(|\\\\\[/.test(raw)) return `\\(${safe}\\)`;
+        return safe;
+    }
+    function resolveCorrectOption(q, value) {
+        const key = optionLetter(value).toLowerCase();
+        const entries = optionEntries(q);
+        const direct = entries.find(item => item.label === key);
+        if (direct) return direct;
+        const numeric = Number(value);
+        if (Number.isInteger(numeric) && numeric >= 0 && numeric < entries.length) return entries[numeric];
+        return null;
+    }
     function displayCorrectAnswer(q) {
         const type = getQuestionType(q);
-        if (type === 'multiple') return answerArray(q).join(', ');
-        if (type === 'handwriting' || type === 'short') return q.answer || q.a || '未設定';
-        return q.a || '未設定';
+        if (type === 'multiple') {
+            return answerArray(q).map(key => {
+                const entry = resolveCorrectOption(q, key);
+                return entry ? `${entry.label} 是 ${formatAnswerText(q, entry.content)}` : formatAnswerText(q, key);
+            }).join('、');
+        }
+        if (type === 'handwriting' || type === 'short') {
+            return formatAnswerText(q, q.answer || q.a || '未設定');
+        }
+        const entry = resolveCorrectOption(q, q.a);
+        if (entry) return `${entry.label} 是 ${formatAnswerText(q, entry.content)}`;
+        return formatAnswerText(q, q.a || '未設定');
     }
 
     function saveHandwritingCanvas(index, canvas) {
@@ -3206,7 +3289,7 @@
                 }
             }
         });
-        if (window.MathJax) MathJax.typesetPromise([container]);
+        window.typesetRmsMath(container);
     }
 
     function navigateQuestion(direction) {
@@ -3273,7 +3356,7 @@
             const subjective = hand || type === 'short';
             reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (subjective && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
                 <p><b>題目 ${i+1}: ${q.q}</b></p>
-                <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">標準答案：${escapeHtml(String(correctContent))}</span></p>
+                <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">標準答案：${correctContent}</span></p>
                 ${subjective ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
             </div>`;
         });
@@ -3390,7 +3473,7 @@
             retryBtn.classList.add('hidden');
         }
 
-        if (window.MathJax) MathJax.typesetPromise([document.getElementById('review-area')]);
+        window.typesetRmsMath(document.getElementById('review-area'));
         gradePendingHandwriting(currentQuestions, currentQuizCode);
     }
 
@@ -3588,7 +3671,7 @@
                 const options = Array.isArray(q.o) ? q.o.join(' | ') : '非選擇題';
                 const correctContent = displayCorrectAnswer(q);
                 const userAnsText = Array.isArray(item.userAns) ? item.userAns.join(', ') : (item.userAns || '未填答');
-                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(userAnsText))}</span> | 正確答案：<span style="color:#22c55e; font-weight:bold;">${escapeHtml(String(correctContent))}</span></div></div>`;
+                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(userAnsText))}</span> | 正確答案：<span style="color:#22c55e; font-weight:bold;">${correctContent}</span></div></div>`;
             });
             html += '</div>';
             pdfWrongList.innerHTML = html;
