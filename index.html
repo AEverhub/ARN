@@ -610,6 +610,28 @@
         .admin-stat-card span { display:block; color:#142235; font-size:1.45em; font-weight:700; margin-top:4px; }
 
         /* 管理員面板手機版：保留功能順序，將操作列改為易點擊的單欄布局。 */
+        .admin-panel-group { position:relative; }
+        .admin-info-group { padding:16px 0 0; }
+        .admin-group-kicker { display:inline-flex; align-items:center; gap:8px; margin-bottom:6px; color:#0f766e; font-weight:900; letter-spacing:.12em; font-size:.78em; }
+        .admin-group-kicker::before { content:""; width:8px; height:8px; border-radius:50%; background:#14b8a6; box-shadow:0 0 0 4px #ccfbf1; }
+        .admin-operation-group .admin-group-kicker { color:#4f46e5; }
+        .admin-operation-group .admin-group-kicker::before { background:#6366f1; box-shadow:0 0 0 4px #e0e7ff; }
+        .admin-group-description { margin:0 0 12px; color:#64748b; font-size:.86em; }
+        .tutorial-overlay { z-index:10020; background:rgba(2,6,23,.86); backdrop-filter:blur(8px); }
+        .tutorial-card { width:min(620px,calc(100vw - 28px)); text-align:left; border:1px solid rgba(148,163,184,.35); box-shadow:0 24px 80px rgba(2,6,23,.5); }
+        .tutorial-topline { display:flex; justify-content:space-between; gap:12px; color:#cbd5e1; font-size:.8em; font-weight:800; letter-spacing:.06em; }
+        .tutorial-required { color:#fbbf24; }
+        .tutorial-progress { height:7px; background:#1e293b; border-radius:99px; overflow:hidden; margin:14px 0 22px; }
+        .tutorial-progress span { display:block; height:100%; width:0; background:linear-gradient(90deg,#22d3ee,#818cf8); border-radius:inherit; transition:width .25s ease; }
+        .tutorial-icon { width:62px; height:62px; display:grid; place-items:center; border-radius:20px; color:#fff; font-size:2em; background:linear-gradient(135deg,#0ea5e9,#6366f1); margin-bottom:14px; }
+        .tutorial-body { color:#e2e8f0; line-height:1.8; white-space:pre-line; min-height:92px; }
+        .tutorial-checklist { display:grid; gap:8px; margin:16px 0 4px; }
+        .tutorial-check { padding:10px 12px; border-radius:10px; background:#0f172a; color:#cbd5e1; font-size:.88em; border:1px solid #334155; }
+        .tutorial-check::before { content:"✓"; color:#34d399; font-weight:900; margin-right:8px; }
+        .tutorial-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:22px; }
+        .tutorial-footnote { color:#94a3b8; font-size:.76em; margin:14px 0 0; text-align:center; }
+        .tutorial-admin-grid { margin-bottom:10px; }
+        @media (max-width:600px){ .tutorial-actions { flex-direction:column-reverse; } .tutorial-actions button { width:100%; } .tutorial-card { padding:20px; } }
         .title-profile-box { margin-top:14px; padding-top:14px; border-top:1px solid #d7e0ea; }
         .title-badge-row { display:flex; flex-wrap:wrap; gap:7px; min-height:28px; }
         .title-badge { display:inline-flex; align-items:center; padding:4px 9px; border-radius:999px; font-size:.78em; font-weight:800; letter-spacing:.03em; box-shadow:0 2px 5px rgba(15,23,42,.12); }
@@ -1028,6 +1050,9 @@
     <div id="admin-screen" class="hidden sub-view" style="color:#333;">
         <h3>系統管理面板 (Admin Console)</h3>
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
+        <div class="admin-panel-group admin-info-group">
+            <div class="admin-group-kicker">資訊項</div>
+            <p class="admin-group-description">查看系統總覽與即時數據；此區只提供資訊，不會直接修改資料。</p>
         <div class="admin-stat-grid" id="admin-stat-grid">
             <div class="admin-stat-card"><strong>註冊帳號</strong><span id="admin-stat-users">0</span></div>
             <div class="admin-stat-card"><strong>啟用帳號</strong><span id="admin-stat-active-users">0</span></div>
@@ -1035,9 +1060,21 @@
             <div class="admin-stat-card"><strong>測驗紀錄</strong><span id="admin-stat-tests">0</span></div>
             <div class="admin-stat-card"><strong>答題使用次數</strong><span id="admin-stat-attempts">0</span></div>
         </div>
+        </div>
 
-        <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
-            <h4 style="margin-top:0; color:var(--primary);">1. 用戶帳戶停用與啟用管理</h4>
+        <div class="admin-panel-group admin-operation-group" style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
+            <div class="admin-group-kicker">操作項</div>
+            <p class="admin-group-description">建立設定、管理帳號、審核內容與輸出資料的操作區。</p>
+            <h4 class="admin-section-title">操作流程教學管理</h4>
+            <p class="muted-note">首次登入者必須完成完整教學。管理員可讓指定帳號從某個階段重新開始，並保留既有功能與資料。</p>
+            <div class="admin-tool-grid tutorial-admin-grid">
+                <label>指定帳號<select id="admin-tutorial-user-select" class="code-input"></select></label>
+                <label>重來階段<select id="admin-tutorial-stage-select" class="code-input"></select></label>
+            </div>
+            <button class="main-btn btn-secondary admin-wide-btn" onclick="resetUserTutorialAdmin()">指定帳號重新開始教學</button>
+            <div id="admin-tutorial-status" class="admin-mini-list"></div>
+
+            <h4 style="margin-top:20px; color:var(--primary);">1. 用戶帳戶停用與啟用管理</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-user-select" class="code-input" style="margin-bottom:0; flex:1;" onchange="onAdminUserSelectChange()">
                     <option value="">載入中用戶...</option>
@@ -1224,6 +1261,22 @@
         <p id="time-gate-range" class="gate-time-range"></p>
         <div id="time-gate-message" class="notice-modal-content"></div>
         <button class="main-btn btn-secondary" onclick="closeTimeGateNotice()">知道了</button>
+    </div>
+</div>
+
+<div id="tutorial-modal" class="modal-overlay hidden tutorial-overlay">
+    <div class="modal-card tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+        <div class="tutorial-topline"><span id="tutorial-step-count">教學 1 / 1</span><span class="tutorial-required">必修流程</span></div>
+        <div class="tutorial-progress"><span id="tutorial-progress-bar"></span></div>
+        <div class="tutorial-icon" id="tutorial-icon">⌁</div>
+        <h3 id="tutorial-title" style="color:#fff"></h3>
+        <p id="tutorial-body" class="tutorial-body"></p>
+        <div id="tutorial-checklist" class="tutorial-checklist"></div>
+        <div class="tutorial-actions">
+            <button id="tutorial-back" class="main-btn btn-secondary" onclick="tutorialBack()">上一步</button>
+            <button id="tutorial-next" class="main-btn btn-accent" onclick="tutorialNext()">開始教學</button>
+        </div>
+        <p class="tutorial-footnote">首次教學不可跳過，請依序完成全部流程後才能使用系統。</p>
     </div>
 </div>
 
@@ -3435,7 +3488,7 @@
     function esc(v){ return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     function nowMs(){ return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false}) + '.' + String(Date.now()%1000).padStart(3,'0'); }
     function makeUid(){ return 'ST-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,8).toUpperCase(); }
-    function ensureUser(u){ if(!u.systemUid) u.systemUid = makeUid(); if(!u.avatarId || !AVATAR_IDS.includes(u.avatarId)) u.avatarId = AVATAR_IDS[0]; if(u.forgotten === undefined) u.forgotten=false; return u; }
+    function ensureUser(u){ if(!u.systemUid) u.systemUid = makeUid(); if(!u.avatarId || !AVATAR_IDS.includes(u.avatarId)) u.avatarId = AVATAR_IDS[0]; if(u.forgotten === undefined) u.forgotten=false; if(u.tutorialDone === undefined) u.tutorialDone=false; if(!Number.isInteger(u.tutorialStage)) u.tutorialStage=0; return u; }
     function ensureAllUsers(){ (globalUsersDB||[]).forEach(ensureUser); if(currentUser) ensureUser(currentUser); }
     function avatarSvg(id){ const colors=['#2563eb','#7c3aed','#059669','#ea580c','#db2777','#0891b2']; const i=Math.max(0,AVATAR_IDS.indexOf(id)); const c=colors[i]||colors[0]; const shapes=[`<circle cx="32" cy="32" r="21" fill="${c}"/><circle cx="25" cy="27" r="3" fill="#fff"/><circle cx="39" cy="27" r="3" fill="#fff"/><path d="M22 40 Q32 49 42 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,`<path d="M32 5 L58 32 32 59 6 32Z" fill="${c}"/><circle cx="25" cy="30" r="3" fill="#fff"/><circle cx="39" cy="30" r="3" fill="#fff"/><path d="M23 40 Q32 46 41 40" fill="none" stroke="#fff" stroke-width="3"/>`,`<path d="M32 5 L59 57 H5Z" fill="${c}"/><circle cx="25" cy="34" r="3" fill="#fff"/><circle cx="39" cy="34" r="3" fill="#fff"/><path d="M24 43 H40" stroke="#fff" stroke-width="3"/>`,`<path d="M17 7 H47 L59 19 V47 L47 59 H17 L5 47 V19Z" fill="${c}"/><circle cx="25" cy="31" r="3" fill="#fff"/><circle cx="39" cy="31" r="3" fill="#fff"/><path d="M22 42 Q32 48 42 42" fill="none" stroke="#fff" stroke-width="3"/>`,`<rect x="7" y="11" width="50" height="10" rx="5" fill="${c}"/><rect x="7" y="27" width="35" height="10" rx="5" fill="${c}"/><rect x="7" y="43" width="43" height="10" rx="5" fill="${c}"/>`,`<circle cx="32" cy="32" r="12" fill="${c}"/><path d="M32 4 V16 M32 48 V60 M4 32 H16 M48 32 H60 M12 12 L21 21 M43 43 L52 52 M52 12 L43 21 M21 43 L12 52" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`]; return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${shapes[i]}</svg>`; }
     function currentProfile(){ ensureAllUsers(); return currentUser ? (globalUsersDB.find(u=>u.email===currentUser.email)||currentUser) : null; }
@@ -3516,6 +3569,26 @@
     window.restoreDeniedTitleAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-title-user-select').value,id=document.getElementById('admin-title-select').value,u=globalUsersDB.find(x=>x.email===email); if(!u||!id)return; ensureTitleFields(u); u.titleDeniedIds=u.titleDeniedIds.filter(x=>x!==id); saveFeature('users',globalUsersDB); audit('解除稱號永久剝奪',email,id); renderTitleAdmin(); alert('已解除永久剝奪。'); };
     function renderTitleAdmin(){ const users=(globalUsersDB||[]).filter(x=>!x.forgotten),us=document.getElementById('admin-title-user-select'),ts=document.getElementById('admin-title-select'); if(us)us.innerHTML=users.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無帳號</option>'; const titles=allTitleObjects(); if(ts)ts.innerHTML=titles.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); const list=document.getElementById('admin-title-list'); if(list)list.innerHTML=titlesCatalog.map(x=>`<div class="admin-mini-card">${titleBadge(x)}　ID：${esc(x.id)}</div>`).join('')||'<div class="muted-note">尚未建立自訂稱號。</div>'; }
 
+    const TUTORIAL_STAGES = [
+        { icon:'⌂', title:'歡迎來到測驗系統', body:'這是一段不可跳過的完整操作教學。你會依序認識主選單、題庫、作答、結果、帳號中心、留言板與回報功能。', checks:['熟悉本系統的主要入口','了解教學必須完成後才能使用系統'] },
+        { icon:'☰', title:'第一站：主選單與首頁', body:'登入後先看主畫面與右上角主選單。所有功能都從這裡進入；不同帳號會看到不同的可用功能。', checks:['首頁：選擇題庫與開始測驗','帳號中心：查看個人資料與設定','留言板、問題回報與其他網域入口'] },
+        { icon:'▦', title:'第二站：選擇公開題庫', body:'在首頁查看公開題庫清單，閱讀題庫資訊與使用限制，再按下開啟題測。開始前請確認題庫代碼與題型。', checks:['查看公開題庫列表','確認題庫限制與說明','按下開啟題測進入測驗準備'] },
+        { icon:'✎', title:'第三站：開始作答', body:'進入測驗後，依題目順序作答。單選題點選答案；複選題可選多個；簡答與手寫題依畫面提示完成。', checks:['使用上一題／下一題切換','留意目前題號與作答狀態','需要時使用清除筆跡工具'] },
+        { icon:'✓', title:'第四站：提交與查看結果', body:'完成作答後提交評量。系統會顯示分數、正確題數、錯題解析與測驗時間；錯題可從結果頁進行重測。', checks:['確認未作答題目的提醒','查看成績與詳細解析','了解錯題重測不會重複計入正式紀錄'] },
+        { icon:'◎', title:'第五站：帳號中心', body:'帳號中心可查看登入信箱、姓名、系統辨識碼、頭像與稱號。一般使用者可在此選擇要配戴的稱號。', checks:['查看個人身分資料','切換六種幾何頭像','查看或配戴可用稱號'] },
+        { icon:'☵', title:'第六站：留言板與回覆', body:'留言板可發表公開留言，也能回覆其他留言。系統只顯示國家，不公開縣市與完整 IP；內容會套用管理規範。', checks:['閱讀留言與回覆','撰寫並送出留言','了解留言會受到管理員審核與敏感詞規則管理'] },
+        { icon:'?', title:'第七站：問題回報與帳戶協助', body:'遇到技術問題可使用問題回報；若帳戶遭停用，聊天大廳會提供申訴入口。請清楚描述問題與需要協助的內容。', checks:['提交問題回報','查看管理員回覆','了解停用帳戶的申訴流程'] },
+        { icon:'★', title:'教學完成', body:'你已經走完完整操作流程。之後可自由使用系統；如果需要重新熟悉某個區段，管理員可以指定你從某一階段重新開始。', checks:['完成主選單、題庫、作答、結果流程','完成帳號中心、留言板與回報流程','準備開始使用系統'] }
+    ];
+    let tutorialIndex=0;
+    function tutorialUser(){ return currentProfile(); }
+    function renderTutorial(){ const step=TUTORIAL_STAGES[tutorialIndex]||TUTORIAL_STAGES[0], modal=document.getElementById('tutorial-modal'); if(!modal)return; document.getElementById('tutorial-step-count').textContent=`教學 ${tutorialIndex+1} / ${TUTORIAL_STAGES.length}`; document.getElementById('tutorial-progress-bar').style.width=`${((tutorialIndex+1)/TUTORIAL_STAGES.length)*100}%`; document.getElementById('tutorial-icon').textContent=step.icon; document.getElementById('tutorial-title').textContent=step.title; document.getElementById('tutorial-body').textContent=step.body; document.getElementById('tutorial-checklist').innerHTML=step.checks.map(x=>`<div class="tutorial-check">${esc(x)}</div>`).join(''); const back=document.getElementById('tutorial-back'),next=document.getElementById('tutorial-next'); back.disabled=tutorialIndex===0; back.style.opacity=tutorialIndex===0?'.45':'1'; next.textContent=tutorialIndex===0?'開始教學':tutorialIndex===TUTORIAL_STAGES.length-1?'完成完整教學':'下一步'; }
+    function startTutorialIfNeeded(force=false,startStage=0){ const u=tutorialUser(); if(!u)return; ensureUser(u); if(!force&&u.tutorialDone)return; tutorialIndex=Math.max(0,Math.min(TUTORIAL_STAGES.length-1,Number(startStage)||0)); renderTutorial(); document.getElementById('tutorial-modal')?.classList.remove('hidden'); }
+    window.tutorialNext=function(){ const u=tutorialUser(); if(!u)return; if(tutorialIndex<TUTORIAL_STAGES.length-1){ tutorialIndex++; ensureUser(u); u.tutorialStage=tutorialIndex; saveFeature('users',globalUsersDB); renderTutorial(); return; } ensureUser(u); u.tutorialDone=true; u.tutorialStage=TUTORIAL_STAGES.length; saveFeature('users',globalUsersDB); document.getElementById('tutorial-modal')?.classList.add('hidden'); audit('完成操作流程教學',u.email,'完整流程'); alert('操作流程教學已完成，現在可以開始使用系統。'); renderTutorialAdmin(); };
+    window.tutorialBack=function(){ if(tutorialIndex>0){ tutorialIndex--; renderTutorial(); } };
+    function renderTutorialAdmin(){ const users=(globalUsersDB||[]).filter(x=>!x.forgotten), sel=document.getElementById('admin-tutorial-user-select'),stage=document.getElementById('admin-tutorial-stage-select'),status=document.getElementById('admin-tutorial-status'); if(!sel)return; sel.innerHTML=users.map(x=>`<option value="${esc(x.email)}">${esc(x.name)} (${esc(x.email)})</option>`).join('')||'<option value="">無帳號</option>'; if(stage)stage.innerHTML=TUTORIAL_STAGES.map((x,i)=>`<option value="${i}">第 ${i+1} 階：${esc(x.title)}</option>`).join(''); const u=users.find(x=>x.email===sel.value)||users[0]; if(u&&stage)stage.value=String(Math.min(TUTORIAL_STAGES.length-1,Math.max(0,Number(u.tutorialStage)||0))); if(status)status.innerHTML=u?`<div class="admin-mini-card">${esc(u.name)}：${u.tutorialDone?'已完成完整教學':'尚未完成'}；目前階段 ${Math.min(TUTORIAL_STAGES.length,Number(u.tutorialStage)||0)} / ${TUTORIAL_STAGES.length}</div>`:'<div class="muted-note">目前沒有可管理的帳號。</div>'; }
+    window.resetUserTutorialAdmin=function(){ const a=currentProfile(); if(!a||a.role!=='admin')return; const email=document.getElementById('admin-tutorial-user-select').value, stage=Math.max(0,Math.min(TUTORIAL_STAGES.length-1,Number(document.getElementById('admin-tutorial-stage-select').value)||0)),u=globalUsersDB.find(x=>x.email===email); if(!u)return; ensureUser(u); u.tutorialDone=false; u.tutorialStage=stage; saveFeature('users',globalUsersDB); audit('重置操作流程教學',email,`第${stage+1}階`); renderTutorialAdmin(); alert(`已設定${u.name}從「${TUTORIAL_STAGES[stage].title}」重新開始教學。`); };
+
     function renderAdminFeatureLists(){ const el=document.getElementById('admin-external-links-list'); if(el)el.innerHTML=(externalLinksDB||[]).map((x,i)=>`<div class="admin-mini-card"><b>${esc(x.label)}</b> · ${esc(x.url)} <button class="btn-sm btn-danger" onclick="deleteExternalLinkAdmin(${i})">刪除</button></div>`).join('')||'<div class="muted-note">尚無分享連結</div>'; }
     function renderBoardModeration(){ const el=document.getElementById('admin-board-moderation-list'); if(!el)return; const items=(boardDB||[]).slice().reverse(); el.innerHTML='<h5 style="margin:14px 0 5px;color:#20344d">留言／回覆審核清單</h5>'+(items.length?items.map(x=>`<div class="admin-mini-card"><b>${x.parentId?'回覆':'留言'}</b> · ${esc(x.name)} (${esc(x.country||'未知國家')}) · ${esc(x.timestamp)}<div style="white-space:pre-wrap;margin:7px 0">${esc(x.content)}</div><button class="btn-sm btn-accent" onclick="editBoardItemAdmin('${esc(x.id)}')">修改</button> <button class="btn-sm btn-danger" onclick="deleteBoardItemAdmin('${esc(x.id)}')">刪除</button></div>`).join(''):'<div class="muted-note">目前沒有留言或回覆。</div>'); }
     window.editBoardItemAdmin=function(id){ const x=boardDB.find(v=>v.id===id); if(!x)return; const value=prompt('請輸入新的留言／回覆內容：',x.content||''); if(value===null)return; x.content=cleanText(value.trim()); x.editedAt=nowMs(); saveFeature('messageBoard',boardDB); audit('修改留言',id,''); renderBoard(); renderBoardModeration(); alert('留言內容已修改。'); }
@@ -3540,17 +3613,17 @@
     window.closeTermsGate=function(){ document.getElementById('terms-gate-modal')?.classList.add('hidden'); }
     window.acceptTermsGate=function(){ document.getElementById('agree-terms').checked=true; document.getElementById('terms-gate-modal').classList.add('hidden'); if(typeof checkAuthUnlock==='function')checkAuthUnlock(); }
 
-    function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); }
+    function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); renderTutorialAdmin(); }
     function featureData(data){ boardDB=data?.messageBoard||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; timeGateConfig={...timeGateConfig,...(data?.timeGate||{})}; titlesCatalog=data?.titlesCatalog||[]; ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
     window.__rmsFeatureData = featureData;
     const originalInit=window.initFirebaseData; window.initFirebaseData=function(data){ featureData(data||{}); if(originalInit)originalInit(data); ensureAllUsers(); try{saveFeature('users',globalUsersDB);}catch(e){} };
     const originalSwitch=window.switchView; window.switchView=function(view){ if(view==='board'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#external-links-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('message-board-screen').classList.remove('hidden'); renderBoard(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(view==='external'){document.querySelectorAll('#login-screen,#quiz-entry-area,#quiz-ui,#result-screen,#account-screen,#chat-screen,#admin-screen,#message-board-screen').forEach(x=>x.classList.add('hidden')); document.getElementById('external-links-screen').classList.remove('hidden'); renderExternalLinks(); document.getElementById('dropdown-menu').classList.remove('show'); return;} if(originalSwitch)originalSwitch(view); if(view==='account')renderAccountExtras(); if(view==='admin')renderFeatureAdmin(); };
     const originalSetup=window.setupAdminConsole; window.setupAdminConsole=function(){ if(originalSetup)originalSetup(); renderFeatureAdmin(); };
-    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; if(!isAdmin&&!hasGateBypass(currentProfile()))setTimeout(()=>{if(gateActive())showTimeGateNotice();},250); };
+    const originalPost=window.postLoginSetup; window.postLoginSetup=function(){ if(originalPost)originalPost(); ensureAllUsers(); renderAccountExtras(); const isAdmin=!!(currentUser&&currentUser.role==='admin'); const exportItem=document.getElementById('menu-export-item'); if(exportItem)exportItem.style.display=isAdmin?'block':'none'; if(!currentUser?.disabled)setTimeout(()=>{ startTutorialIfNeeded(false,Number(currentUser?.tutorialStage)||0); if(!isAdmin&&!hasGateBypass(currentProfile())&&gateActive())showTimeGateNotice(); },350); };
     const originalConfirmQuiz=window.confirmQuizEntry; window.confirmQuizEntry=function(){ if(!canPassGate(true))return; if(originalConfirmQuiz)originalConfirmQuiz(); };
     const originalSave=window.saveToFirebase; window.saveToFirebase=function(path,value){ if(originalSave)originalSave(path,value); };
     const originalSubmit=window.handleAuthSubmit; window.handleAuthSubmit=function(){ if(!document.getElementById('agree-terms').checked){ openTermsGate(); return; } if(originalSubmit)originalSubmit(); setTimeout(()=>{ensureAllUsers();renderAccountExtras();},300); };
-    window.addEventListener('DOMContentLoaded',()=>{ const i=document.getElementById('board-message-input'); if(i)i.addEventListener('input',updateBoardCount); });
+    window.addEventListener('DOMContentLoaded',()=>{ const i=document.getElementById('board-message-input'); if(i)i.addEventListener('input',updateBoardCount); const u=document.getElementById('admin-tutorial-user-select'); if(u)u.addEventListener('change',renderTutorialAdmin); });
     const nativeAlert=window.alert; window.alert=function(message){ const modal=document.getElementById('ui-message-modal'); if(!modal)return nativeAlert(message); document.getElementById('ui-message-title').textContent='系統訊息'; document.getElementById('ui-message-content').textContent=String(message??''); modal.classList.remove('hidden'); };
     window.closeUiMessage=function(){ document.getElementById('ui-message-modal')?.classList.add('hidden'); };
     setInterval(()=>{ const modal=document.getElementById('time-gate-modal'); if(modal&&!gateActive())modal.classList.add('hidden'); },1000);
