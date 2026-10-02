@@ -2924,6 +2924,77 @@
         pendingQuizCode = '';
     }
 
+    // 依題庫 currentQuiz.mode 整理題目與選項順序。
+    // mode 1：維持原順序；mode 2：只洗牌選項；mode 3：只洗牌題目；mode 4：題目與選項都洗牌。
+    function normalizeQuizMode(quiz) {
+        const mode = Number(quiz && quiz.mode);
+        return [1, 2, 3, 4].includes(mode) ? mode : 1;
+    }
+
+    function shuffleArray(items) {
+        const result = items.slice();
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    }
+
+    function getOptionContentAndLabel(raw, index) {
+        const text = String(raw ?? '').trim();
+        const match = text.match(/^\s*\(?([A-Za-z])\)?(?:[\.、：:，,\s]+|$)/);
+        return {
+            label: (match ? match[1] : String.fromCharCode(65 + index)).toUpperCase(),
+            content: match ? text.slice(match[0].length).trim() : text
+        };
+    }
+
+    function remapAnswerAfterOptionShuffle(answer, labelMap) {
+        if (Array.isArray(answer)) {
+            return answer.map(value => {
+                const key = optionLetter(value).toUpperCase();
+                return labelMap[key] || key;
+            });
+        }
+        const key = optionLetter(answer).toUpperCase();
+        return labelMap[key] || answer;
+    }
+
+    function shuffleQuestionOptions(question) {
+        const cloned = { ...question };
+        if (!Array.isArray(cloned.o) || cloned.o.length === 0) return cloned;
+
+        const parsed = cloned.o.map((raw, index) => getOptionContentAndLabel(raw, index));
+        const shuffled = shuffleArray(parsed);
+        const labelMap = {};
+        parsed.forEach((item) => {
+            // 新字母由洗牌後的位置決定，供 a／answer／answers 對應到新位置。
+            const newIndex = shuffled.indexOf(item);
+            labelMap[item.label] = String.fromCharCode(65 + newIndex);
+        });
+
+        cloned.o = shuffled.map((item, index) => `(${String.fromCharCode(65 + index)}) ${item.content}`);
+        if (cloned.a !== undefined) cloned.a = remapAnswerAfterOptionShuffle(cloned.a, labelMap);
+        if (cloned.ans !== undefined) cloned.ans = remapAnswerAfterOptionShuffle(cloned.ans, labelMap);
+        if (cloned.answer !== undefined && getQuestionType(cloned) !== 'short' && getQuestionType(cloned) !== 'handwriting') {
+            cloned.answer = remapAnswerAfterOptionShuffle(cloned.answer, labelMap);
+        }
+        return cloned;
+    }
+
+    function applyQuizMode(dataset, quiz = window.currentQuiz) {
+        const mode = normalizeQuizMode(quiz);
+        let result = JSON.parse(JSON.stringify(Array.isArray(dataset) ? dataset : []));
+        const shuffleOptions = mode === 2 || mode === 4;
+        const shuffleQuestions = mode === 3 || mode === 4;
+
+        if (shuffleOptions) result = result.map(shuffleQuestionOptions);
+        if (shuffleQuestions && !(window.__rmsContestContext && window.__rmsContestContext.questionOrder === 'original')) {
+            result = shuffleArray(result);
+        }
+        return result;
+    }
+
     function confirmQuizEntry() {
         clearInterval(quizEntryCountdownTimer);
         document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
@@ -2937,7 +3008,7 @@
         isWrongQuestionsMode = false;
         const dataset = entryDataset;
         if (!dataset.length) return alert('題庫沒有可用的題目，請確認 data／questions 是否為題目陣列。');
-        const orderedDataset = window.__rmsContestContext && window.__rmsContestContext.questionOrder === 'original' ? JSON.parse(JSON.stringify(dataset)) : JSON.parse(JSON.stringify(dataset)).sort(() => Math.random() - 0.5);
+        const orderedDataset = applyQuizMode(dataset, window.currentQuiz);
         beginQuiz(orderedDataset);
     }
 
@@ -3617,7 +3688,7 @@
         requestFullScreen();
         setMenuDisabledState(true);
         isWrongQuestionsMode = true;
-        beginQuiz(wrongDataset.sort(() => Math.random() - 0.5));
+        beginQuiz(applyQuizMode(wrongDataset, window.currentQuiz));
     }
 
     function validateStampOption(chk) {
