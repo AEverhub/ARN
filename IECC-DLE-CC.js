@@ -1,7 +1,8 @@
 window.currentQuiz = {
-    "name": "工丙學科",
-    "time": 180,
-    "data": [
+    name:"工丙學科",
+    time:180,
+    mode:4,
+    data: [
         {
             "q": "下列電阻器之標註何者為正確",
             "o": [
