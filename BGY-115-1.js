@@ -1,6 +1,7 @@
 window.currentQuiz = {
-    name: "健康與人體生理基礎題庫",
+    name: "健康1150101",
     time: 50,
+    mode:4,
     data: [
         // --- 第一頁 是非題 (轉單選) ---
         {
