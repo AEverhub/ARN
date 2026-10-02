@@ -2,6 +2,7 @@ window.currentQuiz = {
     name:"初階遊戲邏輯學",
     password: "0928335188",
     time: 45,
+    mode:4,
     data: [
         {
             "q": "你帶著高價戰利品且已完成主要任務，距離最近撤離點仍有一段路；最穩健的優先級是？",
