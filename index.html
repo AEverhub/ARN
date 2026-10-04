@@ -238,8 +238,38 @@
             margin-bottom: 25px; 
             background: #ffffff; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
-        .question-title { font-size: 1.1em; font-weight: 600; color: var(--primary); margin-bottom: 15px; }
+        .question-title { font-size: 1.1em; font-weight: 600; color: var(--primary); margin-bottom: 15px; line-height: 1.55; }
+        .question-text { margin: 8px 0 14px; line-height: 1.7; overflow-wrap: anywhere; }
+        .question-image-wrap {
+            width: 100%;
+            margin: -2px 0 16px;
+            text-align: center;
+            overflow: hidden;
+            border-radius: 6px;
+            background: #f8fafc;
+        }
+        .question-image {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            max-height: 55vh;
+            margin: 0 auto;
+            object-fit: contain;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+        }
+        .question-image-error {
+            padding: 14px;
+            color: #b91c1c;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            font-size: .9em;
+        }
         .opt-btn { 
             width: 100%; 
             padding: 12px 15px; 
@@ -260,6 +290,36 @@
         .handwriting-tools button { padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; cursor: pointer; font-weight: 600; }
         .handwriting-tools button:hover { background: #e2e8f0; }
         .handwriting-status { color: #64748b; font-size: 0.85em; margin-top: 6px; }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 14px;
+                margin-bottom: 16px;
+            }
+            .question-image-wrap {
+                margin-left: -1px;
+                width: calc(100% + 2px);
+                max-height: 43vh;
+                border-radius: 4px;
+            }
+            .question-image {
+                max-height: 43vh;
+                border-radius: 4px;
+            }
+            .question-title {
+                font-size: 1em;
+                line-height: 1.55;
+            }
+            .question-text {
+                font-size: 1em;
+                line-height: 1.7;
+            }
+            .opt-btn {
+                min-height: 46px;
+                padding: 12px 13px;
+                font-size: 1em;
+            }
+        }
 
         .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
         #timer-box { 
@@ -1468,7 +1528,7 @@
         <h3 style="color:#fff">時效閘門已開啟</h3>
         <p id="time-gate-range" class="gate-time-range"></p>
         <div id="time-gate-message" class="notice-modal-content"></div>
-        
+
     </div>
 </div>
 
@@ -1660,6 +1720,8 @@
     let authMode = 'login';
     let pendingQuizCode = '';
     let pendingQuizFromPublic = false;
+    // 目前載入中的題庫腳本完整網址；題目 image 路徑以此腳本所在資料夾為基準。
+    let currentQuizScriptUrl = '';
     let quizEntryCountdownTimer = null;
     let publicQuizzesMap = {}; 
     let quizLimitsMap = {};
@@ -3002,7 +3064,7 @@
         if (!state.allowed) return alert(state.message);
         const entryDataset = normalizeQuizDataset(window.currentQuiz);
         if (!ensureLocalApiForQuestions(entryDataset)) return;
-        
+
         requestFullScreen();
         setMenuDisabledState(true);
         isWrongQuestionsMode = false;
@@ -3017,7 +3079,12 @@
         window.currentQuiz = null;
         const legacyKeysBefore = new Set(Object.keys(window).filter(key => /^bankData_/.test(key)));
         const s = document.createElement('script');
-        s.id = 'q-script'; s.src = `${code}.js`; 
+        s.id = 'q-script';
+        // 題庫腳本與圖片放在 GitHub 同一層時，image: "question-001.png"
+        // 會以這個腳本網址為基準解析，而不是以目前頁面網址為基準。
+        const quizScriptUrl = new URL(`${code}.js`, document.baseURI);
+        currentQuizScriptUrl = quizScriptUrl.href;
+        s.src = currentQuizScriptUrl;
         s.onload = () => {
             if (!window.currentQuiz) {
                 const legacyKey = Object.keys(window).find(key => !legacyKeysBefore.has(key) && /^bankData_/.test(key) && window[key] && Array.isArray(window[key].questions));
@@ -3036,7 +3103,8 @@
                                         ? String.fromCharCode(65 + (item.a !== undefined ? item.a : item.ans))
                                         : (item.a !== undefined ? item.a : item.ans)))
                                 : '',
-                            type: item.type || 'single'
+                            type: item.type || 'single',
+                            image: item.image || ''
                         }))
                     };
                 }
@@ -3368,6 +3436,18 @@
         if (status) status.innerText = '尚未作答';
     }
 
+    function resolveQuestionImage(imagePath) {
+        if (typeof imagePath !== 'string') return '';
+        const path = imagePath.trim();
+        if (!path) return '';
+        try {
+            return new URL(path, currentQuizScriptUrl || document.baseURI).href;
+        } catch (error) {
+            console.warn('題目圖片路徑無效：', imagePath, error);
+            return '';
+        }
+    }
+
     function renderQuiz() {
         const container = document.getElementById('quiz-container');
         container.innerHTML = '';
@@ -3380,8 +3460,27 @@
             const typeNames = { single: '單選題', multiple: '複選題', short: '簡答題', handwriting: '手寫計算題' };
             const typeColors = { single: '#2980b9', multiple: '#0f766e', short: '#d97706', handwriting: '#8b5cf6' };
             const typeLabel = `<span style="color:${typeColors[type]};">【${typeNames[type]}】</span>`;
-            card.innerHTML = `<div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題 ${typeLabel}<br>${q.q}</div><div id="opts-${i}"></div>`;
+            const imageUrl = resolveQuestionImage(q.image);
+            const imageHtml = imageUrl
+                ? `<div class="question-image-wrap">
+                       <img src="${escapeHtml(imageUrl)}"
+                            alt="第 ${i + 1} 題圖片"
+                            class="question-image"
+                            loading="lazy">
+                   </div>`
+                : '';
+            card.innerHTML = `${imageHtml}
+                <div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題 ${typeLabel}</div>
+                <div class="question-text">${q.q || ''}</div>
+                <div id="opts-${i}"></div>`;
             container.appendChild(card);
+            const questionImage = card.querySelector('.question-image');
+            if (questionImage) {
+                questionImage.addEventListener('error', () => {
+                    const wrap = questionImage.closest('.question-image-wrap');
+                    if (wrap) wrap.innerHTML = '<div class="question-image-error">圖片載入失敗，請確認 GitHub 圖片路徑。</div>';
+                }, { once: true });
+            }
 
             const answerArea = document.getElementById(`opts-${i}`);
             if (type === 'handwriting') {
