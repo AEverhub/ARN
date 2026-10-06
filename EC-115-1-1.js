@@ -1,5 +1,5 @@
 window.currentQuiz = {
-  "name": "電子學選擇題完整題庫（圖片題跳過）",
+  "name": "電子學1150101",
   "time": 50,
   "mode": 4,
   "data": [
