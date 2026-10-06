@@ -1,5 +1,6 @@
 window.currentQuiz = {
   name: "電子學1150101",
+
   time: 50,
   mode: 4,
   data: [
