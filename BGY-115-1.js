@@ -1,5 +1,5 @@
 window.currentQuiz = {
-    name: "健康1150101",
+    name: "生物1150101",
     time: 50,
     mode:4,
     data: [
