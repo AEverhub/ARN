@@ -1,5 +1,5 @@
 window.currentQuiz = {
-  name: "電子學基礎：交流電、半導體與二極體（圖片題跳過）",
+  name: "電子學1150101",
   time: 50,
   mode: 4,
   data: [
