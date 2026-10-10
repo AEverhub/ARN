@@ -322,6 +322,11 @@
         }
 
         .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
+        .review-question-image-wrap { margin: 12px 0 16px; padding: 10px; text-align: center; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .review-image-caption { margin-bottom: 8px; color: #64748b; font-size: .88em; font-weight: 600; }
+        .review-question-image { display: block; width: 100%; max-width: 100%; max-height: 55vh; height: auto; object-fit: contain; margin: 0 auto; border-radius: 4px; }
+        .answer-detail-row { margin: 7px 0; line-height: 1.7; }
+        .answer-detail-label { display: inline-block; min-width: 8em; font-weight: 700; color: #334155; }
         #timer-box { 
             font-size: 1em; 
             color: var(--error); 
@@ -377,6 +382,7 @@
             color: #f8fafc;
         }
 
+        .pdf-question-image { display:block; max-width:100%; max-height:260px; margin:8px auto; object-fit:contain; border:1px solid #334155; border-radius:4px; }
         .pdf-wrong-card {
             background: #0d1527;
             border: 1px solid #1e293b;
@@ -3343,20 +3349,44 @@
         if (Number.isInteger(numeric) && numeric >= 0 && numeric < entries.length) return entries[numeric];
         return null;
     }
-    function displayCorrectAnswer(q) {
+    function answerParts(q, answer, isCorrect = false) {
         const type = getQuestionType(q);
         if (type === 'multiple') {
-            return answerArray(q).map(key => {
-                const entry = resolveCorrectOption(q, key);
-                return entry ? `（${entry.label.toUpperCase()}）${formatAnswerText(q, entry.content)}` : formatAnswerText(q, key);
-            }).join('、');
+            const values = isCorrect ? answerArray(q) : (Array.isArray(answer) ? answer.map(optionLetter).filter(Boolean).sort() : []);
+            const entries = values.map(value => resolveCorrectOption(q, value));
+            return {
+                answer: values.length ? values.map(value => `（${optionLetter(value).toUpperCase()}）`).join('、') : '未填答',
+                content: values.length ? values.map((value, index) => entries[index] ? formatAnswerText(q, entries[index].content) : formatAnswerText(q, value)).join('、') : '未填答'
+            };
         }
-        if (type === 'handwriting' || type === 'short') {
-            return formatAnswerText(q, q.answer || q.a || '未設定');
+        if (type === 'handwriting') {
+            const recognized = !isCorrect && handwritingResults[q.__rmsIndex] && handwritingResults[q.__rmsIndex].recognizedAnswer;
+            return {
+                answer: isCorrect ? '參考答案' : (recognized ? 'AI 辨識答案' : (isAnswered(q, answer) ? '已提交手寫內容' : '未填答')),
+                content: isCorrect ? formatAnswerText(q, q.answer || q.a || '未設定') : formatAnswerText(q, recognized || (isAnswered(q, answer) ? '手寫影像已提交' : '未填答'))
+            };
         }
-        const entry = resolveCorrectOption(q, q.a);
-        if (entry) return `（${entry.label.toUpperCase()}）${formatAnswerText(q, entry.content)}`;
-        return formatAnswerText(q, q.a || '未設定');
+        if (type === 'short') {
+            const value = isCorrect ? (q.answer || q.a || '未設定') : (getAnswerValue(answer) || '未填答');
+            return { answer: isCorrect ? '參考答案' : (isAnswered(q, answer) ? '文字答案' : '未填答'), content: formatAnswerText(q, value) };
+        }
+        const value = isCorrect ? q.a : getAnswerValue(answer);
+        const entry = resolveCorrectOption(q, value);
+        return {
+            answer: value ? `（${optionLetter(value).toUpperCase()}）` : '未填答',
+            content: entry ? formatAnswerText(q, entry.content) : formatAnswerText(q, value || '未填答')
+        };
+    }
+
+    function displayCorrectAnswer(q) {
+        const parts = answerParts(q, null, true);
+        return `${parts.answer}${parts.content === '未填答' ? '' : parts.content}`;
+    }
+
+    function reviewQuestionImage(q, index) {
+        const imageUrl = resolveQuestionImage(q && q.image);
+        if (!imageUrl) return '';
+        return `<div class="review-question-image-wrap"><div class="review-image-caption">第 ${index + 1} 題圖片</div><img src="${escapeHtml(imageUrl)}" alt="第 ${index + 1} 題圖片" class="review-question-image" loading="lazy" onerror="this.closest('.review-question-image-wrap').innerHTML='<div class=\"question-image-error\">圖片載入失敗，請確認圖片路徑。</div>'></div>`;
     }
 
     function saveHandwritingCanvas(index, canvas) {
@@ -3585,7 +3615,9 @@
             if (answered) answeredCount++;
             let isRight = false;
             let answerText = hand ? (answered ? '已提交手寫內容，等待 AI 批改' : '未作答') : (getAnswerValue(answer) || '未填答');
-            let correctContent = displayCorrectAnswer(q);
+            q.__rmsIndex = i;
+            const submittedParts = answerParts(q, answer, false);
+            const correctParts = answerParts(q, null, true);
             if (!hand) {
                 isRight = isAnswerCorrect(q, answer);
                 if (isRight) { correctCount++; earnedPoints += maxPoints; } else if (answered) wrongCount++;
@@ -3597,11 +3629,15 @@
                 if (!isRight && answered) wrongCount++;
             }
             if (Array.isArray(answerText)) answerText = answerText.join(', ');
-            if (!isRight && answered) originalWrongQuestions.push({ index: i, qObj: q, userAns: answerText });
+            if (!isRight && answered) originalWrongQuestions.push({ index: i, qObj: q, userAns: answerText, rawAnswer: answer });
             const subjective = hand || type === 'short';
             reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (subjective && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
                 <p><b>題目 ${i+1}: ${q.q}</b></p>
-                <p>您的作答：${escapeHtml(String(answerText))} | <span style="color:var(--success); font-weight:bold;">正確答案${correctContent}</span></p>
+                ${reviewQuestionImage(q, i)}
+                <div class="answer-detail-row"><span class="answer-detail-label">填入的答案：</span>${escapeHtml(String(submittedParts.answer))}</div>
+                <div class="answer-detail-row"><span class="answer-detail-label">填入答案內容：</span>${submittedParts.content}</div>
+                <div class="answer-detail-row"><span class="answer-detail-label" style="color:var(--success);">正確答案：</span>${escapeHtml(String(correctParts.answer))}</div>
+                <div class="answer-detail-row"><span class="answer-detail-label" style="color:var(--success);">正確答案內容：</span>${correctParts.content}</div>
                 ${subjective ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
             </div>`;
         });
@@ -3914,9 +3950,11 @@
             originalWrongQuestions.forEach((item) => {
                 const q = item.qObj;
                 const options = Array.isArray(q.o) ? q.o.join(' | ') : '非選擇題';
-                const correctContent = displayCorrectAnswer(q);
-                const userAnsText = Array.isArray(item.userAns) ? item.userAns.join(', ') : (item.userAns || '未填答');
-                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div><div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div>你的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(userAnsText))}</span> | 正確答案<span style="color:#22c55e; font-weight:bold;">${correctContent}</span></div></div>`;
+                const submittedParts = answerParts(q, item.rawAnswer, false);
+                const correctParts = answerParts(q, null, true);
+                const imageUrl = resolveQuestionImage(q && q.image);
+                const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="第 ${item.index + 1} 題圖片" class="pdf-question-image">` : '';
+                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div>${imageHtml}<div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div style="margin:4px 0;">填入的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(submittedParts.answer))}</span></div><div style="margin:4px 0;">填入答案內容：${submittedParts.content}</div><div style="margin:4px 0;">正確答案：<span style="color:#22c55e; font-weight:bold;">${escapeHtml(String(correctParts.answer))}</span></div><div style="margin:4px 0;">正確答案內容：${correctParts.content}</div></div>`;
             });
             html += '</div>';
             pdfWrongList.innerHTML = html;
