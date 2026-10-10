@@ -1,5 +1,5 @@
 window.currentQuiz = {
-  name: "電子學1150101圖片題",
+  name: "電子學1150101P",
   time: 30,
   mode: 4,
   data: [
@@ -18,7 +18,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-2 所示之電路，若每個二極體之順向導通電壓為 0.7V，則電流 $I$ 為多少？",
-      image: "EC-P2-1.jpg",
+      image: "EC-P2-2.jpg",
       imageAlt: "圖 2-2 電路圖",
       type: "single",
       o: [
@@ -31,7 +31,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-3 所示之電路，若每個二極體之順向導通電壓為 0.7V，則電流 $I$ 為多少？",
-      image: "EC-P2-1.jpg",
+      image: "EC-P2-3.jpg",
       imageAlt: "圖 2-3 電路圖",
       type: "single",
       o: [
@@ -44,7 +44,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-4 所示之電路，若二極體為理想二極體，則 $V_o$ 為多少？",
-      image: "EC-P2-1.jpg",
+      image: "EC-P2-4.jpg",
       imageAlt: "圖 2-4 電路圖",
       type: "single",
       o: [
@@ -57,7 +57,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-5 所示之電路，若 ZD 為 10V 之稽納二極體，則 $V_{out}$ 為多少？",
-      image: "EC-P2-2.jpg",
+      image: "EC-P2-5.jpg",
       imageAlt: "圖 2-5 電路圖",
       type: "single",
       o: [
@@ -70,7 +70,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-5 所示之電路，若 ZD 為 10V 之稽納二極體，則 $I_z$ 為多少？",
-      image: "EC-P2-2.jpg",
+      image: "EC-P2-5.jpg",
       imageAlt: "圖 2-5 電路圖",
       type: "single",
       o: [
@@ -83,7 +83,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-5 所示之電路，若 ZD 為 10V 之稽納二極體，則稽納二極體的消耗功率為多少？",
-      image: "EC-P2-2.jpg",
+      image: "EC-P2-5.jpg",
       imageAlt: "圖 2-5 電路圖",
       type: "single",
       o: [
@@ -96,7 +96,7 @@ window.currentQuiz = {
     },
     {
       q: "如圖 2-6 所示之電路，若 ZD 為 10V 之稽納二極體，則 $V_{out}$ 為多少？",
-      image: "EC-P2-2.jpg",
+      image: "EC-P2-6.jpg",
       imageAlt: "圖 2-6 電路圖",
       type: "single",
       o: [
@@ -108,21 +108,21 @@ window.currentQuiz = {
       a: "B"
     },
     {
-      q: "如圖 2-7 所示之電路，若 ZD 為 20V 之稽納二極體，若 $I_z = 6\text{mA}$，則 $R$ 應為多少？",
-      image: "EC-P2-2.jpg",
+      q: "如圖 2-7 所示之電路，若 ZD 為 20V 之稽納二極體，若 $I_z = 6\\text{mA}$，則 $R$ 應為多少？",
+      image: "EC-P2-7.jpg",
       imageAlt: "圖 2-7 電路圖",
       type: "single",
       o: [
-        "(A) $1\text{k}\Omega$",
-        "(B) $2\text{k}\Omega$",
-        "(C) $3\text{k}\Omega$",
-        "(D) $4\text{k}\Omega$"
+        "(A) $1\\text{k}\\Omega$",
+        "(B) $2\\text{k}\\Omega$",
+        "(C) $3\\text{k}\\Omega$",
+        "(D) $4\\text{k}\\Omega$"
       ],
       a: "B"
     },
     {
       q: "如圖 2-8 所示之電路，若稽納二極體之崩潰電壓為 4.3V，二極體之順向導通電壓為 0.7V，則電流 $I$ 為多少？",
-      image: "EC-P2-2.jpg",
+      image: "EC-P2-8.jpg",
       imageAlt: "圖 2-8 電路圖",
       type: "single",
       o: [
