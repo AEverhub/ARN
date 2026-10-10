@@ -1,7 +1,7 @@
 window.currentQuiz = {
   name: "電子學1150101P",
   time: 30,
-  mode: 4,
+  mode: 2,
   data: [
     {
       q: "如圖 2-1 所示之電路，若二極體為理想二極體，則電流 $I$ 等於多少？",
