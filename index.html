@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>測驗系統-網頁版(Web ST) -V12-Pro</title>
+    <title>測驗系統-網頁版(Web ST) -V5-Pro</title>
 
     <script>
         window.MathJax = {
@@ -321,7 +321,22 @@
             }
         }
 
-        .review-card { text-align: left; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
+        .review-card { text-align: left; position: relative; display: block; border-left: 4px solid #eee; padding: 15px; margin-bottom: 15px; background: #f8fafc; box-sizing: border-box; overflow: visible; }
+        .admin-launcher-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin-top:18px; }
+        .admin-launcher-btn { min-height:68px; padding:12px 14px; border:1px solid #cbd5e1; border-radius:10px; background:#ffffff; color:#20344d; text-align:left; font-weight:700; cursor:pointer; box-shadow:0 2px 7px rgba(15,23,42,.08); transition:transform .15s, box-shadow .15s, border-color .15s; }
+        .admin-launcher-btn:hover { transform:translateY(-2px); border-color:#2980b9; box-shadow:0 6px 14px rgba(15,23,42,.14); }
+        .admin-launcher-btn small { display:block; margin-top:5px; color:#64748b; font-weight:400; line-height:1.4; }
+        .admin-feature-modal { position:fixed; inset:0; z-index:2200; padding:28px 18px; background:rgba(15,23,42,.72); overflow-y:auto; }
+        .admin-feature-modal.is-open { display:block !important; }
+        .admin-feature-modal > h4, .admin-feature-modal > p, .admin-feature-modal > div, .admin-feature-modal > button, .admin-feature-modal > label { max-width:900px; margin-left:auto; margin-right:auto; }
+        .admin-feature-modal > h4:first-of-type { background:#ffffff; border-radius:10px 10px 0 0; margin-top:0; margin-bottom:0; padding:20px 24px 8px; color:var(--primary) !important; }
+        .admin-feature-modal > p { background:#ffffff; margin-top:0; margin-bottom:0; padding:0 24px 16px; }
+        .admin-feature-modal > div, .admin-feature-modal > button, .admin-feature-modal > label { background:#ffffff; }
+        .admin-feature-modal > div { padding-left:24px; padding-right:24px; }
+        .admin-feature-modal > div:last-of-type, .admin-feature-modal > button:last-child { padding-bottom:24px; border-radius:0 0 10px 10px; }
+        .admin-modal-close { display:block; width:auto !important; margin:0 auto 12px !important; padding:9px 16px; border:1px solid #cbd5e1; border-radius:7px; background:#1e293b !important; color:#ffffff; cursor:pointer; font-weight:700; }
+        .admin-modal-close:hover { background:#334155 !important; }
+        @media (max-width:600px) { .admin-feature-modal { padding:12px 8px; } .admin-feature-modal > h4:first-of-type, .admin-feature-modal > p, .admin-feature-modal > div { padding-left:14px; padding-right:14px; } .admin-launcher-grid { grid-template-columns:1fr 1fr; gap:8px; } .admin-launcher-btn { min-height:62px; padding:10px; font-size:.9em; } }
         .review-question-image-wrap { margin: 12px 0 16px; padding: 10px; text-align: center; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; }
         .review-image-caption { margin-bottom: 8px; color: #64748b; font-size: .88em; font-weight: 600; }
         .review-question-image { display: block; width: 100%; max-width: 100%; max-height: 55vh; height: auto; object-fit: contain; margin: 0 auto; border-radius: 4px; }
@@ -1282,31 +1297,31 @@
         <div class="admin-panel-group admin-operation-group" style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <div class="admin-group-kicker">操作項</div>
             <p class="admin-group-description">建立設定、管理帳號、審核內容與輸出資料的操作區。</p>
-            <div class="admin-section-picker">
-                <label for="admin-section-select">管理功能分區</label>
-                <select id="admin-section-select" class="code-input" onchange="jumpAdminSection(this.value)">
-                    <option value="">請選擇功能……</option>
-                    <option value="admin-section-tutorial">操作流程教學</option>
-                    <option value="admin-section-users">帳號停用與啟用</option>
-                    <option value="admin-section-history">歷史成績查詢</option>
-                    <option value="admin-section-rename">強制改名與鎖定</option>
-                    <option value="admin-section-logout">設備登出許可碼</option>
-                    <option value="admin-section-global-api">全域 AI API 設定</option>
-                    <option value="admin-section-verify">重複註冊驗證碼</option>
-                    <option value="admin-section-quizzes">題庫公開管理</option>
-                    <option value="admin-section-limits">答題次數覆寫</option>
-                    <option value="admin-section-board">留言板與敏感詞</option>
-                    <option value="admin-section-profiles">帳號資料管理</option>
-                    <option value="admin-section-links">外部分享連結</option>
-                    <option value="admin-section-gate">時效性禁用閘門</option>
-                    <option value="admin-section-titles">稱號管理</option>
-                    <option value="admin-section-reset">資料重置</option>
-                    <option value="admin-section-contests">競賽／考試管理</option>
-                    <option value="admin-section-mail">站內郵件監督</option>
-                    <option value="admin-section-export">文件輸出中心</option>
-                </select>
+            <div class="admin-launcher-grid" aria-label="管理功能按鈕總覽">
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-tutorial')">操作流程教學<small>指定帳號重設教學階段</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-users')">帳號停用與啟用<small>管理帳號狀態與原因</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-history')">歷史成績查詢<small>查看指定考生紀錄</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-rename')">強制改名與鎖定<small>修改名稱並鎖定帳號</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-logout')">設備登出許可碼<small>設定普通用戶登出碼</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-global-api')">全域 AI API<small>設定共用 AI 服務</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-verify')">重複註冊驗證碼<small>更新註冊驗證設定</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-quizzes')">題庫公開管理<small>公開題庫與答題限制</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-limits')">答題次數覆寫<small>設定個別帳號限制</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-board')">留言板與敏感詞<small>設定留言與審核內容</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-profiles')">帳號資料管理<small>編輯帳號與遺忘帳號</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-links')">外部分享連結<small>管理服務入口連結</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-gate')">時效性禁用閘門<small>設定測驗進入時段</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-titles')">稱號管理<small>建立、授予或撤銷稱號</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-reset')">資料重置<small>清除紀錄或統計資料</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-contests')">競賽／考試管理<small>建立考場與管理排名</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-mail')">站內郵件監督<small>查看站內郵件狀態</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-export')">文件輸出中心<small>下載 JSON、CSV、TXT 或 PDF</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-mbti')">用戶特性<small>查看與調整 MBTI 資料</small></button>
             </div>
-            <h4 class="admin-section-title" id="admin-section-tutorial">操作流程教學管理</h4>
+            <select id="admin-section-select" class="hidden" aria-hidden="true"></select>
+            <div id="admin-modal-admin-section-tutorial" class="admin-feature-modal hidden" data-admin-modal="admin-section-tutorial">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-tutorial')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-tutorial">操作流程教學管理</h4>
             <p class="muted-note">首次登入者必須完成完整教學。管理員可讓指定帳號從某個階段重新開始，並保留既有功能與資料。</p>
             <div class="admin-tool-grid tutorial-admin-grid">
                 <label>指定帳號<select id="admin-tutorial-user-select" class="code-input"></select></label>
@@ -1315,7 +1330,10 @@
             <button class="main-btn btn-secondary admin-wide-btn" onclick="resetUserTutorialAdmin()">指定帳號重新開始教學</button>
             <div id="admin-tutorial-status" class="admin-mini-list"></div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-users">1. 用戶帳戶停用與啟用管理</h4>
+            </div>
+<div id="admin-modal-admin-section-users" class="admin-feature-modal hidden" data-admin-modal="admin-section-users">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-users')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-users">1. 用戶帳戶停用與啟用管理</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-user-select" class="code-input" style="margin-bottom:0; flex:1;" onchange="onAdminUserSelectChange()">
                     <option value="">載入中用戶...</option>
@@ -1324,7 +1342,10 @@
                 <button id="admin-ban-action-btn" class="main-btn btn-danger" style="width:auto; margin-top:0;" onclick="adminToggleUserStatus()">停用帳戶</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-history">2. 考生歷史成績查詢</h4>
+            </div>
+<div id="admin-modal-admin-section-history" class="admin-feature-modal hidden" data-admin-modal="admin-section-history">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-history')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-history">2. 考生歷史成績查詢</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-history-user-select" class="code-input" style="margin-bottom:0; flex:1;">
                     <option value="">選擇要查詢的考生...</option>
@@ -1332,7 +1353,10 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminViewUserHistory()">查詢成績紀錄</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-rename">3. 管理員強制改名與鎖定</h4>
+            </div>
+<div id="admin-modal-admin-section-rename" class="admin-feature-modal hidden" data-admin-modal="admin-section-rename">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-rename')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-rename">3. 管理員強制改名與鎖定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="admin-rename-user-select" class="code-input" style="margin-bottom:0; flex:1;">
                     <option value="">選擇用戶...</option>
@@ -1341,14 +1365,20 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminForceRenameUser()">強制改名並鎖定</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-logout">4. 設備登出許可碼設定</h4>
+            </div>
+<div id="admin-modal-admin-section-logout" class="admin-feature-modal hidden" data-admin-modal="admin-section-logout">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-logout')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-logout">4. 設備登出許可碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-logout-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入設備登出許可碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateLogoutCode()">更新登出許可碼</button>
             </div>
             <p style="font-size:.82em;color:#64748b;margin-top:-4px;">普通用戶登出時需輸入此許可碼；設定會記錄於 Firebase。</p>
 
-            <h4 style="margin-top:20px; color:#64748b;" id="admin-section-global-api">4.5 全域 AI API 設定</h4>
+            </div>
+<div id="admin-modal-admin-section-global-api" class="admin-feature-modal hidden" data-admin-modal="admin-section-global-api">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-global-api')">關閉此功能</button>
+<h4 style="margin-top:20px; color:#64748b;" id="admin-section-global-api">4.5 全域 AI API 設定</h4>
             <p style="font-size:.82em;color:#64748b;margin-top:-4px;">可由管理員設定共用 API；設定直接儲存於 Firebase。使用時優先採用使用者本地 API，未設定本地 API 時才使用此全域 API。</p>
             <div style="display:grid; gap:8px; margin-bottom:10px;">
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -1367,13 +1397,19 @@
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="saveGlobalApiConfig()">儲存全域 API 設定</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-verify">5. 重複註冊驗證碼設定</h4>
+            </div>
+<div id="admin-modal-admin-section-verify" class="admin-feature-modal hidden" data-admin-modal="admin-section-verify">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-verify')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-verify">5. 重複註冊驗證碼設定</h4>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <input type="text" id="admin-verify-code-input" class="code-input" style="margin-bottom:0; flex:1;" placeholder="輸入新的驗證碼">
                 <button class="main-btn btn-accent" style="width:auto; margin-top:0;" onclick="adminUpdateVerifyCode()">更新驗證碼</button>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-quizzes">6. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
+            </div>
+<div id="admin-modal-admin-section-quizzes" class="admin-feature-modal hidden" data-admin-modal="admin-section-quizzes">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-quizzes')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-quizzes">6. 題庫公開快捷管理 (手動輸入代碼即時檢驗)</h4>
             <p style="font-size:0.88em; color:#64748b;">輸入題庫代碼以檢查狀態，確認無誤後勾選以公開於首頁列表（公開後將自動顯示 JS 裡的 `name`）：</p>
 
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -1403,7 +1439,10 @@
                 </div>
             </div>
 
-            <h4 style="margin-top:20px; color:var(--primary);" id="admin-section-limits">7. 特定用戶／特定題庫答題次數覆寫</h4>
+            </div>
+<div id="admin-modal-admin-section-limits" class="admin-feature-modal hidden" data-admin-modal="admin-section-limits">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-limits')">關閉此功能</button>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-limits">7. 特定用戶／特定題庫答題次數覆寫</h4>
             <p style="font-size:0.88em; color:#64748b;">可個別設定每日次數、全域總次數或不受限制；個別設定會優先於題庫公開設定。</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
                 <select id="admin-limit-user-select" class="code-input" style="margin:0; flex:1; min-width:180px;"><option value="">選擇用戶...</option></select>
@@ -1417,7 +1456,10 @@
                 <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminUserQuizLimit()">儲存個別限制</button>
             </div>
 
-            <h4 class="admin-section-title" id="admin-section-board">8. 留言板、敏感詞與資料管理</h4>
+            </div>
+<div id="admin-modal-admin-section-board" class="admin-feature-modal hidden" data-admin-modal="admin-section-board">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-board')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-board">8. 留言板、敏感詞與資料管理</h4>
             <div class="admin-tool-grid">
                 <label>留言板狀態<select id="admin-board-enabled" class="code-input"><option value="true">啟用</option><option value="false">停用</option></select></label>
                 <label>每則留言上限<input id="admin-board-max-length" class="code-input" type="number" min="50" max="5000" value="1000"></label>
@@ -1427,7 +1469,10 @@
             <button class="main-btn btn-accent admin-wide-btn" onclick="saveBoardSettingsAdmin()">儲存留言板設定</button>
             <div id="admin-board-moderation-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-profiles">9. 帳號資料與遺忘帳號管理</h4>
+            </div>
+<div id="admin-modal-admin-section-profiles" class="admin-feature-modal hidden" data-admin-modal="admin-section-profiles">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-profiles')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-profiles">9. 帳號資料與遺忘帳號管理</h4>
             <div class="admin-tool-grid">
                 <label>帳號<select id="admin-profile-user-select" class="code-input" onchange="loadAdminProfileEditor()"></select></label>
                 <label>系統辨識碼<input id="admin-profile-uid" class="code-input" placeholder="可由管理員設定初始碼"></label>
@@ -1440,7 +1485,10 @@
             <button class="main-btn btn-secondary admin-wide-btn" onclick="renderForgottenAccountsAdmin()">開啟遺忘帳號復原設定</button>
             <div id="admin-forgotten-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-links">10. 外部網域分享連結</h4>
+            </div>
+<div id="admin-modal-admin-section-links" class="admin-feature-modal hidden" data-admin-modal="admin-section-links">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-links')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-links">10. 外部網域分享連結</h4>
             <div class="admin-tool-grid">
                 <label>按鈕文字<input id="admin-link-label" class="code-input" placeholder="服務入口"></label>
                 <label>網址<input id="admin-link-url" class="code-input" placeholder="https://example.com"></label>
@@ -1450,7 +1498,10 @@
             <div id="admin-external-links-list" class="admin-mini-list"></div>
 
 
-            <h4 class="admin-section-title" id="admin-section-gate">12. 時效性禁用閘門</h4>
+            </div>
+<div id="admin-modal-admin-section-gate" class="admin-feature-modal hidden" data-admin-modal="admin-section-gate">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-gate')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-gate">12. 時效性禁用閘門</h4>
             <p class="muted-note">在指定時間區間禁止普通用戶進入測驗；管理員不受影響。時間到期後會自動放行。</p>
             <div class="admin-tool-grid">
                 <label>閘門狀態<select id="admin-gate-enabled" class="code-input"><option value="false">關閉</option><option value="true">啟用</option></select></label>
@@ -1466,7 +1517,10 @@
             </div>
             <button class="main-btn btn-secondary admin-wide-btn" onclick="saveGateImmunityAdmin()">儲存個別免疫</button>
 
-            <h4 class="admin-section-title" id="admin-section-titles">13. 稱號創作與授予</h4>
+            </div>
+<div id="admin-modal-admin-section-titles" class="admin-feature-modal hidden" data-admin-modal="admin-section-titles">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-titles')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-titles">13. 稱號創作與授予</h4>
             <div class="admin-tool-grid">
                 <label>稱號名稱<input id="admin-title-name" class="code-input" maxlength="24" placeholder="例如：題庫守護者"></label>
                 <label>背景顏色<input id="admin-title-bg" class="code-input" type="color" value="#7c3aed"></label>
@@ -1483,7 +1537,10 @@
             </div>
             <div id="admin-title-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-reset">15. 資料重置與資訊面板管理</h4>
+            </div>
+<div id="admin-modal-admin-section-reset" class="admin-feature-modal hidden" data-admin-modal="admin-section-reset">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-reset')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-reset">15. 資料重置與資訊面板管理</h4>
             <p class="muted-note">重置會直接更新 Firebase，刪除或清空後無法由本頁復原；請確認選擇的範圍。</p>
             <div class="admin-tool-grid">
                 <label>考試紀錄範圍<select id="admin-reset-history-scope" class="code-input"><option value="all">全部考試紀錄</option><option value="user">指定帳號紀錄</option></select></label>
@@ -1496,7 +1553,10 @@
             </div>
             <div id="admin-reset-status" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-contests">16. 競賽／考試管理</h4>
+            </div>
+<div id="admin-modal-admin-section-contests" class="admin-feature-modal hidden" data-admin-modal="admin-section-contests">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-contests')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-contests">16. 競賽／考試管理</h4>
             <p class="muted-note">建立考場後，普通用戶可用考場編碼與密碼進入指定題庫；排名在設定的公布時間後開放查詢。</p>
             <div class="admin-tool-grid">
                 <label>比賽／考試名稱<input id="admin-contest-name" class="code-input" placeholder="例如：第一次月考"></label>
@@ -1512,11 +1572,17 @@
             <button class="main-btn btn-accent admin-wide-btn" onclick="createContestAdmin()">建立比賽／考試</button>
             <div id="admin-contest-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-mail">17. 站內郵件監督</h4>
+            </div>
+<div id="admin-modal-admin-section-mail" class="admin-feature-modal hidden" data-admin-modal="admin-section-mail">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-mail')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-mail">17. 站內郵件監督</h4>
             <p class="muted-note">管理員可以查看每一則站內郵件與已讀／未讀狀態，不會改變一般寄信流程。</p>
             <div id="admin-mail-list" class="admin-mini-list"></div>
 
-            <h4 class="admin-section-title" id="admin-section-export">14. 文件輸出中心</h4>
+            </div>
+<div id="admin-modal-admin-section-export" class="admin-feature-modal hidden" data-admin-modal="admin-section-export">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-export')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-export">14. 文件輸出中心</h4>
             <p class="muted-note">可輸出帳號、成績、回報、留言、操作紀錄與外部連結資料。</p>
             <div class="export-button-grid">
                 <button class="main-btn btn-accent" onclick="exportAdminData('json')">下載完整 JSON</button>
@@ -1524,6 +1590,7 @@
                 <button class="main-btn btn-accent" onclick="exportAdminData('txt')">下載文字報告</button>
                 <button class="main-btn btn-success" onclick="exportAdminData('pdf')">下載管理報告 PDF</button>
             </div>
+</div>
         </div>
     </div>
 </div>
@@ -3598,7 +3665,7 @@
         document.getElementById('result-screen').classList.remove('hidden');
 
         let correctCount = 0;
-        let reviewHTML = '<h3 style="color:#ffffff; margin-top:20px;">詳細解析評估 (正確答案已標註)</h3>';
+        let reviewHTML = '<h3 style="color:#ffffff; margin-top:20px;">詳細解析評估</h3>';
         originalWrongQuestions = [];
 
         let earnedPoints = 0;
@@ -3634,10 +3701,8 @@
             reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (subjective && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
                 <p><b>題目 ${i+1}: ${q.q}</b></p>
                 ${reviewQuestionImage(q, i)}
-                <div class="answer-detail-row"><span class="answer-detail-label">填入的答案：</span>${escapeHtml(String(submittedParts.answer))}</div>
-                <div class="answer-detail-row"><span class="answer-detail-label">填入答案內容：</span>${submittedParts.content}</div>
-                <div class="answer-detail-row"><span class="answer-detail-label" style="color:var(--success);">正確答案：</span>${escapeHtml(String(correctParts.answer))}</div>
-                <div class="answer-detail-row"><span class="answer-detail-label" style="color:var(--success);">正確答案內容：</span>${correctParts.content}</div>
+                <div class="answer-detail-row"><b>你的答案</b>${escapeHtml(String(submittedParts.answer))}${submittedParts.content}</div>
+                ${!isRight ? `<div class="answer-detail-row"><b style="color:var(--success);">正確答案</b>${escapeHtml(String(correctParts.answer))}${correctParts.content}</div>` : ''}
                 ${subjective ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
             </div>`;
         });
@@ -3954,7 +4019,7 @@
                 const correctParts = answerParts(q, null, true);
                 const imageUrl = resolveQuestionImage(q && q.image);
                 const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="第 ${item.index + 1} 題圖片" class="pdf-question-image">` : '';
-                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div>${imageHtml}<div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div style="margin:4px 0;">填入的答案：<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(submittedParts.answer))}</span></div><div style="margin:4px 0;">填入答案內容：${submittedParts.content}</div><div style="margin:4px 0;">正確答案：<span style="color:#22c55e; font-weight:bold;">${escapeHtml(String(correctParts.answer))}</span></div><div style="margin:4px 0;">正確答案內容：${correctParts.content}</div></div>`;
+                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div>${imageHtml}<div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div style="margin:4px 0;">你的答案<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(submittedParts.answer))}</span>${submittedParts.content}</div><div style="margin:4px 0;">正確答案<span style="color:#22c55e; font-weight:bold;">${escapeHtml(String(correctParts.answer))}</span>${correctParts.content}</div></div>`;
             });
             html += '</div>';
             pdfWrongList.innerHTML = html;
@@ -4139,7 +4204,9 @@
     window.closeTermsGate=function(){ document.getElementById('terms-gate-modal')?.classList.add('hidden'); }
     window.acceptTermsGate=function(){ document.getElementById('agree-terms').checked=true; document.getElementById('terms-gate-modal').classList.add('hidden'); if(typeof checkAuthUnlock==='function')checkAuthUnlock(); }
 
-    window.jumpAdminSection=function(id){ if(!id)return; const target=document.getElementById(id); if(target){ target.scrollIntoView({behavior:'smooth',block:'start'}); } };
+    window.openAdminFeature=function(id){ if(!id)return; document.querySelectorAll('.admin-feature-modal.is-open').forEach(x=>{x.classList.remove('is-open');x.classList.add('hidden');}); const modal=document.getElementById('admin-modal-'+id); if(modal){modal.classList.remove('hidden');modal.classList.add('is-open');document.body.classList.add('admin-modal-open');} else { const target=document.getElementById(id); if(target)target.scrollIntoView({behavior:'smooth',block:'start'}); } };
+    window.closeAdminFeature=function(id){ const modal=document.getElementById('admin-modal-'+id); if(modal){modal.classList.remove('is-open');modal.classList.add('hidden');} if(!document.querySelector('.admin-feature-modal.is-open'))document.body.classList.remove('admin-modal-open'); };
+    window.jumpAdminSection=function(id){ openAdminFeature(id); };
     function renderFeatureAdmin(){ ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); renderAdminProfiles(); renderForgottenAccountsAdmin(); loadBoardAdmin(); renderAdminFeatureLists(); renderBoardModeration(); renderGateAdmin(); renderTitleAdmin(); renderTutorialAdmin(); renderNewAdminFeatures(); }
     function featureData(data){ boardDB=data?.messageBoard||[]; externalLinksDB=data?.externalLinks||[]; adminAuditDB=data?.adminAudit||[]; rmsMailDB=data?.rmsMail||[]; contestsDB=data?.contests||[]; boardSettings={...boardSettings,...(data?.boardSettings||{})}; timeGateConfig={...timeGateConfig,...(data?.timeGate||{})}; titlesCatalog=data?.titlesCatalog||[]; ensureAllUsers(); globalUsersDB.forEach(ensureTitleFields); saveFeature('users',globalUsersDB); featureDataLoaded=true; renderExternalLinks(); renderBoard(); renderFeatureAdmin(); }
     window.__rmsFeatureData = featureData;
@@ -4355,7 +4422,7 @@
     const terms=document.getElementById('terms-details-box'); if(terms&&!terms.dataset.mbti){terms.dataset.mbti='1';terms.insertAdjacentHTML('beforeend','<p><strong>第八條：MBTI 個人特性測驗（必要服務）</strong><br>新使用者完成第一次操作流程教學後，必須完成 MBTI 個人特性測驗；此後每 30 天重新測驗一次。MBTI 測驗為本系統必要服務，拒絕或未完成者將暫停使用其他系統功能。測驗結果、完成時間及必要的帳戶辨識資料可供管理員於「用戶特性」查詢與管理。</p>');const lab=document.querySelector('#agree-terms')?.parentElement;if(lab&&!lab.dataset.mbti){lab.dataset.mbti='1';lab.innerHTML=lab.innerHTML.replace('IP存取授權','IP存取授權、MBTI必要測驗與每30日重測規範');const cb=document.getElementById('agree-terms');cb?.addEventListener('change',()=>{if(typeof window.checkAuthUnlock==='function')window.checkAuthUnlock()});if(typeof window.checkAuthUnlock==='function')window.checkAuthUnlock();}}
     if(!document.getElementById('mbti-screen')){const c=document.querySelector('.container');const el=document.createElement('div');el.id='mbti-screen';el.className='hidden sub-view mbti-screen';c.appendChild(el)}
     if(!document.getElementById('mbti-lock-modal')){const m=document.createElement('div');m.id='mbti-lock-modal';m.className='modal-overlay hidden';m.style.zIndex='30000';m.innerHTML='<div class="modal-card mbti-card" style="color:#1e293b;text-align:left;border-top:5px solid #f59e0b"><div style="font-size:2em;text-align:center">🔒</div><h3 id="mbti-lock-title" style="color:#20344d">必須完成 MBTI 測驗</h3><p id="mbti-lock-message" class="mbti-muted">您尚未完成 MBTI 測驗，完成前無法使用題測系統及其他功能。</p><button class="main-btn btn-accent" onclick="window.startMbti(true)">開始／繼續 MBTI 測驗</button></div>';document.body.appendChild(m)}
-    if(!document.getElementById('mbti-admin-screen')){const admin=document.getElementById('admin-screen');if(admin){const el=document.createElement('section');el.id='mbti-admin-screen';el.className='mbti-card';el.style.marginTop='24px';el.innerHTML='<h4 id="admin-section-mbti">用戶特性</h4><p class="mbti-muted">查詢使用者唯一識別碼、站內 ID、IP 與 MBTI；管理員可微調個別結果並匯出資料。</p><div class="mbti-admin-tools"><select id="mbti-admin-user" class="code-input"></select><select id="mbti-admin-type" class="code-input"><option value="">選擇要修改的 MBTI</option>'+Object.keys(profiles).map(x=>`<option>${x}</option>`).join('')+'</select><button class="main-btn btn-accent" style="width:auto;margin:0" onclick="window.adminSetMbti()">儲存個別 MBTI</button></div><div class="mbti-export-grid"><button class="btn-sm btn-accent" onclick="window.exportMbti(\'json\')">下載 JSON</button><button class="btn-sm btn-accent" onclick="window.exportMbti(\'csv\')">下載 CSV</button><button class="btn-sm btn-accent" onclick="window.exportMbti(\'xls\')">下載 XLS</button></div><div class="mbti-table-wrap"><table class="mbti-admin-table"><thead><tr><th>用戶名稱</th><th>唯一識別碼</th><th>站內 ID</th><th>用戶 IP</th><th>MBTI</th><th>最近完成</th><th>下次重測</th></tr></thead><tbody id="mbti-admin-tbody"></tbody></table></div>';admin.appendChild(el)}}
+    if(!document.getElementById('mbti-admin-screen')){const admin=document.getElementById('admin-screen');if(admin){const el=document.createElement('section');el.id='mbti-admin-screen';el.className='mbti-card';el.style.marginTop='24px';el.innerHTML='<h4 id="admin-section-mbti">用戶特性</h4><p class="mbti-muted">查詢使用者唯一識別碼、站內 ID、IP 與 MBTI；管理員可微調個別結果並匯出資料。</p><div class="mbti-admin-tools"><select id="mbti-admin-user" class="code-input"></select><select id="mbti-admin-type" class="code-input"><option value="">選擇要修改的 MBTI</option>'+Object.keys(profiles).map(x=>`<option>${x}</option>`).join('')+'</select><button class="main-btn btn-accent" style="width:auto;margin:0" onclick="window.adminSetMbti()">儲存個別 MBTI</button></div><div class="mbti-export-grid"><button class="btn-sm btn-accent" onclick="window.exportMbti(\'json\')">下載 JSON</button><button class="btn-sm btn-accent" onclick="window.exportMbti(\'csv\')">下載 CSV</button><button class="btn-sm btn-accent" onclick="window.exportMbti(\'xls\')">下載 XLS</button></div><div class="mbti-table-wrap"><table class="mbti-admin-table"><thead><tr><th>用戶名稱</th><th>唯一識別碼</th><th>站內 ID</th><th>用戶 IP</th><th>MBTI</th><th>最近完成</th><th>下次重測</th></tr></thead><tbody id="mbti-admin-tbody"></tbody></table></div>';admin.appendChild(el);const modal=document.createElement('div');modal.id='admin-modal-admin-section-mbti';modal.className='admin-feature-modal hidden';modal.dataset.adminModal='admin-section-mbti';modal.innerHTML='<button type="button" class="admin-modal-close" onclick="closeAdminFeature(\'admin-section-mbti\')">關閉此功能</button>';admin.appendChild(modal);modal.appendChild(el)}}
     const titleList=document.getElementById('admin-title-list');if(titleList&&!document.getElementById('admin-delete-title-btn')){const b=document.createElement('button');b.id='admin-delete-title-btn';b.className='main-btn btn-danger admin-wide-btn';b.textContent='刪除已建立稱號（含 MBTI 稱號）';b.onclick=window.deleteTitleAdmin;titleList.parentElement.insertBefore(b,titleList)}
     const picker=document.getElementById('admin-section-select');if(picker&&!picker.querySelector('option[value="admin-section-mbti"]'))picker.insertAdjacentHTML('beforeend','<option value="admin-section-mbti">用戶特性</option>');
   }
