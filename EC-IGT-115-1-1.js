@@ -1,5 +1,5 @@
 window.currentQuiz = {
-  name: "電子學基礎練習 (第二頁)",
+  name: "電子學1150101圖片題",
   time: 30,
   mode: 4,
   data: [
