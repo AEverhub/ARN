@@ -1,7 +1,7 @@
 window.currentQuiz = {
   name: "電子科二年級數學：三角函數、複數與指數變式題庫",
   time: 50,
-  mode: 4,
+  mode: 2,
   data: [
     { q: "1. 試求 sin 30° = ?", o: ["(A) 1/2", "(B) √2/2", "(C) √3/2", "(D) 1"], a: "A", type: "single" },
     { q: "2. 試求 tan 60° − tan 30° = ?", o: ["(A) 1/√3", "(B) 2/√3", "(C) √3", "(D) 2√3"], a: "B", type: "single" },
