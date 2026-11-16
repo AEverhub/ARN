@@ -1732,20 +1732,21 @@ function updateTaipeiClock() {
         }
         if (type === 'handwriting') {
             const recognized = !isCorrect && handwritingResults[q.__rmsIndex] && handwritingResults[q.__rmsIndex].recognizedAnswer;
+            const hasAnswer = isCorrect || recognized || isAnswered(q, answer);
             return {
-                answer: isCorrect ? '參考答案' : (recognized ? 'AI 辨識答案' : (isAnswered(q, answer) ? '已提交手寫內容' : '未填答')),
-                content: isCorrect ? formatAnswerText(q, q.answer || q.a || '未設定') : formatAnswerText(q, recognized || (isAnswered(q, answer) ? '手寫影像已提交' : '未填答'))
+                answer: isCorrect ? '參考答案' : (recognized ? 'AI 辨識答案' : (hasAnswer ? '已提交手寫內容' : '未填答')),
+                content: isCorrect ? formatAnswerText(q, q.answer || q.a || '未設定') : (hasAnswer ? formatAnswerText(q, recognized || '手寫影像已提交') : '')
             };
         }
         if (type === 'short') {
-            const value = isCorrect ? (q.answer || q.a || '未設定') : (getAnswerValue(answer) || '未填答');
-            return { answer: isCorrect ? '參考答案' : (isAnswered(q, answer) ? '文字答案' : '未填答'), content: formatAnswerText(q, value) };
+            const value = isCorrect ? (q.answer || q.a || '未設定') : getAnswerValue(answer);
+            return { answer: isCorrect ? '參考答案' : (isAnswered(q, answer) ? '文字答案' : '未填答'), content: isCorrect || isAnswered(q, answer) ? formatAnswerText(q, value) : '' };
         }
         const value = isCorrect ? q.a : getAnswerValue(answer);
         const entry = resolveCorrectOption(q, value);
         return {
             answer: value ? `（${optionLetter(value).toUpperCase()}）` : '未填答',
-            content: entry ? formatAnswerText(q, entry.content) : formatAnswerText(q, value || '未填答')
+            content: value ? (entry ? formatAnswerText(q, entry.content) : formatAnswerText(q, value)) : ''
         };
     }
 
