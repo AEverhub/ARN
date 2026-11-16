@@ -2427,9 +2427,9 @@ function updateTaipeiClock() {
                 if (!response.ok) throw new Error(`繁體中文楷書字型載入失敗：${path}`);
                 return response.arrayBuffer();
             };
-            // pdf-lib 對 CJK 字型做 subset 時可能漏掉部分中文字；正式證明書改用完整嵌入，確保列印不缺字。
+            // 使用 Android／Google 文件檢視器相容性較佳的 Noto Sans TC；完整嵌入可避免中文字碼錯亂。
             const font = await pdfDoc.embedFont(
-                await loadFont('assets/fonts/LXGWWenKaiTC-Medium.ttf'),
+                await loadFont('assets/fonts/NotoSansTC-Regular.ttf'),
                 { subset: false }
             );
             const boldFont = font;
