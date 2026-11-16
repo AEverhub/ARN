@@ -1,6 +1,6 @@
 window.currentQuiz = {
   name: "電子學1150102（文字題）",
-  time: 50,
+  time: 25,
   mode: 4,
   data: [
     {
