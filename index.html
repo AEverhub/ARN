@@ -799,7 +799,7 @@
 
         <div id="pdf-step-2" class="hidden">
             <h3 style="color:#ffffff; margin-bottom:15px;">附加元件驗證</h3>
-            <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">請問是否需要在此 PDF 加入「附加元件代碼/電子印章」？</p>
+            <p style="font-size:0.9em; color:#cbd5e1; margin-bottom:20px;">請問是否需要在此 PDF 加入附加元件代碼？</p>
             <div style="display:flex; gap:10px;">
                 <button class="main-btn btn-success" onclick="showAddonInput(true)">是</button>
                 <button class="main-btn btn-secondary" onclick="showAddonInput(false)">否 (直接下載)</button>
@@ -808,20 +808,9 @@
 
         <div id="pdf-step-3" class="hidden">
             <h3 style="color:#ffffff; margin-bottom:12px;">輸入附加元件與選擇印章</h3>
-            <p style="font-size:0.85em; color:#94a3b8; margin-bottom:12px;">請輸入代碼或勾選需附加之電子印章（可複選）：</p>
+            <p style="font-size:0.85em; color:#94a3b8; margin-bottom:12px;">請輸入附加元件代碼；正式印章請於紅框內加蓋紙本正本印章。</p>
 
-            <input type="text" id="addon-code-input" class="code-input" placeholder="請輸入附加元件代碼 (選填)" style="text-align:center; font-weight:bold;">
-
-            <div class="stamp-checkbox-list">
-                <label>
-                    <input type="checkbox" class="stamp-option" value="unit" onchange="validateStampOption(this)">
-                    1. 測驗單位章（篆體文字 SVG 印章）
-                </label>
-                <label>
-                    <input type="checkbox" class="stamp-option" value="excellent" onchange="validateStampOption(this)">
-                    2. 成績優良證明章（≥80分，帶證明書編號）
-                </label>
-            </div>
+            <input type="text" id="addon-code-input" class="code-input" placeholder="請輸入附加元件代碼 (必填)" style="text-align:center; font-weight:bold;">
 
             <button class="main-btn btn-accent" onclick="confirmAddonAndDownload()">確定並下載 PDF</button>
             <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="closePdfModal()">取消</button>
