@@ -2411,9 +2411,8 @@ function updateTaipeiClock() {
         const host = document.createElement('div');
         host.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1;';
         host.innerHTML = `<style>
-            @font-face { font-family: RmsNoto; src: url('assets/fonts/NotoSansTC-Regular.ttf') format('truetype'); font-weight: 400; }
             * { box-sizing: border-box; }
-            .rms-pdf-page { width:794px; min-height:1123px; padding:58px 64px 52px; background:#fff; color:#172033; font-family:RmsNoto,'Noto Sans TC',sans-serif; }
+            .rms-pdf-page { width:794px; min-height:1123px; padding:58px 64px 52px; background:#fff; color:#172033; font-family:system-ui,-apple-system,'Noto Sans CJK TC','Noto Sans TC',sans-serif; }
             .rms-head { border-bottom:2px solid #172033; padding-bottom:18px; margin-bottom:24px; }
             .rms-brand { font-size:25px; font-weight:700; letter-spacing:4px; }
             .rms-title { margin-top:8px; font-size:14px; letter-spacing:2px; color:#566274; }

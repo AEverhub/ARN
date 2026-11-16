@@ -10,7 +10,7 @@ window.MathJax = {
             if (window.__rmsMathJaxPromise) return window.__rmsMathJaxPromise;
             window.__rmsMathJaxPromise = new Promise((resolve, reject) => {
                 const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+                script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js';
                 script.async = true;
                 script.onload = () => resolve(window.MathJax);
                 script.onerror = reject;
