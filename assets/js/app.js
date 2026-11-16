@@ -2350,91 +2350,180 @@ function updateTaipeiClock() {
         return `民國${year}年${month}月${day}日`;
     }
 
-    function processPDFDownload(includeWrong, addonCode, selectedStamps) {
+    function cleanPdfText(value) {
+        return String(value ?? '')
+            .replace(/\\\((.*?)\\\)/g, '$1')
+            .replace(/\\\\/g, '')
+            .replace(/[\u0000-\u001f]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function makeCertificateNumber() {
+        const d = new Date();
+        const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+        const random = crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase().slice(-6);
+        return `RMS-${date}-${random}`;
+    }
+
+    function svgMarkupToPngDataUrl(markup, maxWidth = 480, maxHeight = 260) {
+        return new Promise((resolve, reject) => {
+            if (!markup) return resolve(null);
+            const blob = new Blob([markup], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const image = new Image();
+            image.onload = () => {
+                try {
+                    const ratio = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(image.width * ratio));
+                    canvas.height = Math.max(1, Math.round(image.height * ratio));
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+                    resolve({ dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height });
+                } catch (error) { URL.revokeObjectURL(url); reject(error); }
+            };
+            image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG 圖形轉換失敗')); };
+            image.src = url;
+        });
+    }
+
+    async function processPDFDownload(includeWrong, addonCode, selectedStamps) {
         closePdfModal();
+        if (!window.PDFLib || !window.fontkit) return alert('正式 PDF 元件尚未載入，請重新整理頁面後再試。');
         const element = document.getElementById('report-card');
-        const pdfWrongList = document.getElementById('pdf-wrong-list');
-        const stampPageSection = document.getElementById('stamp-page-section');
-        const addonRow = document.getElementById('addon-code-row');
-        const addonVal = document.getElementById('res-addon-code');
-        const stampsArea = document.getElementById('stamps-area');
         const username = currentUser ? currentUser.name : '考生';
         const subject = window.currentQuiz ? window.currentQuiz.name : '測驗報告';
         const answeredCount = Object.keys(userAnswers).length;
-
-        if (addonCode) {
-            addonVal.innerText = addonCode;
-            addonRow.classList.remove('hidden');
-        } else {
-            addonRow.classList.add('hidden');
-        }
-
-        let stampsHtml = '';
+        const certificateNumber = makeCertificateNumber();
+        const formatText = id => cleanPdfText(document.getElementById(id)?.innerText || '');
         const rocDate = getRocDateString();
+        const issueTime = new Date().toLocaleString('zh-TW', { hour12: false });
 
-        if (warningCount > 0 || answeredCount === 0) {
-            stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">因作答或成績異常取消此次成績</div></div>`;
-        } else {
-            if (selectedStamps.includes('valid')) stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">成績真實有效</div></div>`;
-            if (selectedStamps.includes('pass')) stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">成績及格證明</div></div>`;
-            if (selectedStamps.includes('excellent')) stampsHtml += `<div class="official-stamp"><div class="stamp-title">多功能線上測驗網</div><div class="stamp-date">${rocDate}</div><div class="stamp-body">成績優良證明</div></div>`;
-        }
-
-        if (stampsHtml !== '') {
-            stampsArea.innerHTML = stampsHtml;
-            stampPageSection.classList.remove('hidden');
-        } else {
-            stampPageSection.classList.add('hidden');
-        }
-
-        if (includeWrong && originalWrongQuestions.length > 0) {
-            let html = '<div style="margin-top:25px; border-top:1px solid #334155; padding-top:15px;"><h3 style="color:#ef4444; margin-bottom:15px;">錯題解析與參考答案</h3>';
-            originalWrongQuestions.forEach((item) => {
-                const q = item.qObj;
-                const options = Array.isArray(q.o) ? q.o.join(' | ') : '非選擇題';
-                const submittedParts = answerParts(q, item.rawAnswer, false);
-                const correctParts = answerParts(q, null, true);
-                const imageUrl = resolveQuestionImage(q && q.image);
-                const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="第 ${item.index + 1} 題圖片" class="pdf-question-image">` : '';
-                let svgHtml = '';
-                try { svgHtml = q.svg == null ? '' : `<div class="pdf-question-svg">${sanitizeSvgMarkup(q, item.index)}</div>`; } catch (error) { svgHtml = '<div class="pdf-missing-media">題目圖形無法嵌入，請查看線上報告。</div>'; }
-                html += `<div class="pdf-wrong-card"><div class="pdf-question-title">第 ${item.index + 1} 題：${escapeHtml(String(q.q || ''))}</div>${imageHtml}${svgHtml}<div class="pdf-option-line">選項：${escapeHtml(options)}</div><div class="pdf-answer-line">你的答案 <span class="pdf-answer-wrong">${escapeHtml(String(submittedParts.answer))}</span>${submittedParts.content}</div><div class="pdf-answer-line">正確答案 <span class="pdf-answer-right">${escapeHtml(String(correctParts.answer))}</span>${correctParts.content}</div></div>`;
+        try {
+            const { PDFDocument, rgb, degrees } = PDFLib;
+            const pdfDoc = await PDFDocument.create();
+            pdfDoc.registerFontkit(window.fontkit);
+            const fontBytes = await fetch('assets/fonts/NotoSansCJKsc-Regular.otf').then(r => {
+                if (!r.ok) throw new Error('繁中字型載入失敗');
+                return r.arrayBuffer();
             });
-            html += '</div>';
-            pdfWrongList.innerHTML = html;
-            pdfWrongList.classList.remove('hidden');
-        } else {
-            pdfWrongList.innerHTML = '';
-            pdfWrongList.classList.add('hidden');
+            const font = await pdfDoc.embedFont(fontBytes, { subset: true });
+            const boldFont = font;
+            const PAGE_W = 595.28, PAGE_H = 841.89, M = 46, CONTENT_W = PAGE_W - M * 2;
+            const navy = rgb(0.08, 0.14, 0.23), ink = rgb(0.10, 0.13, 0.19), muted = rgb(0.34, 0.40, 0.48);
+            const red = rgb(0.68, 0.08, 0.08), pale = rgb(0.95, 0.97, 0.99), line = rgb(0.78, 0.82, 0.87);
+            let page, y;
+            const newPage = (continuation = false) => {
+                page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+                page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: rgb(1, 1, 1) });
+                page.drawRectangle({ x: 0, y: PAGE_H - 76, width: PAGE_W, height: 76, color: navy });
+                page.drawText('多功能線上測驗網', { x: M, y: PAGE_H - 34, size: 20, font: boldFont, color: rgb(1, 1, 1) });
+                page.drawText(continuation ? '成績證明書・續頁' : '正式測驗成績證明書', { x: M, y: PAGE_H - 58, size: 10, font, color: rgb(0.80, 0.86, 0.93) });
+                page.drawRectangle({ x: M, y: PAGE_H - 86, width: CONTENT_W, height: 3, color: red });
+                y = PAGE_H - 112;
+            };
+            const ensure = amount => { if (y - amount < 48) { newPage(true); } };
+            const wrap = (text, size, maxWidth) => {
+                const chars = [...cleanPdfText(text)]; const rows = []; let row = '';
+                for (const char of chars) {
+                    const candidate = row + char;
+                    if (font.widthOfTextAtSize(candidate, size) > maxWidth && row) { rows.push(row); row = char; } else row = candidate;
+                }
+                if (row || !rows.length) rows.push(row);
+                return rows;
+            };
+            const text = (value, x, size = 10, color = ink, maxWidth = CONTENT_W, leading = size * 1.45) => {
+                const rows = wrap(value, size, maxWidth);
+                rows.forEach(row => { ensure(leading); page.drawText(row, { x, y, size, font, color }); y -= leading; });
+            };
+            const labelValue = (label, value, width = CONTENT_W) => {
+                ensure(26); page.drawRectangle({ x: M, y: y - 22, width, height: 22, color: pale, borderColor: line, borderWidth: 0.6 });
+                page.drawText(label, { x: M + 10, y: y - 15, size: 9, font: boldFont, color: muted });
+                page.drawText(cleanPdfText(value) || '—', { x: M + 150, y: y - 15, size: 9.5, font, color: ink });
+                y -= 26;
+            };
+
+            newPage(false);
+            page.drawText('測驗成績證明', { x: M, y, size: 18, font: boldFont, color: ink });
+            page.drawText('OFFICIAL ASSESSMENT CERTIFICATE', { x: M, y: y - 18, size: 8, font, color: muted });
+            y -= 46;
+            labelValue('證明書編號', certificateNumber);
+            labelValue('核發日期', `${rocDate} ${issueTime}`);
+            labelValue('考生姓名', username);
+            labelValue('測驗科目', subject);
+            labelValue('測驗代碼', document.getElementById('quiz-code')?.value.trim() || 'test01');
+            y -= 12;
+
+            ensure(86);
+            page.drawRectangle({ x: M, y: y - 72, width: CONTENT_W, height: 72, color: rgb(0.96, 0.97, 0.99), borderColor: navy, borderWidth: 1.2 });
+            page.drawText('測驗總成績', { x: M + 18, y: y - 25, size: 11, font: boldFont, color: muted });
+            page.drawText(formatText('res-score') || '0', { x: M + 18, y: y - 57, size: 28, font: boldFont, color: navy });
+            page.drawText('分', { x: M + 72, y: y - 55, size: 12, font, color: muted });
+            page.drawText(`答對 ${formatText('res-correct')} 題`, { x: M + 180, y: y - 28, size: 10, font, color: ink });
+            page.drawText(`錯題 ${formatText('res-orange')} 題`, { x: M + 180, y: y - 50, size: 10, font, color: ink });
+            page.drawText(formatText('res-pass-label'), { x: M + 360, y: y - 39, size: 13, font: boldFont, color: red });
+            y -= 94;
+            labelValue('開始時間', formatText('res-start-time'));
+            labelValue('結束時間', formatText('res-end-time'));
+            labelValue('作答時間', formatText('res-duration'));
+            labelValue('成績狀態', formatText('res-pass-label'));
+            labelValue('防弊檢核', formatText('res-cheated'));
+            if (addonCode) labelValue('附加元件代碼', addonCode);
+
+            ensure(110);
+            y -= 10;
+            page.drawText('核發聲明', { x: M, y, size: 12, font: boldFont, color: ink }); y -= 22;
+            text(`本證明書由多功能線上測驗網依測驗紀錄核發，證明 ${username} 於上述時間完成「${subject}」測驗。證明書編號、核發時間及成績資料應以系統驗證結果為準。`, M, 9.5, ink, CONTENT_W, 15);
+            y -= 10;
+            page.drawRectangle({ x: M, y: y - 70, width: 205, height: 70, color: pale, borderColor: line, borderWidth: 0.8 });
+            page.drawText('核發單位章／驗證章', { x: M + 14, y: y - 20, size: 9, font, color: muted });
+            page.drawText(selectedStamps.length ? '成績核發確認' : '成績證明文件', { x: M + 24, y: y - 48, size: 13, font: boldFont, color: red, rotate: degrees(-3) });
+            page.drawText('（正式電子簽章位置）', { x: M + 28, y: y - 62, size: 7, font, color: muted });
+            page.drawText(`驗證碼：${certificateNumber}`, { x: M + 235, y: y - 25, size: 8.5, font, color: muted });
+            page.drawText('請由核發單位系統查驗本證明書真偽。', { x: M + 235, y: y - 45, size: 8.5, font, color: ink });
+            y -= 96;
+
+            if (includeWrong && originalWrongQuestions.length > 0) {
+                newPage(true);
+                page.drawText('錯題解析與參考答案', { x: M, y, size: 15, font: boldFont, color: ink }); y -= 28;
+                for (const item of originalWrongQuestions) {
+                    const q = item.qObj;
+                    const qLines = wrap(`第 ${item.index + 1} 題：${q.q || ''}`, 10, CONTENT_W - 24);
+                    let cardHeight = 28 + qLines.length * 14 + 60;
+                    let svgImage = null;
+                    if (q.svg != null) {
+                        try { svgImage = await svgMarkupToPngDataUrl(sanitizeSvgMarkup(q, item.index), 450, 180); if (svgImage) cardHeight += Math.min(190, svgImage.height + 12); } catch (error) {}
+                    }
+                    ensure(cardHeight + 12);
+                    const top = y;
+                    page.drawRectangle({ x: M, y: y - cardHeight, width: CONTENT_W, height: cardHeight, color: rgb(1, 1, 1), borderColor: line, borderWidth: 0.8 });
+                    page.drawRectangle({ x: M, y: y - cardHeight, width: 4, height: cardHeight, color: red });
+                    y -= 18;
+                    qLines.forEach(row => { page.drawText(row, { x: M + 14, y, size: 10, font: boldFont, color: ink }); y -= 14; });
+                    if (svgImage) { const img = await pdfDoc.embedPng(svgImage.dataUrl); const iw = Math.min(CONTENT_W - 28, svgImage.width); const ih = iw * svgImage.height / svgImage.width; page.drawImage(img, { x: M + 14, y: y - ih - 4, width: iw, height: ih }); y -= ih + 10; }
+                    text(`選項：${Array.isArray(q.o) ? q.o.join(' ｜ ') : '非選擇題'}`, M + 14, 8.5, muted, CONTENT_W - 28, 12);
+                    const submitted = answerParts(q, item.rawAnswer, false), correct = answerParts(q, null, true);
+                    text(`你的答案：${submitted.answer}${submitted.content}`, M + 14, 9, red, CONTENT_W - 28, 13);
+                    text(`正確答案：${correct.answer}${correct.content}`, M + 14, 9, rgb(0.08, 0.45, 0.25), CONTENT_W - 28, 13);
+                    y = top - cardHeight - 12;
+                }
+            }
+            page.drawText(`證明書編號 ${certificateNumber} ・ ${subject}`, { x: M, y: 25, size: 7, font, color: muted });
+            const bytes = await pdfDoc.save();
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a'); link.href = url; link.download = `${username}_${subject}_${includeWrong ? '完整' : '正式'}成績證明書.pdf`; link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        } catch (error) {
+            console.error('正式 PDF 生成失敗：', error);
+            alert(`正式 PDF 生成失敗：${error.message || '請重新整理後再試'}`);
+        } finally {
+            document.getElementById('pdf-wrong-list').classList.add('hidden');
+            document.getElementById('addon-code-row').classList.add('hidden');
+            document.getElementById('stamp-page-section').classList.add('hidden');
         }
-
-        element.scrollIntoView();
-        const printable = element.cloneNode(true);
-        printable.classList.add('pdf-document');
-        printable.removeAttribute('id');
-        printable.querySelectorAll('#pdf-wrong-list').forEach(node => node.classList.remove('hidden'));
-        printable.querySelectorAll('.pdf-page-break').forEach(node => node.classList.remove('hidden'));
-        printable.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
-        printable.style.display = 'block';
-        printable.style.position = 'absolute';
-        printable.style.left = '0';
-        printable.style.top = '0';
-        printable.style.zIndex = '-1';
-        printable.style.width = '190mm';
-        document.body.appendChild(printable);
-        const opt = {
-            margin: [12, 12, 14, 12],
-            filename: `${username}_${subject}_${includeWrong ? '完整' : '簡要'}測驗結果.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, backgroundColor: '#ffffff', logging: false, scrollY: 0, scrollX: 0, useCORS: true },
-            pagebreak: { mode: ['css', 'legacy'], avoid: ['.pdf-wrong-card', '.report-table', '.pdf-question-svg'] },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(printable).save().then(() => {
-            printable.remove();
-            pdfWrongList.classList.add('hidden');
-            addonRow.classList.add('hidden');
-            stampPageSection.classList.add('hidden');
-        });
     }
