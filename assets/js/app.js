@@ -1379,6 +1379,9 @@ function updateTaipeiClock() {
 
     function shuffleQuestionOptions(question) {
         const cloned = { ...question };
+        // SVG 題常把 (A)～(D) 直接畫在圖內；若只洗外部文字選項，圖內標籤會與答案對不上。
+        // 因此 SVG 題保留選項順序，但 mod 3／mod 4 仍可照常打亂題目順序。
+        if (cloned.svg != null || cloned.preserveOptionOrder === true || cloned.optionOrder === 'fixed') return cloned;
         if (!Array.isArray(cloned.o) || cloned.o.length === 0) return cloned;
 
         const parsed = cloned.o.map((raw, index) => getOptionContentAndLabel(raw, index));
