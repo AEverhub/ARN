@@ -1,5 +1,5 @@
 window.currentQuiz = {
-  name: "電子學 第3、4章 自我評量",
+  name: "電子學1150102（範圍3,4章）",
   time: 50,
   data: [
     {
