@@ -367,7 +367,9 @@
         <div class="admin-panel-group admin-operation-group" style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <div class="admin-group-kicker">操作項</div>
             <p class="admin-group-description">建立設定、管理帳號、審核內容與輸出資料的操作區。</p>
-            <div class="admin-launcher-grid" aria-label="管理功能按鈕總覽">
+            <label class="admin-search-label" for="admin-feature-search">快速尋找管理功能</label>
+            <input id="admin-feature-search" class="code-input admin-feature-search" type="search" placeholder="輸入例如：帳號、題庫、PDF、郵件…" autocomplete="off">
+            <div class="admin-launcher-grid" id="admin-launcher-grid" aria-label="管理功能按鈕總覽">
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-tutorial')">操作流程教學<small>指定帳號重設教學階段</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-users')">帳號停用與啟用<small>管理帳號狀態與原因</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-history')">歷史成績查詢<small>查看指定考生紀錄</small></button>

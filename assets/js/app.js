@@ -721,6 +721,15 @@ function updateTaipeiClock() {
 
     /* ---------------- 管理面板詳細功能更新 ---------------- */
     function setupAdminConsole() {
+        const featureSearch = document.getElementById('admin-feature-search');
+        const launcherButtons = document.querySelectorAll('#admin-launcher-grid .admin-launcher-btn');
+        if (featureSearch && !featureSearch.dataset.bound) {
+            featureSearch.dataset.bound = 'true';
+            featureSearch.addEventListener('input', () => {
+                const keyword = featureSearch.value.trim().toLowerCase();
+                launcherButtons.forEach(button => { button.hidden = keyword && !button.textContent.toLowerCase().includes(keyword); });
+            });
+        }
         const userSelect = document.getElementById('admin-user-select');
         userSelect.innerHTML = '';
         globalUsersDB.forEach(u => {
