@@ -2422,11 +2422,16 @@ function updateTaipeiClock() {
             const { PDFDocument, rgb, degrees } = PDFLib;
             const pdfDoc = await PDFDocument.create();
             pdfDoc.registerFontkit(window.fontkit);
-            const fontBytes = await fetch('assets/fonts/NotoSansTC-Regular.ttf').then(r => {
-                if (!r.ok) throw new Error('繁中字型載入失敗');
-                return r.arrayBuffer();
-            });
-            const font = await pdfDoc.embedFont(fontBytes, { subset: true });
+            const loadFont = async path => {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`繁體中文楷書字型載入失敗：${path}`);
+                return response.arrayBuffer();
+            };
+            // pdf-lib 對 CJK 字型做 subset 時可能漏掉部分中文字；正式證明書改用完整嵌入，確保列印不缺字。
+            const font = await pdfDoc.embedFont(
+                await loadFont('assets/fonts/LXGWWenKaiTC-Medium.ttf'),
+                { subset: false }
+            );
             const boldFont = font;
             const PAGE_W = 595.28, PAGE_H = 841.89, M = 46, CONTENT_W = PAGE_W - M * 2;
             const navy = rgb(0.08, 0.14, 0.23), ink = rgb(0.10, 0.13, 0.19), muted = rgb(0.34, 0.40, 0.48);
@@ -2488,27 +2493,35 @@ function updateTaipeiClock() {
             labelValue('防弊檢核', formatText('res-cheated'));
             if (addonCode) labelValue('附加元件代碼', addonCode);
 
-            ensure(110);
+            ensure(150);
             y -= 10;
             page.drawText('核發聲明', { x: M, y, size: 12, font: boldFont, color: ink }); y -= 22;
             text(`本證明書由多功能線上測驗網依測驗紀錄核發，證明 ${username} 於上述時間完成「${subject}」測驗。證明書編號、核發時間及成績資料應以系統驗證結果為準。`, M, 9.5, ink, CONTENT_W, 15);
-            y -= 10;
-            page.drawRectangle({ x: M, y: y - 70, width: 205, height: 70, color: pale, borderColor: line, borderWidth: 0.8 });
-                        const stampKinds = selectedStamps.filter(value => value === 'unit' || value === 'excellent');
+            y -= 14;
+            const stampKinds = selectedStamps.filter(value => value === 'unit' || value === 'excellent');
+            const stampBoxW = 172;
+            const stampBoxH = 106;
+            const stampGap = 18;
+            const infoBoxW = CONTENT_W - stampBoxW - stampGap;
+            const stampBoxX = M + infoBoxW + stampGap;
+            const stampBoxY = y - stampBoxH;
+            page.drawRectangle({ x: M, y: stampBoxY, width: infoBoxW, height: stampBoxH, color: pale, borderColor: line, borderWidth: 0.8 });
+            page.drawText('核發單位資訊', { x: M + 12, y: y - 22, size: 9.5, font: boldFont, color: muted });
+            page.drawText('多功能線上測驗網', { x: M + 12, y: y - 45, size: 11, font: boldFont, color: ink });
+            page.drawText(`驗證碼：${certificateNumber}`, { x: M + 12, y: y - 67, size: 8.5, font, color: muted });
+            page.drawText('請由核發單位系統查驗本證明書真偽。', { x: M + 12, y: y - 87, size: 8, font, color: ink });
+            page.drawRectangle({ x: stampBoxX, y: stampBoxY, width: stampBoxW, height: stampBoxH, color: rgb(1, 0.985, 0.985), borderColor: red, borderWidth: 2 });
+            page.drawRectangle({ x: stampBoxX + 6, y: stampBoxY + 6, width: stampBoxW - 12, height: stampBoxH - 12, borderColor: red, borderWidth: 0.6, borderDashArray: [3, 2] });
+            page.drawText('正式印章蓋章處', { x: stampBoxX + 40, y: stampBoxY + stampBoxH - 22, size: 10, font: boldFont, color: red });
+            page.drawText('（請於此處加蓋正本印章）', { x: stampBoxX + 22, y: stampBoxY + 12, size: 7.5, font, color: red });
             for (let stampIndex = 0; stampIndex < stampKinds.length; stampIndex += 1) {
                 const sealPng = await svgMarkupToPngDataUrl(buildOfficialSealSvg(stampKinds[stampIndex], certificateNumber, rocDate), 150, 135);
                 if (sealPng) {
                     const sealImage = await pdfDoc.embedPng(sealPng.dataUrl);
-                    page.drawImage(sealImage, { x: M + 10 + stampIndex * 66, y: y - 66, width: 60, height: 54 });
+                    page.drawImage(sealImage, { x: stampBoxX + 12 + stampIndex * 70, y: stampBoxY + 28, width: 62, height: 56 });
                 }
             }
-            const stampLabel = stampKinds.length === 2 ? '測驗單位章／成績優良證明章' : (stampKinds[0] === 'excellent' ? '成績優良證明章' : stampKinds[0] === 'unit' ? '測驗單位章' : '未選擇印章');
-            page.drawText('核發單位印', { x: M + 145, y: y - 22, size: 9, font: boldFont, color: muted });
-            page.drawText(stampLabel, { x: M + 145, y: y - 44, size: 8.5, font: boldFont, color: ink });
-            page.drawText('SVG 印章／正式憑證簽章位置', { x: M + 145, y: y - 61, size: 7, font, color: muted });
-            page.drawText(`驗證碼：${certificateNumber}`, { x: M + 235, y: y - 25, size: 8.5, font, color: muted });
-            page.drawText('請由核發單位系統查驗本證明書真偽。', { x: M + 235, y: y - 45, size: 8.5, font, color: ink });
-            y -= 96;
+            y = stampBoxY - 20;
 
             if (includeWrong && originalWrongQuestions.length > 0) {
                 newPage(true);
