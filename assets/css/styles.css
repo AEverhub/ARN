@@ -943,3 +943,26 @@
 .question-svg-wrap { width:100%; margin:8px 0 16px; padding:14px; display:flex; justify-content:center; overflow:auto; border:1px solid #e2e8f0; border-radius:8px; background:#fff; box-sizing:border-box; }
 .question-svg-wrap svg { display:block; width:auto; max-width:100%; max-height:55vh; height:auto; }
 @media(max-width:600px) { #login-screen .input-group { padding:18px 15px; } #login-screen .terms-box { max-height:35vh; } .question-svg-wrap { padding:9px; max-height:45vh; } }
+
+/* 易用性與正式列印版：手機優先、清楚分區、PDF 不再沿用深色螢幕主題。 */
+.quick-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:18px 0 24px; }
+.quick-nav button { min-height:58px; border:1px solid #cbd5e1; border-radius:10px; background:#f8fafc; color:#20344d; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); }
+.quick-nav button:hover { border-color:#2980b9; background:#eff6ff; transform:translateY(-1px); }
+.question-svg-wrap svg, .review-question-svg-wrap svg, .pdf-question-svg svg { display:block; width:auto; max-width:100%; height:auto; max-height:260px; margin:0 auto; }
+.pdf-document { box-sizing:border-box; background:#fff !important; color:#172033 !important; padding:14mm !important; border:0 !important; border-radius:0 !important; overflow:visible !important; line-height:1.55 !important; }
+.pdf-document h2, .pdf-document h3 { color:#172033 !important; }
+.pdf-document .report-table { background:#fff !important; border:1px solid #9aa7b8 !important; color:#172033 !important; }
+.pdf-document .report-table td { border-bottom:1px solid #d7dee8 !important; color:#172033 !important; padding:8px 10px !important; }
+.pdf-document .tb-label { background:#eef2f7 !important; color:#334155 !important; }
+.pdf-document .tb-val { color:#172033 !important; }
+.pdf-document .res-blue,.pdf-document .res-orange,.pdf-document .res-green,.pdf-document .res-red,.pdf-document .res-yellow,.pdf-document .res-black-pass { color:#172033 !important; }
+.pdf-document .pdf-wrong-card { background:#fff !important; color:#172033 !important; border:1px solid #b9c4d1 !important; border-left:4px solid #b91c1c !important; border-radius:3px !important; padding:10px 12px !important; margin:0 0 10px !important; page-break-inside:avoid; break-inside:avoid; }
+.pdf-document .pdf-question-title { color:#172033; font-weight:800; margin-bottom:7px; overflow-wrap:anywhere; }
+.pdf-document .pdf-question-image, .pdf-document .pdf-question-svg svg { max-height:78mm; border:1px solid #cbd5e1; background:#fff; }
+.pdf-document .pdf-question-svg { margin:7px 0; padding:5px; page-break-inside:avoid; break-inside:avoid; }
+.pdf-document .pdf-option-line, .pdf-document .pdf-answer-line { color:#334155; margin:5px 0; overflow-wrap:anywhere; }
+.pdf-document .pdf-answer-wrong { color:#b91c1c; font-weight:800; }
+.pdf-document .pdf-answer-right { color:#15803d; font-weight:800; }
+.pdf-document .pdf-page-break { border-top:1px solid #cbd5e1; }
+.pdf-document .stamp-page-header { color:#172033 !important; border-bottom-color:#b91c1c; }
+@media(max-width:600px){ .quick-nav { grid-template-columns:repeat(2,1fr); gap:8px; } .quick-nav button { min-height:52px; font-size:.88em; } }

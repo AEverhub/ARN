@@ -111,6 +111,12 @@
             </div>
 
             <button id="start-btn" class="main-btn" onclick="checkAndStart()" style="background:var(--accent); color:#ffffff;" disabled>開始測驗</button>
+            <div class="quick-nav" aria-label="常用功能">
+                <button type="button" onclick="switchView('account')">帳號中心</button>
+                <button type="button" onclick="switchView('mail')">站內郵件</button>
+                <button type="button" onclick="switchView('chat')">問題回報</button>
+                <button type="button" id="quick-admin-btn" onclick="switchView('admin')" style="display:none;">管理面板</button>
+            </div>
         </div>
     </div>
 

@@ -315,8 +315,10 @@ function updateTaipeiClock() {
         const menuAdminItem = document.getElementById('menu-admin-item');
         if (currentUser && currentUser.role === 'admin') {
             menuAdminItem.style.display = 'block';
+            document.getElementById('quick-admin-btn')?.style.setProperty('display', 'block');
         } else {
             menuAdminItem.style.display = 'none';
+            document.getElementById('quick-admin-btn')?.style.setProperty('display', 'none');
         }
 
         renderPublicQuizzesList();
@@ -1743,10 +1745,38 @@ function updateTaipeiClock() {
         return `${parts.answer}${parts.content === '未填答' ? '' : parts.content}`;
     }
 
+    function sanitizeSvgMarkup(question, index) {
+        if (!question || question.svg == null) return '';
+        const value = typeof question.svg === 'function'
+            ? question.svg({ question, index, code: document.getElementById('quiz-code')?.value?.trim() || '' })
+            : question.svg;
+        const markup = typeof value === 'string' ? value : (value instanceof SVGElement ? new XMLSerializer().serializeToString(value) : '');
+        if (!markup) return '';
+        const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml');
+        const svg = parsed.documentElement;
+        if (svg.localName !== 'svg' || svg.namespaceURI !== 'http://www.w3.org/2000/svg' || parsed.querySelector('parsererror')) throw new Error('無效的 SVG 根元素');
+        svg.querySelectorAll('script, foreignObject, iframe, object, embed, audio, video').forEach(node => node.remove());
+        [svg, ...svg.querySelectorAll('*')].forEach(node => [...node.attributes].forEach(attr => {
+            const name = attr.name.toLowerCase(), attrValue = attr.value.trim();
+            if (name.startsWith('on') || name === 'src' || ((name === 'href' || name.endsWith(':href')) && !attrValue.startsWith('#')) ||
+                (/url\s*\(/i.test(attrValue) && !/^url\(\s*#[^)]+\)$/i.test(attrValue)) || /javascript:|expression\s*\(|@import/i.test(attrValue)) node.removeAttribute(attr.name);
+        }));
+        return new XMLSerializer().serializeToString(svg);
+    }
+
     function reviewQuestionImage(q, index) {
         const imageUrl = resolveQuestionImage(q && q.image);
         if (!imageUrl) return '';
         return `<div class="review-question-image-wrap"><div class="review-image-caption">第 ${index + 1} 題圖片</div><img src="${escapeHtml(imageUrl)}" alt="第 ${index + 1} 題圖片" class="review-question-image" loading="lazy" onerror="this.closest('.review-question-image-wrap').innerHTML='<div class=\"question-image-error\">圖片載入失敗，請確認圖片路徑。</div>'></div>`;
+    }
+
+    function reviewQuestionSvg(q, index) {
+        if (!q || q.svg == null) return '';
+        try {
+            return `<div class="review-question-image-wrap review-question-svg-wrap"><div class="review-image-caption">第 ${index + 1} 題圖形</div>${sanitizeSvgMarkup(q, index)}</div>`;
+        } catch (error) {
+            return `<div class="question-image-error">第 ${index + 1} 題 SVG 圖形無法載入。</div>`;
+        }
     }
 
     function saveHandwritingCanvas(index, canvas) {
@@ -2034,6 +2064,7 @@ function updateTaipeiClock() {
             reviewHTML += `<div class="review-card" id="review-card-${i}" style="border-left: 4px solid ${isRight ? 'var(--success)' : (subjective && answered && !handwritingResults[i] ? '#f59e0b' : 'var(--error)')}" >
                 <p><b>題目 ${i+1}: ${q.q}</b></p>
                 ${reviewQuestionImage(q, i)}
+                ${reviewQuestionSvg(q, i)}
                 <div class="answer-detail-row"><b>你的答案</b>${escapeHtml(String(submittedParts.answer))}${submittedParts.content}</div>
                 ${!isRight ? `<div class="answer-detail-row"><b style="color:var(--success);">正確答案</b>${escapeHtml(String(correctParts.answer))}${correctParts.content}</div>` : ''}
                 ${subjective ? `<p class="handwriting-feedback" style="color:#8b5cf6;">${handwritingResults[i] ? escapeHtml(handwritingResults[i].feedback || 'AI 已完成批改') : (answered ? 'AI 批改中，請稍候……' : '未作答')}</p>` : ''}
@@ -2352,7 +2383,9 @@ function updateTaipeiClock() {
                 const correctParts = answerParts(q, null, true);
                 const imageUrl = resolveQuestionImage(q && q.image);
                 const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="第 ${item.index + 1} 題圖片" class="pdf-question-image">` : '';
-                html += `<div class="pdf-wrong-card"><div style="font-weight:bold; color:#ffffff; margin-bottom:6px;">第 ${item.index + 1} 題：${q.q}</div>${imageHtml}<div style="color:#cbd5e1; margin-bottom:4px;">選項：${escapeHtml(options)}</div><div style="margin:4px 0;">你的答案<span style="color:#ef4444; font-weight:bold;">${escapeHtml(String(submittedParts.answer))}</span>${submittedParts.content}</div><div style="margin:4px 0;">正確答案<span style="color:#22c55e; font-weight:bold;">${escapeHtml(String(correctParts.answer))}</span>${correctParts.content}</div></div>`;
+                let svgHtml = '';
+                try { svgHtml = q.svg == null ? '' : `<div class="pdf-question-svg">${sanitizeSvgMarkup(q, item.index)}</div>`; } catch (error) { svgHtml = '<div class="pdf-missing-media">題目圖形無法嵌入，請查看線上報告。</div>'; }
+                html += `<div class="pdf-wrong-card"><div class="pdf-question-title">第 ${item.index + 1} 題：${escapeHtml(String(q.q || ''))}</div>${imageHtml}${svgHtml}<div class="pdf-option-line">選項：${escapeHtml(options)}</div><div class="pdf-answer-line">你的答案 <span class="pdf-answer-wrong">${escapeHtml(String(submittedParts.answer))}</span>${submittedParts.content}</div><div class="pdf-answer-line">正確答案 <span class="pdf-answer-right">${escapeHtml(String(correctParts.answer))}</span>${correctParts.content}</div></div>`;
             });
             html += '</div>';
             pdfWrongList.innerHTML = html;
@@ -2363,15 +2396,30 @@ function updateTaipeiClock() {
         }
 
         element.scrollIntoView();
+        const printable = element.cloneNode(true);
+        printable.classList.add('pdf-document');
+        printable.removeAttribute('id');
+        printable.querySelectorAll('#pdf-wrong-list').forEach(node => node.classList.remove('hidden'));
+        printable.querySelectorAll('.pdf-page-break').forEach(node => node.classList.remove('hidden'));
+        printable.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+        printable.style.display = 'block';
+        printable.style.position = 'absolute';
+        printable.style.left = '0';
+        printable.style.top = '0';
+        printable.style.zIndex = '-1';
+        printable.style.width = '190mm';
+        document.body.appendChild(printable);
         const opt = {
-            margin: [8, 8, 8, 8],
+            margin: [12, 12, 14, 12],
             filename: `${username}_${subject}_${includeWrong ? '完整' : '簡要'}測驗結果.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, backgroundColor: '#000000', logging: false, scrollY: 0, scrollX: 0, useCORS: true },
+            html2canvas: { scale: 2, backgroundColor: '#ffffff', logging: false, scrollY: 0, scrollX: 0, useCORS: true },
+            pagebreak: { mode: ['css', 'legacy'], avoid: ['.pdf-wrong-card', '.report-table', '.pdf-question-svg'] },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(element).save().then(() => {
+        html2pdf().set(opt).from(printable).save().then(() => {
+            printable.remove();
             pdfWrongList.classList.add('hidden');
             addonRow.classList.add('hidden');
             stampPageSection.classList.add('hidden');
