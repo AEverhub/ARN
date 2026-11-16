@@ -2406,7 +2406,102 @@ function updateTaipeiClock() {
         </svg>`;
     }
 
+    async function renderRmsPdfHtml(html) {
+        if (!window.html2canvas) throw new Error('PDF 圖片渲染元件尚未載入');
+        const host = document.createElement('div');
+        host.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1;';
+        host.innerHTML = `<style>
+            @font-face { font-family: RmsNoto; src: url('assets/fonts/NotoSansTC-Regular.ttf') format('truetype'); font-weight: 400; }
+            * { box-sizing: border-box; }
+            .rms-pdf-page { width:794px; min-height:1123px; padding:58px 64px 52px; background:#fff; color:#172033; font-family:RmsNoto,'Noto Sans TC',sans-serif; }
+            .rms-head { border-bottom:2px solid #172033; padding-bottom:18px; margin-bottom:24px; }
+            .rms-brand { font-size:25px; font-weight:700; letter-spacing:4px; }
+            .rms-title { margin-top:8px; font-size:14px; letter-spacing:2px; color:#566274; }
+            .rms-section-title { font-size:18px; font-weight:700; margin:0 0 14px; }
+            .rms-info { width:100%; border-collapse:collapse; font-size:14px; margin-bottom:18px; }
+            .rms-info td { border:1px solid #b9c4d1; padding:9px 12px; height:38px; }
+            .rms-info .label { width:145px; background:#eef2f7; color:#334155; font-weight:700; }
+            .rms-score { border:1.5px solid #172033; padding:18px 22px; display:flex; align-items:center; margin:18px 0; }
+            .rms-score-label { color:#566274; font-size:15px; }
+            .rms-score-number { font-size:42px; font-weight:700; margin:0 10px; color:#173d70; }
+            .rms-score-meta { margin-left:auto; font-size:14px; line-height:1.9; }
+            .rms-declaration { font-size:13px; line-height:1.8; margin:20px 0 18px; }
+            .rms-bottom { display:flex; gap:18px; align-items:stretch; }
+            .rms-issuer { flex:1; background:#f4f7fa; border:1px solid #b9c4d1; padding:15px; font-size:12px; line-height:1.8; }
+            .rms-stamp { width:250px; min-height:150px; border:3px solid #a81717; outline:1px dashed #a81717; outline-offset:-9px; background:#fffafa; color:#a81717; padding:22px 12px 10px; text-align:center; }
+            .rms-stamp-title { font-size:16px; font-weight:700; }
+            .rms-stamp-note { font-size:11px; margin-top:8px; }
+            .rms-stamps { display:flex; justify-content:center; gap:8px; margin-top:8px; }
+            .rms-stamps img { width:70px; height:62px; object-fit:contain; }
+            .rms-footer { margin-top:32px; color:#6b7280; font-size:10px; text-align:center; }
+            .rms-wrong-card { border:1px solid #b9c4d1; border-left:5px solid #a81717; padding:16px 18px; margin:0 0 16px; font-size:13px; line-height:1.7; }
+            .rms-q { font-size:15px; font-weight:700; margin-bottom:10px; }
+            .rms-svg { max-width:100%; max-height:210px; display:block; margin:8px auto; }
+            .rms-answer-wrong { color:#a81717; }
+            .rms-answer-right { color:#08733b; }
+        </style>${html}`;
+        document.body.appendChild(host);
+        try {
+            await document.fonts.ready;
+            if (window.loadRmsMathJax) {
+                const mathJax = await window.loadRmsMathJax();
+                await mathJax?.typesetPromise?.([host]);
+            }
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            const canvas = await window.html2canvas(host, { backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false, width: 794, windowWidth: 794 });
+            return canvas.toDataURL('image/png');
+        } finally {
+            host.remove();
+        }
+    }
+
+    async function processPDFDownloadAsImage(includeWrong, addonCode, selectedStamps) {
+        closePdfModal();
+        if (!window.PDFLib || !window.html2canvas) return alert('PDF 圖片元件尚未載入，請重新整理頁面後再試。');
+        const username = currentUser ? currentUser.name : '考生';
+        const subject = window.currentQuiz ? window.currentQuiz.name : '測驗報告';
+        const certificateNumber = makeCertificateNumber();
+        const formatText = id => cleanPdfText(document.getElementById(id)?.innerText || '');
+        const stampKinds = selectedStamps.filter(value => value === 'unit' || value === 'excellent');
+        try {
+            const stampImages = [];
+            for (const kind of stampKinds) {
+                const png = await svgMarkupToPngDataUrl(buildOfficialSealSvg(kind, certificateNumber, getRocDateString()), 150, 135);
+                if (png) stampImages.push(png.dataUrl);
+            }
+            const stampHtml = stampImages.map(src => `<img src="${src}" alt="電子印章">`).join('');
+            const certificateHtml = `<section class="rms-pdf-page">
+                <header class="rms-head"><div class="rms-brand">多功能線上測驗網</div><div class="rms-title">正式測驗成績證明書　OFFICIAL ASSESSMENT CERTIFICATE</div></header>
+                <h1 class="rms-section-title">測驗成績證明</h1>
+                <table class="rms-info"><tr><td class="label">證明書編號</td><td>${escapeHtml(certificateNumber)}</td></tr><tr><td class="label">核發日期</td><td>${escapeHtml(`${getRocDateString()} ${new Date().toLocaleString('zh-TW', { hour12: false })}`)}</td></tr><tr><td class="label">考生姓名</td><td>${escapeHtml(username)}</td></tr><tr><td class="label">測驗科目</td><td>${escapeHtml(subject)}</td></tr><tr><td class="label">測驗代碼</td><td>${escapeHtml(document.getElementById('quiz-code')?.value.trim() || 'test01')}</td></tr></table>
+                <div class="rms-score"><span class="rms-score-label">測驗總成績</span><span class="rms-score-number">${escapeHtml(formatText('res-score') || '0')}</span><span class="rms-score-label">分</span><div class="rms-score-meta">答對 ${escapeHtml(formatText('res-correct'))} 題<br>錯題 ${escapeHtml(formatText('res-orange'))} 題<br><b>${escapeHtml(formatText('res-pass-label'))}</b></div></div>
+                <table class="rms-info"><tr><td class="label">開始時間</td><td>${escapeHtml(formatText('res-start-time'))}</td></tr><tr><td class="label">結束時間</td><td>${escapeHtml(formatText('res-end-time'))}</td></tr><tr><td class="label">作答時間</td><td>${escapeHtml(formatText('res-duration'))}</td></tr><tr><td class="label">防弊檢核</td><td>${escapeHtml(formatText('res-cheated'))}</td></tr>${addonCode ? `<tr><td class="label">附加憑證代碼</td><td>${escapeHtml(addonCode)}</td></tr>` : ''}</table>
+                <p class="rms-declaration">本證明書由多功能線上測驗網依測驗紀錄核發，證明 ${escapeHtml(username)} 於上述時間完成「${escapeHtml(subject)}」測驗。證明書編號、核發時間及成績資料應以系統驗證結果為準。</p>
+                <div class="rms-bottom"><div class="rms-issuer"><b>核發單位資訊</b><br>多功能線上測驗網<br>驗證碼：${escapeHtml(certificateNumber)}<br>請由核發單位系統查驗本證明書真偽。</div><div class="rms-stamp"><div class="rms-stamp-title">正式印章蓋章處</div><div class="rms-stamps">${stampHtml}</div><div class="rms-stamp-note">請於此處加蓋正本印章</div></div></div>
+                <div class="rms-footer">證明書編號 ${escapeHtml(certificateNumber)} ・ ${escapeHtml(subject)}</div>
+            </section>`;
+            const pageImages = [await renderRmsPdfHtml(certificateHtml)];
+            if (includeWrong && originalWrongQuestions.length > 0) {
+                const cards = [];
+                for (const item of originalWrongQuestions) {
+                    const q = item.qObj;
+                    const svg = q.svg != null ? sanitizeSvgMarkup(q, item.index) : '';
+                    const submitted = answerParts(q, item.rawAnswer, false), correct = answerParts(q, null, true);
+                    cards.push(`<article class="rms-wrong-card"><div class="rms-q">第 ${item.index + 1} 題：${escapeHtml(q.q || '')}</div>${svg ? `<div class="rms-svg">${svg}</div>` : ''}<div>選項：${escapeHtml(Array.isArray(q.o) ? q.o.join(' ｜ ') : '非選擇題')}</div><div class="rms-answer-wrong">你的答案：${escapeHtml(submitted.answer)} ${submitted.content}</div><div class="rms-answer-right">正確答案：${escapeHtml(correct.answer)} ${correct.content}</div></article>`);
+                }
+                pageImages.push(await renderRmsPdfHtml(`<section class="rms-pdf-page"><header class="rms-head"><div class="rms-brand">多功能線上測驗網</div><div class="rms-title">錯題解析與參考答案</div></header>${cards.join('')}<div class="rms-footer">${escapeHtml(subject)}</div></section>`));
+            }
+            const { PDFDocument } = PDFLib;
+            const pdfDoc = await PDFDocument.create();
+            for (const dataUrl of pageImages) { const page = pdfDoc.addPage([595.28, 841.89]); const image = await pdfDoc.embedPng(dataUrl); page.drawImage(image, { x: 0, y: 0, width: 595.28, height: 841.89 }); }
+            const blob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${username}_${subject}_${includeWrong ? '完整' : '正式'}成績證明書.pdf`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+        } catch (error) { console.error('圖片式 PDF 生成失敗：', error); alert(`PDF 生成失敗：${error.message || '請重新整理後再試'}`); }
+    }
+
     async function processPDFDownload(includeWrong, addonCode, selectedStamps) {
+        return processPDFDownloadAsImage(includeWrong, addonCode, selectedStamps);
+        /* 保留舊版向量 PDF 程式碼以便回溯，不再作為下載路徑。
         closePdfModal();
         if (!window.PDFLib || !window.fontkit) return alert('正式 PDF 元件尚未載入，請重新整理頁面後再試。');
         const element = document.getElementById('report-card');
@@ -2561,5 +2656,5 @@ function updateTaipeiClock() {
             document.getElementById('pdf-wrong-list').classList.add('hidden');
             document.getElementById('addon-code-row').classList.add('hidden');
             document.getElementById('stamp-page-section').classList.add('hidden');
-        }
+        */
     }
