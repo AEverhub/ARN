@@ -1444,6 +1444,8 @@ function updateTaipeiClock() {
         let quizScriptUrl;
         try { quizScriptUrl = getQuestionBankScriptUrl(code); }
         catch (error) { document.getElementById('status-msg').innerText = error.message; return; }
+        // 題庫腳本可能在使用者輸入代碼前就已被瀏覽器快取；每次載入加入版本參數以取得最新檔案。
+        quizScriptUrl.searchParams.set('_rms_v', String(Date.now()));
         currentQuizScriptUrl = quizScriptUrl.href;
         s.src = currentQuizScriptUrl;
         s.onload = () => {
