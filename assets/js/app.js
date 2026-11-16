@@ -2272,14 +2272,9 @@ function updateTaipeiClock() {
         if (!chk.checked) return;
         const val = chk.value;
         const answeredCount = Object.keys(userAnswers).length;
-        if (val === 'valid') {
+        if (val === 'unit') {
             if (warningCount > 0 || answeredCount === 0) {
-                alert("【無法勾選】檢測到測驗過程中存在作弊行為或惡意交白卷，無法開立「測驗成績真實有效章」！");
-                chk.checked = false;
-            }
-        } else if (val === 'pass') {
-            if (calculatedScore < 60 || warningCount > 0) {
-                alert("【無法勾選】成績未達及格標準 (60分) 或成績無效，無法開立「成績及格證明章」！");
+                alert("【無法勾選】檢測到測驗過程中存在作弊行為或惡意交白卷，無法開立測驗單位章！");
                 chk.checked = false;
             }
         } else if (val === 'excellent') {
@@ -2391,6 +2386,26 @@ function updateTaipeiClock() {
         });
     }
 
+    function buildOfficialSealSvg(kind, certificateNumber, issueDate) {
+        const isExcellent = kind === 'excellent';
+        const title = isExcellent ? '成績優良' : '測驗單位';
+        const subtitle = isExcellent ? '證明章' : '多功能測驗網';
+        const number = isExcellent ? `<text x="150" y="238" text-anchor="middle" font-size="11" letter-spacing="1">${escapeHtml(certificateNumber)}</text>` : '';
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="270" viewBox="0 0 300 270">
+            <rect width="300" height="270" fill="white"/>
+            <g fill="none" stroke="#9f1239">
+                <rect x="12" y="12" width="276" height="246" stroke-width="8"/>
+                <rect x="25" y="25" width="250" height="220" stroke-width="2"/>
+                <path d="M25 116H275M150 25V245" stroke-width="2"/>
+            </g>
+            <g fill="#9f1239" font-family="Noto Serif TC, Noto Serif CJK TC, serif" font-weight="700" text-anchor="middle">
+                <text x="87" y="103" font-size="38">${title[0]}</text><text x="212" y="103" font-size="38">${title[1]}</text>
+                <text x="87" y="190" font-size="38">${title[2] || ''}</text><text x="212" y="190" font-size="38">${title[3] || ''}</text>
+                <text x="150" y="216" font-size="15" letter-spacing="2">${subtitle}</text>${number}
+            </g>
+        </svg>`;
+    }
+
     async function processPDFDownload(includeWrong, addonCode, selectedStamps) {
         closePdfModal();
         if (!window.PDFLib || !window.fontkit) return alert('正式 PDF 元件尚未載入，請重新整理頁面後再試。');
@@ -2407,7 +2422,7 @@ function updateTaipeiClock() {
             const { PDFDocument, rgb, degrees } = PDFLib;
             const pdfDoc = await PDFDocument.create();
             pdfDoc.registerFontkit(window.fontkit);
-            const fontBytes = await fetch('assets/fonts/NotoSansCJKsc-Regular.otf').then(r => {
+            const fontBytes = await fetch('assets/fonts/NotoSansTC-Regular.ttf').then(r => {
                 if (!r.ok) throw new Error('繁中字型載入失敗');
                 return r.arrayBuffer();
             });
@@ -2420,10 +2435,9 @@ function updateTaipeiClock() {
             const newPage = (continuation = false) => {
                 page = pdfDoc.addPage([PAGE_W, PAGE_H]);
                 page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: rgb(1, 1, 1) });
-                page.drawRectangle({ x: 0, y: PAGE_H - 76, width: PAGE_W, height: 76, color: navy });
-                page.drawText('多功能線上測驗網', { x: M, y: PAGE_H - 34, size: 20, font: boldFont, color: rgb(1, 1, 1) });
-                page.drawText(continuation ? '成績證明書・續頁' : '正式測驗成績證明書', { x: M, y: PAGE_H - 58, size: 10, font, color: rgb(0.80, 0.86, 0.93) });
-                page.drawRectangle({ x: M, y: PAGE_H - 86, width: CONTENT_W, height: 3, color: red });
+                page.drawText('多功能線上測驗網', { x: M, y: PAGE_H - 34, size: 20, font: boldFont, color: ink });
+                page.drawText(continuation ? '成績證明書・續頁' : '正式測驗成績證明書', { x: M, y: PAGE_H - 58, size: 10, font, color: muted });
+                page.drawRectangle({ x: M, y: PAGE_H - 86, width: CONTENT_W, height: 1.2, color: ink });
                 y = PAGE_H - 112;
             };
             const ensure = amount => { if (y - amount < 48) { newPage(true); } };
@@ -2459,7 +2473,7 @@ function updateTaipeiClock() {
             y -= 12;
 
             ensure(86);
-            page.drawRectangle({ x: M, y: y - 72, width: CONTENT_W, height: 72, color: rgb(0.96, 0.97, 0.99), borderColor: navy, borderWidth: 1.2 });
+            page.drawRectangle({ x: M, y: y - 72, width: CONTENT_W, height: 72, color: rgb(1, 1, 1), borderColor: ink, borderWidth: 1.2 });
             page.drawText('測驗總成績', { x: M + 18, y: y - 25, size: 11, font: boldFont, color: muted });
             page.drawText(formatText('res-score') || '0', { x: M + 18, y: y - 57, size: 28, font: boldFont, color: navy });
             page.drawText('分', { x: M + 72, y: y - 55, size: 12, font, color: muted });
@@ -2480,19 +2494,18 @@ function updateTaipeiClock() {
             text(`本證明書由多功能線上測驗網依測驗紀錄核發，證明 ${username} 於上述時間完成「${subject}」測驗。證明書編號、核發時間及成績資料應以系統驗證結果為準。`, M, 9.5, ink, CONTENT_W, 15);
             y -= 10;
             page.drawRectangle({ x: M, y: y - 70, width: 205, height: 70, color: pale, borderColor: line, borderWidth: 0.8 });
-            // 傳統朱文雙框方印：以「多功能／測驗網」分格排印，避免使用像貼圖的斜體假章。
-            const sealX = M + 14, sealY = y - 65, sealSize = 54;
-            page.drawRectangle({ x: sealX, y: sealY, width: sealSize, height: sealSize, borderColor: red, borderWidth: 2.2 });
-            page.drawRectangle({ x: sealX + 4, y: sealY + 4, width: sealSize - 8, height: sealSize - 8, borderColor: red, borderWidth: 0.9 });
-            page.drawLine({ start: { x: sealX + sealSize / 2, y: sealY + 4 }, end: { x: sealX + sealSize / 2, y: sealY + sealSize - 4 }, thickness: 0.8, color: red });
-            page.drawLine({ start: { x: sealX + 4, y: sealY + sealSize / 2 }, end: { x: sealX + sealSize - 4, y: sealY + sealSize / 2 }, thickness: 0.8, color: red });
-            page.drawText('多', { x: sealX + 10, y: sealY + 31, size: 15, font: boldFont, color: red });
-            page.drawText('功', { x: sealX + 33, y: sealY + 31, size: 15, font: boldFont, color: red });
-            page.drawText('測', { x: sealX + 10, y: sealY + 8, size: 15, font: boldFont, color: red });
-            page.drawText('驗', { x: sealX + 33, y: sealY + 8, size: 15, font: boldFont, color: red });
-            page.drawText('核發單位印', { x: M + 82, y: y - 22, size: 9, font: boldFont, color: muted });
-            page.drawText(selectedStamps.length ? '成績核發確認' : '成績證明文件', { x: M + 82, y: y - 44, size: 11, font: boldFont, color: red });
-            page.drawText('正式簽章須由核發單位憑證完成', { x: M + 82, y: y - 61, size: 7, font, color: muted });
+                        const stampKinds = selectedStamps.filter(value => value === 'unit' || value === 'excellent');
+            for (let stampIndex = 0; stampIndex < stampKinds.length; stampIndex += 1) {
+                const sealPng = await svgMarkupToPngDataUrl(buildOfficialSealSvg(stampKinds[stampIndex], certificateNumber, rocDate), 150, 135);
+                if (sealPng) {
+                    const sealImage = await pdfDoc.embedPng(sealPng.dataUrl);
+                    page.drawImage(sealImage, { x: M + 10 + stampIndex * 66, y: y - 66, width: 60, height: 54 });
+                }
+            }
+            const stampLabel = stampKinds.length === 2 ? '測驗單位章／成績優良證明章' : (stampKinds[0] === 'excellent' ? '成績優良證明章' : stampKinds[0] === 'unit' ? '測驗單位章' : '未選擇印章');
+            page.drawText('核發單位印', { x: M + 145, y: y - 22, size: 9, font: boldFont, color: muted });
+            page.drawText(stampLabel, { x: M + 145, y: y - 44, size: 8.5, font: boldFont, color: ink });
+            page.drawText('SVG 印章／正式憑證簽章位置', { x: M + 145, y: y - 61, size: 7, font, color: muted });
             page.drawText(`驗證碼：${certificateNumber}`, { x: M + 235, y: y - 25, size: 8.5, font, color: muted });
             page.drawText('請由核發單位系統查驗本證明書真偽。', { x: M + 235, y: y - 45, size: 8.5, font, color: ink });
             y -= 96;
