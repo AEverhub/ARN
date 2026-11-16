@@ -250,9 +250,6 @@ function updateTaipeiClock() {
         document.getElementById('auth-pass-toggle').setAttribute('aria-pressed', String(reveal));
         document.getElementById('auth-pass-toggle').setAttribute('aria-label', reveal ? '隱藏密碼' : '顯示密碼');
     });
-    document.getElementById('auth-pass')?.addEventListener('keydown', event => {
-        if (event.key === 'Enter' && !document.getElementById('auth-submit-btn').disabled) handleAuthSubmit();
-    });
     document.getElementById('auth-form')?.addEventListener('submit', event => {
         event.preventDefault();
         if (!document.getElementById('auth-submit-btn').disabled) handleAuthSubmit();
@@ -1393,7 +1390,7 @@ function updateTaipeiClock() {
 
     function applyQuizMode(dataset, quiz = window.currentQuiz) {
         const mode = normalizeQuizMode(quiz);
-        let result = JSON.parse(JSON.stringify(Array.isArray(dataset) ? dataset : []));
+        let result = cloneQuizData(Array.isArray(dataset) ? dataset : []);
         const shuffleOptions = mode === 2 || mode === 4;
         const shuffleQuestions = mode === 3 || mode === 4;
 
@@ -1402,6 +1399,22 @@ function updateTaipeiClock() {
             result = shuffleArray(result);
         }
         return result;
+    }
+
+    function cloneQuizData(value, seen = new WeakMap()) {
+        if (value === null || typeof value !== 'object') return value;
+        if (typeof Node !== 'undefined' && value instanceof Node) return value.cloneNode(true);
+        if (seen.has(value)) return seen.get(value);
+        if (Array.isArray(value)) {
+            const copy = [];
+            seen.set(value, copy);
+            value.forEach(item => copy.push(cloneQuizData(item, seen)));
+            return copy;
+        }
+        const copy = Object.create(Object.getPrototypeOf(value) === null ? null : Object.prototype);
+        seen.set(value, copy);
+        Object.keys(value).forEach(key => { copy[key] = cloneQuizData(value[key], seen); });
+        return copy;
     }
 
     function confirmQuizEntry() {
@@ -1442,6 +1455,7 @@ function updateTaipeiClock() {
                         name: legacy.title || code,
                         time: legacy.time || 20,
                         data: legacy.questions.map(item => ({
+                            ...item,
                             q: item.q || item.question,
                             o: item.o || item.options || [],
                             a: (item.a !== undefined ? item.a : item.ans) !== undefined
@@ -1452,7 +1466,9 @@ function updateTaipeiClock() {
                                         : (item.a !== undefined ? item.a : item.ans)))
                                 : '',
                             type: item.type || 'single',
-                            image: item.image || ''
+                            image: item.image || '',
+                            svg: item.svg,
+                            svgAlt: item.svgAlt
                         }))
                     };
                 }

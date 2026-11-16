@@ -43,7 +43,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
         const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
         const responseBody = await response.json();
         if (!response.ok) throw new Error(responseBody?.error?.message || `AI API 錯誤（HTTP ${response.status}）`);
-        const text = (localCfg.provider === 'gemini' ? responseBody?.candidates?.[0]?.content?.parts?.[0]?.text : responseBody?.choices?.[0]?.message?.content)?.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+        const text = (cfg.provider === 'gemini' ? responseBody?.candidates?.[0]?.content?.parts?.[0]?.text : responseBody?.choices?.[0]?.message?.content)?.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
         if (!text) throw new Error('AI 沒有回傳有效內容');
         return JSON.parse(text);
     }
