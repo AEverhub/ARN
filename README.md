@@ -101,7 +101,7 @@ window.currentQuiz = {
 
 ```js
 window.currentQuiz = {
-  name: "SVG 圖形題示範",
+  name: "測試題庫1",
   time: 10,
   data: [
     {
@@ -111,14 +111,23 @@ window.currentQuiz = {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img">
           <rect width="320" height="180" rx="12" fill="#f8fafc"/>
           <path d="M40 145H290M55 160V20" stroke="#475569" stroke-width="2"/>
-          <path d="M65 135L260 40" stroke="#2563eb" stroke-width="5"/>
-          <circle cx="65" cy="135" r="5" fill="#dc2626"/>
+          <path d="M55 145L265 40" stroke="#2563eb" stroke-width="5"/>
+          <circle cx="55" cy="145" r="5" fill="#dc2626"/>
           <text x="80" y="30" font-size="18" fill="#0f172a">第 ${index + 1} 題</text>
-        </svg>`
+        </svg>`,
+      o: [
+        "(A) $\\frac{1}{2}$",
+        "(B) $2$",
+        "(C) $-\\frac{1}{2}$",
+        "(D) $-2$"
+      ],
+      a: "A"
     }
   ]
 };
 ```
+
+選項中的 LaTeX 使用 `$...$` 行內分隔符；在 JavaScript 字串中，公式的反斜線要跳脫，例如 `"(A) $\\frac{1}{2}$"`。
 
 也可以直接提供字串，例如 `svg: "<svg ...>...</svg>"`。SVG 會經過基本清理：移除腳本、事件處理屬性、嵌入式 HTML 與外部資源引用。請使用自包含的 SVG，避免依賴外部圖片或字型。
 
