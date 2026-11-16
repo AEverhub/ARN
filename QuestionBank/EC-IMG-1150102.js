@@ -1,6 +1,6 @@
 window.currentQuiz = {
   name: "電子學1150102（SVG圖片題）",
-  time: 50,
+  time: 25,
   mode: 4,
   data: [
     {
