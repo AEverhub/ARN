@@ -2480,9 +2480,19 @@ function updateTaipeiClock() {
             text(`本證明書由多功能線上測驗網依測驗紀錄核發，證明 ${username} 於上述時間完成「${subject}」測驗。證明書編號、核發時間及成績資料應以系統驗證結果為準。`, M, 9.5, ink, CONTENT_W, 15);
             y -= 10;
             page.drawRectangle({ x: M, y: y - 70, width: 205, height: 70, color: pale, borderColor: line, borderWidth: 0.8 });
-            page.drawText('核發單位章／驗證章', { x: M + 14, y: y - 20, size: 9, font, color: muted });
-            page.drawText(selectedStamps.length ? '成績核發確認' : '成績證明文件', { x: M + 24, y: y - 48, size: 13, font: boldFont, color: red, rotate: degrees(-3) });
-            page.drawText('（正式電子簽章位置）', { x: M + 28, y: y - 62, size: 7, font, color: muted });
+            // 傳統朱文雙框方印：以「多功能／測驗網」分格排印，避免使用像貼圖的斜體假章。
+            const sealX = M + 14, sealY = y - 65, sealSize = 54;
+            page.drawRectangle({ x: sealX, y: sealY, width: sealSize, height: sealSize, borderColor: red, borderWidth: 2.2 });
+            page.drawRectangle({ x: sealX + 4, y: sealY + 4, width: sealSize - 8, height: sealSize - 8, borderColor: red, borderWidth: 0.9 });
+            page.drawLine({ start: { x: sealX + sealSize / 2, y: sealY + 4 }, end: { x: sealX + sealSize / 2, y: sealY + sealSize - 4 }, thickness: 0.8, color: red });
+            page.drawLine({ start: { x: sealX + 4, y: sealY + sealSize / 2 }, end: { x: sealX + sealSize - 4, y: sealY + sealSize / 2 }, thickness: 0.8, color: red });
+            page.drawText('多', { x: sealX + 10, y: sealY + 31, size: 15, font: boldFont, color: red });
+            page.drawText('功', { x: sealX + 33, y: sealY + 31, size: 15, font: boldFont, color: red });
+            page.drawText('測', { x: sealX + 10, y: sealY + 8, size: 15, font: boldFont, color: red });
+            page.drawText('驗', { x: sealX + 33, y: sealY + 8, size: 15, font: boldFont, color: red });
+            page.drawText('核發單位印', { x: M + 82, y: y - 22, size: 9, font: boldFont, color: muted });
+            page.drawText(selectedStamps.length ? '成績核發確認' : '成績證明文件', { x: M + 82, y: y - 44, size: 11, font: boldFont, color: red });
+            page.drawText('正式簽章須由核發單位憑證完成', { x: M + 82, y: y - 61, size: 7, font, color: muted });
             page.drawText(`驗證碼：${certificateNumber}`, { x: M + 235, y: y - 25, size: 8.5, font, color: muted });
             page.drawText('請由核發單位系統查驗本證明書真偽。', { x: M + 235, y: y - 45, size: 8.5, font, color: ink });
             y -= 96;
