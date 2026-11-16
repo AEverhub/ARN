@@ -124,12 +124,12 @@ window.currentQuiz = {
 
 ## 圖片路徑
 
-一般圖片檔可繼續放在儲存庫根目錄；由於題庫腳本現在位於 `QuestionBank/`，題目圖片路徑必須以題庫腳本所在資料夾為基準。例如引用根目錄的圖片，使用 `../EC-P2-1.jpg`：
+目前儲存庫不附帶 JPG 圖片。若之後新增題目圖片，可放在 `QuestionBank/images/`；圖片路徑以題庫腳本所在資料夾為基準，例如 `images/figure.png`：
 
 ```js
 {
   q: "請觀察電路圖後回答。",
-  image: "../EC-P2-1.jpg",
+  image: "images/figure.png",
   imageAlt: "電路圖",
   o: ["(A) 選項一", "(B) 選項二", "(C) 選項三", "(D) 選項四"],
   a: "A"
