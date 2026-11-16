@@ -1,5 +1,5 @@
 window.currentQuiz = {
-  name: "電子學1150102（範圍3,4章）",
+  name: "電子學1150102（圖片+文字）",
   time: 50,
   mode: 4,
   data: [
