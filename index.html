@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="assets/css/styles.css?v=20261123-choice-review">
     <link rel="stylesheet" href="assets/css/mbti.css">
-    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123">
+    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-direct-ui">
 </head>
 <body oncontextmenu="return false">
 
@@ -269,6 +269,10 @@
     <div id="account-screen" class="hidden sub-view" style="color:#333;">
         <h3>帳號管理中心</h3>
         <p style="color:#64748b; font-size:0.95em;">在此管理您的考生身分、測驗歷史紀錄與安全偏好設定。</p>
+        <div class="points-account-shortcut" aria-label="積分銀行快捷入口">
+            <div><span>剩餘積分</span><strong id="points-account-total-balance">0</strong></div>
+            <button type="button" class="points-account-add" onclick="goToPointsBank()" aria-label="前往積分銀行">＋</button>
+        </div>
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <p><strong>當前登入信箱：</strong> <span id="acc-email-display">尚未登入</span></p>
             <p><strong>當前登入姓名：</strong> <span id="acc-name-display">尚未設定</span></p>
@@ -282,7 +286,7 @@
             </div>
             <p><strong>系統識別碼 (UUID)：</strong> <span id="acc-uuid" style="font-family:monospace; color:#2980b9;">ST-2026-X99</span></p>
             <p><strong>歷史測驗總次數：</strong> <span id="acc-total-tests">0</span> 次</p>
-            <section class="points-wallet-card" aria-labelledby="points-wallet-title">
+            <section class="points-wallet-card" id="points-wallet-card" aria-labelledby="points-wallet-title">
                 <div class="points-wallet-heading"><div><span class="points-kicker">ARN POINTS BANK</span><h4 id="points-wallet-title">積分銀行</h4></div><button type="button" class="btn-sm btn-accent" onclick="refreshPointsWallet()">更新餘額</button></div>
                 <div class="points-balance-grid">
                     <div><span>永久積分</span><strong id="points-permanent-balance">0</strong></div>
@@ -442,7 +446,7 @@
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-verify')">重複註冊驗證碼<small>更新註冊驗證設定</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-quizzes')">題庫公開管理<small>公開題庫與答題限制</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-limits')">購買次數覆寫<small>設定個別帳號限制</small></button>
-                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-points')">積分銀行管理<small>發放、扣點、借款上限與流水</small></button>
+                <button class="admin-launcher-btn" onclick="document.getElementById('admin-points-management').scrollIntoView({behavior:'smooth',block:'start'})">積分銀行管理<small>直接發放、扣點、設定上限與查流水</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-board')">留言板與敏感詞<small>設定留言與審核內容</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-profiles')">帳號資料管理<small>編輯帳號與遺忘帳號</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-links')">外部分享連結<small>管理服務入口連結</small></button>
@@ -594,8 +598,7 @@
             </div>
 
             </div>
-<div id="admin-modal-admin-section-points" class="admin-feature-modal hidden" data-admin-modal="admin-section-points">
-<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-points')">關閉此功能</button>
+<section id="admin-points-management" class="admin-panel-group admin-operation-group points-admin-panel">
 <h4 class="admin-section-title" id="admin-section-points">積分銀行管理中心</h4>
 <p class="muted-note">管理操作均記錄於積分銀行流水。群發對象限啟用中的一般用戶；限時積分必須設定到期時間。</p>
 <div class="points-admin-grid">
@@ -623,7 +626,7 @@
 </div>
 <div class="points-ledger-header"><h5>積分銀行交易紀錄</h5><button type="button" class="btn-sm btn-accent" onclick="renderPointsAdminLedger()">重新整理</button></div>
 <div id="admin-points-ledger" class="points-ledger-list"></div>
-</div>
+</section>
 <div id="admin-modal-admin-section-board" class="admin-feature-modal hidden" data-admin-modal="admin-section-board">
 <button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-board')">關閉此功能</button>
 <h4 class="admin-section-title" id="admin-section-board">8. 留言板、敏感詞與資料管理</h4>
@@ -933,7 +936,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="assets/js/app.js?v=20261123-points-bank"></script>
-<script src="assets/js/points-bank-ui.js?v=20261123"></script>
+<script src="assets/js/points-bank-ui.js?v=20261123-direct-ui"></script>
 
 <script src="assets/js/extensions.js"></script>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>

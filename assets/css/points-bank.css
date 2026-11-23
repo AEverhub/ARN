@@ -1,5 +1,14 @@
 /* 積分銀行：延續 ARN 藍灰色管理介面，保持帳戶與管理面板在手機上的可讀性。 */
 .points-wallet-card { margin: 22px 0 4px; padding: 20px; border: 1px solid #cbd5e1; border-radius: 14px; background: linear-gradient(145deg, #f8fafc, #eef4fb); box-shadow: 0 10px 28px rgba(15, 23, 42, .06); }
+.points-account-shortcut { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 16px 0 8px; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; box-shadow: 0 5px 16px rgba(15, 23, 42, .05); }
+.points-account-shortcut > div { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.points-account-shortcut span { color: #475569; font-size: .9rem; font-weight: 750; }
+.points-account-shortcut strong { color: #0f766e; font-size: clamp(1.15rem, 4vw, 1.55rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.points-account-add { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border: 0; border-radius: 50%; background: #0f766e; color: #fff; font-size: 1.75rem; line-height: 1; cursor: pointer; box-shadow: 0 3px 9px rgba(15, 118, 110, .25); }
+.points-account-add:hover { background: #115e59; }
+.points-admin-panel { margin-top: 20px; padding: 18px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; scroll-margin-top: 20px; }
+.points-admin-panel > .admin-section-title { margin: 0 0 8px; color: #1a252f; }
+.points-admin-panel > .muted-note { margin: 0 0 12px; }
 .points-wallet-heading, .points-ledger-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .points-kicker { color: #64748b; font-size: .68rem; font-weight: 850; letter-spacing: .14em; }
 .points-wallet-heading h4 { margin: 3px 0 0; color: #0f172a; font-size: 1.25rem; }
@@ -43,6 +52,7 @@
 }
 @media (max-width: 480px) {
     .points-wallet-card { padding: 14px; }
+    .points-account-shortcut { padding: 12px; }
     .points-balance-grid { gap: 6px; }
     .points-balance-grid > div { padding: 10px 8px; }
     .points-wallet-heading { align-items: flex-start; }

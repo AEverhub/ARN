@@ -130,14 +130,25 @@ function getPointsLoanSummary(email) {
     return { loans, principal: Math.round(principal * 100) / 100, debt: Math.round(debt * 100) / 100, limit, remaining: Math.max(0, Math.round((limit - principal) * 100) / 100), overdue };
 }
 
+function goToPointsBank() {
+    if (!currentUser) return alert('請先登入後查看積分銀行。');
+    switchView('account');
+    window.setTimeout(() => document.getElementById('points-wallet-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
 function renderPointsWallet() {
-    if (!currentUser) return;
+    const shortcut = document.querySelector('.points-account-shortcut');
+    if (!currentUser) { shortcut?.classList.add('hidden'); return; }
+    shortcut?.classList.remove('hidden');
     const key = pointsUserKey(currentUser.email);
     const wallet = pointsBankMap?.wallets?.[key] || { permanent: 0, timedLots: [] };
     const now = Date.now();
     const lots = (Array.isArray(wallet.timedLots) ? wallet.timedLots : []).filter(lot => Number(lot.amount) > 0 && (!Number(lot.expiresAt) || Number(lot.expiresAt) > now)).sort((a, b) => (Number(a.expiresAt) || Number.MAX_SAFE_INTEGER) - (Number(b.expiresAt) || Number.MAX_SAFE_INTEGER));
     const timed = lots.reduce((sum, lot) => sum + Number(lot.amount || 0), 0);
+    const totalBalance = Math.round((Number(wallet.permanent || 0) + timed) * 100) / 100;
     const loan = getPointsLoanSummary(currentUser.email);
+    const summaryBalance = document.getElementById('points-account-total-balance');
+    if (summaryBalance) summaryBalance.textContent = formatPoints(totalBalance);
     document.getElementById('points-permanent-balance').textContent = formatPoints(wallet.permanent || 0);
     document.getElementById('points-timed-balance').textContent = formatPoints(timed);
     document.getElementById('points-loan-balance').textContent = formatPoints(loan.debt);
