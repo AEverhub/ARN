@@ -1103,7 +1103,7 @@ function updateTaipeiClock() {
         saveToFirebase('quizLimits', quizLimitsMap);
         document.getElementById('adminQuizLimitCount').disabled = mode === 'none';
         renderPublicQuizzesList();
-        alert(`題庫 [${code}] 的購買限制與價格已儲存（基本測驗價 ${formatPoints(price)} 點；檢視題庫為兩倍）。`);
+        alert(`題庫 [${code}] 的兌換限制與價格已儲存（基本測驗價 ${formatPoints(price)} 點；檢視題庫為兩倍）。`);
     }
 
     function saveAdminUserQuizLimit() {
@@ -1191,12 +1191,12 @@ function updateTaipeiClock() {
     }
 
     function consumeQuizAttempt(code) {
-        // 舊呼叫點相容用：新制只在 Firebase 原子購買成功時記錄購買次數。
+        // 舊呼叫點相容用：新制只在 Firebase 原子兌換成功時記錄兌換次數。
         return true;
     }
 
     function recordCompletedQuizAttempt(code) {
-        // 成績提交不再增加購買次數，避免同一購買被重複計數。
+        // 成績提交不再增加兌換次數，避免同一筆兌換被重複計數。
         return;
     }
 
@@ -1317,7 +1317,7 @@ function updateTaipeiClock() {
             const reviewQuote = getPointsPurchaseQuote('review', code, currentUser);
             reviewButton.innerText = currentUser?.role === 'admin' ? '檢視題庫（免費）' : `檢視題庫 · ${formatPoints(reviewQuote.cost)} 點`;
             reviewButton.disabled = !!reviewClaimPending || !!activeQuizReview || !!pendingQuizReviewSession;
-            reviewButton.title = reviewQuote.overLimit ? `今日額度已用；本次複習價格 ${formatPoints(reviewQuote.cost)} 點，明日台北時間重置。` : '主動回想完整題庫；一般使用者首個每日複習會話額度為 1 次，後續可按逐級價格購買。';
+            reviewButton.title = reviewQuote.overLimit ? `今日額度已用；本次複習價格 ${formatPoints(reviewQuote.cost)} 點，明日台北時間重置。` : '主動回想完整題庫；一般使用者首個每日複習會話額度為 1 次，後續可按逐級價格兌換。';
             reviewButton.onclick = () => reviewPublicQuiz(code);
             buttons.append(rankButton, reviewButton, startButton);
             listContainer.appendChild(item);
@@ -1434,7 +1434,7 @@ function updateTaipeiClock() {
         if (currentUser?.role !== 'admin') {
             const quote = getPointsPurchaseQuote('review', code, currentUser);
             if (!quote.allowed) { pendingQuizReview = false; return alert(quote.message); }
-            if (!confirm(`檢視題庫「${window.currentQuiz.name || code}」將購買一個完整複習會話，價格為 ${formatPoints(quote.cost)} 點。限時積分優先扣除；確認購買？`)) {
+            if (!confirm(`檢視題庫「${window.currentQuiz.name || code}」將兌換一個完整複習會話，價格為 ${formatPoints(quote.cost)} 點。限時積分優先扣除；確認兌換？`)) {
                 pendingQuizReview = false;
                 renderPublicQuizzesList();
                 return;
@@ -1478,7 +1478,7 @@ function updateTaipeiClock() {
             await persistQuizReviewSession(activeQuizReview);
         } catch (error) {
             console.error('複習進度保存失敗：', error);
-            alert('複習已購買並可繼續使用，但目前無法同步保存進度。請保持頁面開啟；網路恢復後的後續操作會再嘗試同步。');
+            alert('複習已兌換並可繼續使用，但目前無法同步保存進度。請保持頁面開啟；網路恢復後的後續操作會再嘗試同步。');
         }
         document.getElementById('quiz-entry-area').classList.add('hidden');
         document.getElementById('quiz-ui').classList.add('hidden');
@@ -1489,7 +1489,7 @@ function updateTaipeiClock() {
             await showNextQuizReviewCard();
         } catch (error) {
             console.error('複習卡片進度同步失敗：', error);
-            alert('已購買的複習會話仍可繼續，但目前無法同步保存進度。請保持頁面開啟並確認網路連線。');
+            alert('已兌換的複習會話仍可繼續，但目前無法同步保存進度。請保持頁面開啟並確認網路連線。');
         }
     }
 
@@ -1834,10 +1834,10 @@ function updateTaipeiClock() {
         const priceText = currentUser?.role === 'admin' || window.__rmsContestContext
             ? '本次免點數'
             : quote.allowed ? `${formatPoints(quote.cost)} 點${quote.overLimit ? '（超出每日額度價格）' : ''}` : quote.message;
-        document.getElementById('quiz-entry-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(quiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(pendingQuizCode)}<br><strong>本次購買：</strong>${escapeHtml(priceText)}<br><small>確認後扣款並記錄一次購買；開始後離開不退款。</small>`;
+        document.getElementById('quiz-entry-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(quiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(pendingQuizCode)}<br><strong>本次兌換：</strong>${escapeHtml(priceText)}<br><small>確認後扣款並記錄一次兌換；開始後離開不退款。</small>`;
         document.getElementById('quiz-entry-confirm-modal').classList.remove('hidden');
         clearInterval(quizEntryCountdownTimer);
-        document.getElementById('quiz-entry-countdown').innerText = '尚未扣點；請確認價格後按「確認購買並進入」。';
+        document.getElementById('quiz-entry-countdown').innerText = '尚未扣點；請確認價格後按「確認兌換並進入」。';
     }
 
     function submitQuizPassword() {
@@ -1998,7 +1998,7 @@ function updateTaipeiClock() {
             beginQuiz(orderedDataset);
         };
         if (window.__rmsContestContext) return start();
-        if (!currentUser) return alert('請先登入後再購買題庫作答資格。');
+        if (!currentUser) return alert('請先登入後再兌換題庫作答資格。');
         if (currentUser.role === 'admin') return start();
         const purchased = await requestPointsPurchase('quiz', pendingQuizCode, start);
         if (!purchased && !pendingPointsLoan) {

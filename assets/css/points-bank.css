@@ -9,13 +9,22 @@
 .points-admin-panel { margin-top: 20px; padding: 18px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; scroll-margin-top: 20px; }
 .points-admin-panel > .admin-section-title { margin: 0 0 8px; color: #1a252f; }
 .points-admin-panel > .muted-note { margin: 0 0 12px; }
-.points-admin-claim { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 12px 0 16px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; }
-.points-admin-claim > div { min-width: 0; }
-.points-admin-claim > div > strong { color: #0f172a; }
-.points-admin-claim small { color: #64748b; line-height: 1.5; }
 .points-admin-claim-status { margin: 4px 0; color: #0f766e; font-size: .88rem; font-weight: 750; overflow-wrap: anywhere; }
 .points-admin-claim-status.is-error { color: #b91c1c; }
-.points-admin-claim button { flex: 0 0 auto; white-space: nowrap; }
+.points-admin-treasury-summary { margin: 14px 0 18px; padding: 18px; border: 1px solid #cbd5e1; border-radius: 14px; background: linear-gradient(140deg, #f8fbff 0%, #eef5fb 100%); box-shadow: 0 8px 22px rgba(15, 23, 42, .05); }
+.points-admin-treasury-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.points-admin-treasury-title { min-width: 0; }
+.points-admin-treasury-title h5 { margin: 3px 0 4px; color: #0f172a; font-size: 1.18rem; }
+.points-admin-treasury-title > span:not(.points-kicker) { color: #475569; font-size: .88rem; overflow-wrap: anywhere; }
+.points-admin-treasury-title .points-admin-claim-status { margin: 5px 0 0; font-size: .78rem; }
+.points-admin-treasury-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+.points-admin-treasury-actions button { white-space: nowrap; }
+.points-treasury-balance-grid { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 10px; margin-top: 15px; }
+.points-treasury-balance-grid > div { min-width: 0; padding: 12px 14px; border: 1px solid #dbe4ef; border-radius: 10px; background: rgba(255, 255, 255, .9); }
+.points-treasury-balance-grid > div:first-child { border-color: #99f6e4; background: #f0fdfa; }
+.points-treasury-balance-grid span { display: block; color: #64748b; font-size: .78rem; font-weight: 750; }
+.points-treasury-balance-grid strong { display: block; margin-top: 5px; color: #0f766e; font-size: clamp(1.1rem, 3vw, 1.55rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.points-admin-treasury-note { margin: 11px 0 0; color: #475569; font-size: .8rem; line-height: 1.6; }
 .points-wallet-heading, .points-ledger-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .points-kicker { color: #64748b; font-size: .68rem; font-weight: 850; letter-spacing: .14em; }
 .points-wallet-heading h4 { margin: 3px 0 0; color: #0f172a; font-size: 1.25rem; }
@@ -35,8 +44,21 @@
 .points-bank-action label, .points-admin-card label { display: block; margin: 8px 0 4px; color: #475569; font-size: .8rem; font-weight: 700; }
 .points-bank-action .code-input, .points-admin-card .code-input { margin-bottom: 7px; }
 .points-loan-disclaimer { margin: 9px 0 0; color: #64748b; font-size: .76rem; line-height: 1.55; }
-.points-admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 14px 0 20px; }
-.points-admin-card .main-btn { margin-top: 6px; }
+.points-admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 14px 0 20px; }
+.points-admin-card { padding: 17px; }
+.points-admin-card h5 { margin-bottom: 12px; }
+.points-admin-card-desc { margin: -6px 0 10px; color: #64748b; font-size: .78rem; line-height: 1.5; }
+.points-admin-card .main-btn { margin-top: 8px; }
+.points-admin-card--featured { grid-column: 1 / -1; padding: 19px; border-color: #99f6e4; background: linear-gradient(135deg, #f0fdfa 0%, #fff 72%); }
+.points-admin-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 9px; }
+.points-admin-card-heading h5 { margin: 3px 0 4px; color: #0f172a; font-size: 1.08rem; }
+.points-admin-card-heading p { margin: 0; color: #64748b; font-size: .82rem; line-height: 1.5; }
+.points-admin-ledger-badge { flex: 0 0 auto; padding: 5px 9px; border: 1px solid #99f6e4; border-radius: 999px; background: #fff; color: #0f766e; font-size: .72rem; font-weight: 750; }
+.points-admin-form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.points-admin-form-grid > div { min-width: 0; }
+.points-admin-form-grid label { margin-top: 4px; }
+.points-admin-form-grid .code-input { width: 100%; box-sizing: border-box; }
+.points-admin-primary-action { min-width: 190px; margin-top: 9px !important; }
 .points-ledger-header { margin-top: 16px; }
 .points-ledger-header h5 { margin: 0; color: #0f172a; }
 .points-ledger-list { display: grid; gap: 8px; max-height: 430px; margin-top: 10px; overflow: auto; }
@@ -54,13 +76,26 @@
 .quiz-price-note { display: block; margin-top: 4px; color: #64748b; font-size: .78rem; font-weight: 650; }
 @media (max-width: 720px) {
     .points-admin-grid, .points-bank-actions { grid-template-columns: minmax(0, 1fr); }
+    .points-admin-card--featured { grid-column: auto; }
+    .points-admin-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .points-ledger-entry { grid-template-columns: 1fr auto; }
     .points-ledger-entry > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
 }
 @media (max-width: 480px) {
     .points-wallet-card { padding: 14px; }
     .points-home-points-shortcut { padding: 12px; }
-    .points-admin-claim { align-items: stretch; flex-direction: column; }
+    .points-admin-treasury-summary { padding: 14px; }
+    .points-admin-treasury-heading { align-items: flex-start; flex-direction: column; }
+    .points-admin-treasury-actions { width: 100%; }
+    .points-admin-treasury-actions button { flex: 1; }
+    .points-treasury-balance-grid { gap: 6px; }
+    .points-treasury-balance-grid > div { padding: 9px 7px; }
+    .points-treasury-balance-grid span { font-size: .68rem; }
+    .points-treasury-balance-grid strong { font-size: 1rem; }
+    .points-admin-form-grid { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .points-admin-primary-action { width: 100%; }
+    .points-admin-card-heading { gap: 8px; }
+    .points-admin-ledger-badge { font-size: .65rem; }
     .points-balance-grid { gap: 6px; }
     .points-balance-grid > div { padding: 10px 8px; }
     .points-wallet-heading { align-items: flex-start; }

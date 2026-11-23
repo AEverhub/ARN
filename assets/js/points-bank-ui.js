@@ -1,5 +1,6 @@
 /* 積分銀行 UI 與流程。點數交易本身由 firebase.js 的 Realtime Database transaction 處理。 */
 let pointsBankSyncPromise = null;
+let pointsBankSyncEmail = null;
 
 function pointsUserKey(email) {
     return encodeURIComponent(String(email || '').trim().toLowerCase()).replace(/\./g, '%2E');
@@ -49,7 +50,7 @@ function getPointsPurchaseQuote(kind, code, user = currentUser) {
         return {
             allowed: false, locked: true, cost: base, base, overLimit: false, mode, max,
             accountDaily, deviceDaily, accountGlobal, deviceGlobal,
-            message: isAccount ? '此帳號的題庫永久購買次數已達上限，無法再購買。' : '此瀏覽器設定檔的題庫永久購買次數已達上限；更換帳號也無法繼續購買。'
+            message: isAccount ? '此帳號的題庫永久兌換次數已達上限，無法再兌換。' : '此瀏覽器設定檔的題庫永久兌換次數已達上限；更換帳號也無法繼續兌換。'
         };
     }
     let cost = base;
@@ -73,6 +74,7 @@ function applyPointsBankResult(result, options = {}) {
     if (currentUser) renderPublicQuizzesList();
     if (currentUser?.role === 'admin') {
         renderPointsAdminLedger();
+        renderPointsAdminTreasury();
         if (typeof updateAdminStats === 'function') updateAdminStats();
     }
     if (options.status && document.getElementById('points-wallet-status')) {
@@ -83,14 +85,52 @@ function applyPointsBankResult(result, options = {}) {
     }
 }
 
+function renderPointsAdminTreasury() {
+    const account = document.getElementById('points-admin-treasury-account');
+    const totalNode = document.getElementById('points-admin-treasury-total');
+    const permanentNode = document.getElementById('points-admin-treasury-permanent');
+    const timedNode = document.getElementById('points-admin-treasury-timed');
+    if (!account || !totalNode || !permanentNode || !timedNode) return;
+    const email = String(pointsBankMap?.treasuryEmail || '').trim();
+    const claimButton = document.getElementById('admin-claim-points-treasury');
+    if (claimButton) {
+        const isClaimed = !!email && pointsUserKey(email) === pointsUserKey(currentUser?.email);
+        const isBoundElsewhere = !!email && !isClaimed;
+        claimButton.disabled = isClaimed || isBoundElsewhere;
+        claimButton.textContent = isClaimed ? '已認領' : isBoundElsewhere ? '銀行已綁定' : '認領銀行管理員';
+    }
+    if (!email) {
+        account.textContent = '尚未綁定銀行帳戶';
+        totalNode.textContent = permanentNode.textContent = timedNode.textContent = '—';
+        return;
+    }
+    const wallet = pointsBankMap?.wallets?.[pointsUserKey(email)] || { permanent: 0, timedLots: [] };
+    const now = Date.now();
+    const activeLots = (Array.isArray(wallet.timedLots) ? wallet.timedLots : []).filter(lot => Number(lot.amount) > 0 && (!Number(lot.expiresAt) || Number(lot.expiresAt) > now));
+    const permanent = Math.max(0, Number(wallet.permanent) || 0);
+    const timed = activeLots.reduce((sum, lot) => sum + Number(lot.amount || 0), 0);
+    account.textContent = `綁定帳戶：${email}`;
+    totalNode.textContent = `${formatPoints(permanent + timed)} 點`;
+    permanentNode.textContent = `${formatPoints(permanent)} 點`;
+    timedNode.textContent = `${formatPoints(timed)} 點`;
+}
+
 async function syncPointsBankAfterLogin() {
     if (!currentUser || typeof window.fbPointsBankAction !== 'function') return;
-    if (pointsBankSyncPromise) return pointsBankSyncPromise;
     const loginEmail = currentUser.email;
+    const loginKey = pointsUserKey(loginEmail);
+    if (pointsBankSyncPromise) {
+        if (pointsBankSyncEmail === loginKey) return pointsBankSyncPromise;
+        const previousSync = pointsBankSyncPromise;
+        await previousSync.catch(() => {});
+        if (pointsUserKey(currentUser?.email) !== loginKey) return;
+        return syncPointsBankAfterLogin();
+    }
+    pointsBankSyncEmail = loginKey;
     pointsBankSyncPromise = (async () => {
         try {
-            let result = await window.fbPointsBankAction('refresh', { email: loginEmail, actorRole: currentUser?.role });
-            if (currentUser?.email !== loginEmail) return;
+            let result = await window.fbPointsBankAction('refresh', { email: loginEmail, actorRole: currentUser?.role, actorEmail: currentUser?.role === 'admin' ? loginEmail : '' });
+            if (pointsUserKey(currentUser?.email) !== loginKey) return;
             applyPointsBankResult(result, { status: result.ok ? '積分銀行餘額已同步。' : pointsActionMessage(result), isError: !result.ok });
             if (currentUser?.role === 'admin' && !pointsBankMap?.treasuryEmail) {
                 result = await window.fbPointsBankAction('setTreasury', { actorRole: 'admin', actorEmail: loginEmail });
@@ -100,7 +140,10 @@ async function syncPointsBankAfterLogin() {
             console.error('積分銀行同步失敗：', error);
             applyPointsBankResult(null, { status: '積分銀行暫時無法連線；點數交易需連線成功後才會執行。', isError: true });
         } finally {
-            pointsBankSyncPromise = null;
+            if (pointsBankSyncEmail === loginKey) {
+                pointsBankSyncPromise = null;
+                pointsBankSyncEmail = null;
+            }
         }
     })();
     return pointsBankSyncPromise;
@@ -135,6 +178,23 @@ async function claimPointsBankAdmin() {
         const message = '認領失敗，請確認網路連線後重試。';
         if (status) { status.textContent = message; status.classList.add('is-error'); }
     } finally {
+        renderPointsAdminTreasury();
+    }
+}
+
+async function refreshPointsAdminTreasury() {
+    if (!currentUser || currentUser.role !== 'admin') return alert('只有管理員可以查看銀行餘額。');
+    if (typeof window.fbPointsBankAction !== 'function') return alert('積分銀行尚未連線，請稍後重試。');
+    const button = document.getElementById('points-admin-treasury-refresh');
+    if (button) button.disabled = true;
+    try {
+        const result = await window.fbPointsBankAction('refresh', { email: currentUser.email, actorRole: 'admin', actorEmail: currentUser.email });
+        applyPointsBankResult(result, { status: result.ok ? '銀行餘額已更新。' : pointsActionMessage(result), isError: !result.ok });
+        if (!result.ok) alert(pointsActionMessage(result));
+    } catch (error) {
+        console.error('更新銀行餘額失敗：', error);
+        alert(`更新銀行餘額失敗：${error.message || '網路連線失敗'}`);
+    } finally {
         if (button) button.disabled = false;
     }
 }
@@ -145,7 +205,7 @@ async function refreshPointsWallet() {
     const button = document.querySelector('.points-wallet-heading button');
     if (button) button.disabled = true;
     try {
-        const result = await window.fbPointsBankAction('refresh', { email: currentUser.email, actorRole: currentUser.role });
+        const result = await window.fbPointsBankAction('refresh', { email: currentUser.email, actorRole: currentUser.role, actorEmail: currentUser.role === 'admin' ? currentUser.email : '' });
         applyPointsBankResult(result, { status: result.ok ? '餘額及到期貸款已更新。' : pointsActionMessage(result), isError: !result.ok });
     } catch (error) {
         console.error(error);
@@ -196,7 +256,7 @@ function renderPointsWallet() {
     status.textContent = loan.overdue
         ? `目前有逾期欠款 ${formatPoints(loan.debt)} 點；已鎖定新借款。點數到帳後將依規則補結算。`
         : loan.debt > 0 ? `貸款尚未到期；未償本金 ${formatPoints(loan.principal)} 點，含固定 5% 費用的剩餘應還額 ${formatPoints(loan.debt)} 點。`
-            : currentUser.role === 'admin' ? `銀行管理帳戶：${pointsBankMap?.treasuryEmail || currentUser.email}。管理員購買免扣點。`
+            : currentUser.role === 'admin' ? `銀行管理帳戶：${pointsBankMap?.treasuryEmail || currentUser.email}。管理員兌換免扣點。`
                 : '消費優先扣除最早到期的限時積分，再使用永久積分。';
     const lotsContainer = document.getElementById('points-timed-lots');
     lotsContainer.innerHTML = lots.length ? `<strong>限時積分批次（先用最早到期批次）</strong>${lots.map(lot => `<div class="points-timed-lot">${formatPoints(lot.amount)} 點 · 到期：${formatPointsDate(lot.expiresAt)}</div>`).join('')}` : '<div class="points-timed-lot">目前沒有有效的限時積分。</div>';
@@ -219,17 +279,18 @@ function pointsActionMessage(result) {
         missing_code: '題庫資料不完整，請重新載入。',
         invalid_recipient: '收款帳號無效，不能轉給自己。',
         invalid_amount: '請輸入大於 0 的有效點數。',
+        invalid_reason: '請填寫銀行調度理由。',
         invalid_grant: '發放資料無效；限時積分需要晚於現在的到期時間。',
-        insufficient: `積分不足（目前餘額 ${formatPoints(result.balance || 0)} 點）。`,
-        account_global_limit: '此帳號已達題庫永久購買次數上限，不能用積分跳過。',
-        device_global_limit: '此裝置設定檔已達題庫永久購買次數上限；切換帳號也無法購買。',
+        insufficient: `可用積分不足（本次扣款方式可用 ${formatPoints(result.balance || 0)} 點）。`,
+        account_global_limit: '此帳號已達題庫永久兌換次數上限，不能用積分跳過。',
+        device_global_limit: '此裝置設定檔已達題庫永久兌換次數上限；切換帳號也無法兌換。',
         overdue: '目前有逾期欠款，還款完成前不能再借款。',
         limit: '借款金額超過個人剩餘借款上限，或管理員尚未設定借款額度。',
         loan_limit: '借款超過個人可用上限；請先歸還積分或聯絡管理員調整額度。',
         admin_loan_not_needed: '管理員不受積分不足限制。',
-        price_changed: '價格或購買次數剛被其他裝置更新，請確認最新價格後再購買。',
+        price_changed: '價格或兌換次數剛被其他裝置更新，請確認最新價格後再兌換。',
         loan_amount_changed: '餘額或價格已變動，所需借款超過您剛才同意的本金；請重新確認。',
-        treasury_not_configured: '積分銀行管理員帳戶正在自動同步，請稍候片刻後重試。'
+        treasury_not_configured: '積分銀行帳戶尚未綁定；請由管理員認領帳戶後再重試。'
     };
     return messages[result?.reason] || '操作未完成，請稍後再試。';
 }
@@ -267,7 +328,7 @@ async function requestPointsPurchase(kind, code, afterSuccess) {
     if (pointsActionPending) return false;
     const quote = getPointsPurchaseQuote(kind, code, currentUser);
     if (!quote.allowed) { alert(quote.message); return false; }
-    if (typeof window.fbPointsBankAction !== 'function') { alert('積分銀行尚未連線，無法購買。'); return false; }
+    if (typeof window.fbPointsBankAction !== 'function') { alert('積分銀行尚未連線，無法兌換。'); return false; }
     const payload = {
         email: currentUser.email,
         actorRole: currentUser.role,
@@ -284,7 +345,7 @@ async function requestPointsPurchase(kind, code, afterSuccess) {
         const result = await window.fbPointsBankAction('buy', payload);
         applyPointsBankResult(result);
         if (result.ok) {
-            if (result.cost > 0) applyPointsBankResult(result, { status: `已購買${kind === 'review' ? '複習會話' : '作答資格'}，扣除 ${formatPoints(result.cost)} 點。` });
+            if (result.cost > 0) applyPointsBankResult(result, { status: `已兌換${kind === 'review' ? '複習會話' : '作答資格'}，扣除 ${formatPoints(result.cost)} 點。` });
             afterSuccess?.();
             return true;
         }
@@ -313,8 +374,8 @@ async function requestPointsPurchase(kind, code, afterSuccess) {
         alert(pointsActionMessage(result));
         return false;
     } catch (error) {
-        console.error('積分購買失敗：', error);
-        alert(`積分購買目前無法完成：${error.message || '網路連線失敗'}`);
+        console.error('積分兌換失敗：', error);
+        alert(`積分兌換目前無法完成：${error.message || '網路連線失敗'}`);
         return false;
     } finally {
         pointsActionPending = false;
@@ -356,7 +417,7 @@ async function confirmPointsLoan() {
         document.getElementById('points-loan-modal').classList.add('hidden');
         document.getElementById('points-loan-amount').value = '';
         if (context.type === 'purchase') {
-            applyPointsBankResult(result, { status: `已核准急難借款並完成購買；本次借款 ${formatPoints(result.borrowed)} 點，購買支出 ${formatPoints(result.cost)} 點。` });
+            applyPointsBankResult(result, { status: `已核准急難借款並完成兌換；本次借款 ${formatPoints(result.borrowed)} 點，兌換支出 ${formatPoints(result.cost)} 點。` });
             context.afterSuccess?.();
         } else {
             applyPointsBankResult(result, { status: `借款已核准 ${formatPoints(context.amount)} 點；本金 30 天到期，固定加還 5%。` });
@@ -411,7 +472,7 @@ function populatePointsAdminUsers() {
     allTarget.innerHTML = '<option value="__active_general__">群發：所有啟用中的一般用戶</option>';
     regularUsers.forEach(user => allTarget.add(new Option(`${user.name || user.email} (${user.email})${user.disabled ? ' [停用]' : ''}`, user.email)));
     if ([...allTarget.options].some(option => option.value === grantPrevious)) allTarget.value = grantPrevious;
-    ['admin-points-deduct-target', 'admin-points-loan-target'].forEach(id => {
+    ['admin-points-treasury-target', 'admin-points-deduct-target', 'admin-points-loan-target'].forEach(id => {
         const select = document.getElementById(id);
         const previous = select.value;
         select.innerHTML = '<option value="">選擇一般用戶</option>';
@@ -476,6 +537,42 @@ async function adminDeductPoints() {
     finally { pointsActionPending = false; }
 }
 
+async function adminDisburseTreasuryPoints() {
+    if (!currentUser || currentUser.role !== 'admin') return alert('只有管理員可以從銀行帳戶撥付點數。');
+    if (pointsActionPending) return;
+    const adminEmail = String(currentUser.email || '').trim();
+    if (pointsBankSyncPromise) await pointsBankSyncPromise;
+    if (!currentUser || currentUser.role !== 'admin' || currentUser.email !== adminEmail) return alert('管理員登入狀態已變更，請重新確認後操作。');
+    const targetEmail = document.getElementById('admin-points-treasury-target').value;
+    const pointType = document.getElementById('admin-points-treasury-type').value;
+    const amount = Math.round((Number(document.getElementById('admin-points-treasury-amount').value) || 0) * 100) / 100;
+    const reason = document.getElementById('admin-points-treasury-reason').value.trim();
+    if (!pointsBankMap?.treasuryEmail) return alert('銀行帳戶尚未綁定，請先認領積分銀行管理員。');
+    if (!targetEmail || amount <= 0 || !reason) return alert('請選擇撥付對象，輸入有效點數並填寫調度理由。');
+    const target = globalUsersDB.find(user => String(user.email).toLowerCase() === targetEmail.toLowerCase());
+    if (!target || target.role === 'admin') return alert('撥付對象必須是一般用戶。');
+    const typeLabel = pointType === 'timed' ? '限時積分' : pointType === 'permanent' ? '永久積分' : '先限時後永久';
+    const timedNote = pointType === 'permanent' ? '' : '\n限時積分將保留原到期日；收款人若有到期貸款，限時積分會依規則優先還款。';
+    if (!confirm(`將從銀行帳戶撥付 ${formatPoints(amount)} 點給 ${targetEmail}。\n扣款方式：${typeLabel}\n調度理由：${reason}${timedNote}\n此交易會記入銀行流水，且無法撤回。`)) return;
+    pointsActionPending = true;
+    const button = document.getElementById('admin-points-treasury-submit');
+    if (button) button.disabled = true;
+    try {
+        const result = await window.fbPointsBankAction('adminTreasuryDisburse', { actorRole: 'admin', actorEmail: adminEmail, targetEmail, amount, pointType, reason });
+        applyPointsBankResult(result);
+        if (!result.ok) return alert(pointsActionMessage(result));
+        document.getElementById('admin-points-treasury-amount').value = '';
+        document.getElementById('admin-points-treasury-reason').value = '';
+        applyPointsBankResult(result, { status: `已從銀行帳戶撥付 ${formatPoints(amount)} 點給 ${targetEmail}；目前銀行餘額 ${formatPoints(result.balance)} 點。` });
+    } catch (error) {
+        console.error('銀行餘額撥付失敗：', error);
+        alert(`銀行撥付失敗：${error.message || '網路連線失敗'}`);
+    } finally {
+        pointsActionPending = false;
+        if (button) button.disabled = false;
+    }
+}
+
 async function adminSetPointsLoanLimit() {
     if (!currentUser || currentUser.role !== 'admin') return alert('只有管理員可以設定借款上限。');
     const targetEmail = document.getElementById('admin-points-loan-target').value;
@@ -493,7 +590,7 @@ async function adminSetPointsLoanLimit() {
 }
 
 function pointsLedgerLabel(record) {
-    const labels = { grant: '管理員發放', admin_deduct: '管理員扣點', purchase: record.purchaseKind === 'review' ? '購買題庫複習' : '購買題庫作答', transfer: '用戶轉帳', loan_issued: '急難借款', loan_repayment: '貸款還款', loan_limit: '設定借款上限' };
+    const labels = { grant: '管理員發放', admin_deduct: '管理員扣點', purchase: record.purchaseKind === 'review' ? '兌換題庫複習' : '兌換題庫作答', treasury_disbursement: '銀行餘額調度', transfer: '用戶轉帳', loan_issued: '急難借款', loan_repayment: '貸款還款', loan_limit: '設定借款上限' };
     return labels[record.type] || record.type || '積分交易';
 }
 
@@ -505,12 +602,12 @@ function renderPointsAdminLedger() {
     if (!records.length) { container.innerHTML = '<div class="points-ledger-entry">目前沒有積分流水。</div>'; return; }
     const safe = value => escapeHtml(String(value ?? ''));
     container.innerHTML = records.map(record => {
-        const who = record.type === 'transfer' ? `${record.fromEmail || ''} → ${record.toEmail || ''}` : record.userEmail || record.actorEmail || '銀行';
+        const who = ['transfer', 'treasury_disbursement'].includes(record.type) ? `${record.fromEmail || ''} → ${record.toEmail || ''}` : record.userEmail || record.actorEmail || '銀行';
         const parts = Array.isArray(record.parts) && record.parts.length
             ? `點數來源：${record.parts.map(part => `${formatPoints(part.amount)} 點${part.type === 'timed' ? '限時' : '永久'}${part.expiresAt ? `（到期 ${formatPointsDate(part.expiresAt)}）` : ''}`).join('、')}`
             : '';
         const detail = [record.quizCode ? `題庫：${record.quizCode}` : '', record.pointType ? `類型：${record.pointType === 'timed' ? '限時' : '永久'}` : '', record.expiresAt ? `到期：${formatPointsDate(record.expiresAt)}` : '', record.dueAt ? `還款期限：${formatPointsDate(record.dueAt)}` : '', parts, record.reason || ''].filter(Boolean).join(' · ');
-        const amount = record.type === 'admin_deduct' ? `−${formatPoints(record.amount)}` : `${formatPoints(record.amount)} 點`;
+        const amount = ['admin_deduct', 'treasury_disbursement'].includes(record.type) ? `−${formatPoints(record.amount)} 點` : `${formatPoints(record.amount)} 點`;
         return `<div class="points-ledger-entry"><strong>${safe(pointsLedgerLabel(record))}</strong><span>${safe(who)}${detail ? `<br>${safe(detail)}` : ''}<br><small>${safe(formatPointsDate(record.at))}</small></span><span class="points-ledger-amount">${safe(amount)}</span></div>`;
     }).join('');
 }
