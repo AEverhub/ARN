@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" href="assets/css/styles.css?v=20261123-choice-review">
     <link rel="stylesheet" href="assets/css/mbti.css">
+    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123">
 </head>
 <body oncontextmenu="return false">
 
@@ -281,6 +282,30 @@
             </div>
             <p><strong>系統識別碼 (UUID)：</strong> <span id="acc-uuid" style="font-family:monospace; color:#2980b9;">ST-2026-X99</span></p>
             <p><strong>歷史測驗總次數：</strong> <span id="acc-total-tests">0</span> 次</p>
+            <section class="points-wallet-card" aria-labelledby="points-wallet-title">
+                <div class="points-wallet-heading"><div><span class="points-kicker">ARN POINTS BANK</span><h4 id="points-wallet-title">積分銀行</h4></div><button type="button" class="btn-sm btn-accent" onclick="refreshPointsWallet()">更新餘額</button></div>
+                <div class="points-balance-grid">
+                    <div><span>永久積分</span><strong id="points-permanent-balance">0</strong></div>
+                    <div><span>限時積分</span><strong id="points-timed-balance">0</strong></div>
+                    <div><span>未清償貸款</span><strong id="points-loan-balance">0</strong></div>
+                </div>
+                <p id="points-wallet-status" class="points-wallet-status" aria-live="polite">積分銀行資料同步中…</p>
+                <div id="points-timed-lots" class="points-timed-lots"></div>
+                <div class="points-bank-actions">
+                    <div class="points-bank-action"><h5>轉帳給用戶</h5>
+                        <label for="points-transfer-recipient">收款人帳號／信箱</label><input id="points-transfer-recipient" class="code-input" type="text" placeholder="輸入對方登入帳號">
+                        <label for="points-transfer-amount">轉帳點數</label><input id="points-transfer-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數數量">
+                        <button type="button" class="main-btn btn-accent" onclick="transferPoints()">確認轉帳</button>
+                    </div>
+                    <div class="points-bank-action"><h5>積分銀行急難借款</h5>
+                        <p id="points-loan-limit-display">個人借款上限載入中…</p>
+                        <label for="points-loan-amount">申請本金</label><input id="points-loan-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="輸入欲借點數">
+                        <button type="button" class="main-btn btn-secondary" onclick="requestDirectPointsLoan()">申請借款</button>
+                        <p class="points-loan-disclaimer">此機制僅供題庫使用的急難救助，不是高利貸：每筆 30 天到期，固定加還本金 5%，不複利。限時積分收到時優先還款，到期先扣限時、再扣永久積分；不足部分列為欠款並鎖定新借款。</p>
+                    </div>
+                </div>
+                <div id="points-user-loans" class="points-user-loans"></div>
+            </section>
             <div class="profile-control-card">
                 <h4>個人識別與頭像</h4>
                 <p><strong>個別系統辨識碼：</strong> <code id="acc-system-uid">建立中...</code></p>
@@ -398,7 +423,7 @@
             <div class="admin-stat-card"><strong>啟用帳號</strong><span id="admin-stat-active-users">0</span></div>
             <div class="admin-stat-card"><strong>公開題庫</strong><span id="admin-stat-public-quizzes">0</span></div>
             <div class="admin-stat-card"><strong>測驗紀錄</strong><span id="admin-stat-tests">0</span></div>
-            <div class="admin-stat-card"><strong>答題使用次數</strong><span id="admin-stat-attempts">0</span></div>
+            <div class="admin-stat-card"><strong>題庫購買次數</strong><span id="admin-stat-attempts">0</span></div>
         </div>
         </div>
 
@@ -416,7 +441,8 @@
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-global-api')">全域 AI API<small>設定共用 AI 服務</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-verify')">重複註冊驗證碼<small>更新註冊驗證設定</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-quizzes')">題庫公開管理<small>公開題庫與答題限制</small></button>
-                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-limits')">答題次數覆寫<small>設定個別帳號限制</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-limits')">購買次數覆寫<small>設定個別帳號限制</small></button>
+                <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-points')">積分銀行管理<small>發放、扣點、借款上限與流水</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-board')">留言板與敏感詞<small>設定留言與審核內容</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-profiles')">帳號資料管理<small>編輯帳號與遺忘帳號</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-links')">外部分享連結<small>管理服務入口連結</small></button>
@@ -535,8 +561,8 @@
                     <input type="checkbox" id="adminPublicCheckbox" onchange="toggleAdminQuizPublic(this)"> 公開於首頁列表
                 </label>
                 <div id="adminQuizLimitPanel" style="margin-top:15px; padding-top:12px; border-top:1px solid #e2e8f0;">
-                    <strong>公開題庫答題次數限制</strong>
-                    <div style="font-size:12px;color:#64748b;margin:5px 0 8px;">預設為每日 10 次；選擇「不設限」則不顯示鎖定提示。</div>
+                    <strong>公開題庫購買限制與價格</strong>
+                    <div style="font-size:12px;color:#64748b;margin:5px 0 8px;">預設每日 10 次、每次 10 點；「檢視題庫」價格為測驗的兩倍。每日額度超限價格逐次乘 10；永久總次數達上限不可跳過。</div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                         <select id="adminQuizLimitMode" class="code-input" style="margin:0;flex:1;min-width:150px;">
                             <option value="time">1. 時間限定（每日重置）</option>
@@ -544,7 +570,8 @@
                             <option value="none">3. 不設限</option>
                         </select>
                         <input type="number" id="adminQuizLimitCount" class="code-input" min="1" max="1000000" value="10" style="margin:0;flex:1;min-width:110px;" placeholder="次數">
-                        <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminQuizLimit()">儲存限制</button>
+                        <input type="number" id="adminQuizPrice" class="code-input" min="0.01" step="0.01" value="10" style="margin:0;flex:1;min-width:110px;" placeholder="每次價格">
+                        <button class="main-btn btn-accent" style="width:auto;margin-top:0;" onclick="saveAdminQuizLimit()">儲存限制與價格</button>
                     </div>
                 </div>
             </div>
@@ -552,8 +579,8 @@
             </div>
 <div id="admin-modal-admin-section-limits" class="admin-feature-modal hidden" data-admin-modal="admin-section-limits">
 <button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-limits')">關閉此功能</button>
-<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-limits">7. 特定用戶／特定題庫答題次數覆寫</h4>
-            <p style="font-size:0.88em; color:#64748b;">可個別設定每日次數、全域總次數或不受限制；個別設定會優先於題庫公開設定。</p>
+<h4 style="margin-top:20px; color:var(--primary);" id="admin-section-limits">7. 特定用戶／特定題庫購買次數覆寫</h4>
+            <p style="font-size:0.88em; color:#64748b;">可個別設定每日購買次數、永久總購買次數或不受限制；個別設定會優先於題庫公開設定。</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
                 <select id="admin-limit-user-select" class="code-input" style="margin:0; flex:1; min-width:180px;"><option value="">選擇用戶...</option></select>
                 <input type="text" id="admin-limit-quiz-code" class="code-input" placeholder="題庫代碼" style="margin:0; flex:1; min-width:140px;">
@@ -567,6 +594,36 @@
             </div>
 
             </div>
+<div id="admin-modal-admin-section-points" class="admin-feature-modal hidden" data-admin-modal="admin-section-points">
+<button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-points')">關閉此功能</button>
+<h4 class="admin-section-title" id="admin-section-points">積分銀行管理中心</h4>
+<p class="muted-note">管理操作均記錄於積分銀行流水。群發對象限啟用中的一般用戶；限時積分必須設定到期時間。</p>
+<div class="points-admin-grid">
+    <section class="points-admin-card"><h5>發放積分</h5>
+        <label for="admin-points-grant-target">發放對象</label><select id="admin-points-grant-target" class="code-input"></select>
+        <label for="admin-points-grant-type">積分類型</label><select id="admin-points-grant-type" class="code-input" onchange="toggleAdminPointsExpiry()"><option value="permanent">永久積分</option><option value="timed">限時積分</option></select>
+        <label for="admin-points-grant-amount">發放數量</label><input id="admin-points-grant-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數">
+        <label for="admin-points-grant-expiry">限時積分到期時間</label><input id="admin-points-grant-expiry" class="code-input" type="datetime-local" disabled>
+        <label for="admin-points-grant-reason">發放理由</label><input id="admin-points-grant-reason" class="code-input" type="text" maxlength="160" placeholder="例如：活動獎勵">
+        <button type="button" class="main-btn btn-accent" onclick="adminGrantPoints()">確認發放</button>
+    </section>
+    <section class="points-admin-card"><h5>扣除用戶積分</h5>
+        <label for="admin-points-deduct-target">扣除對象</label><select id="admin-points-deduct-target" class="code-input"></select>
+        <label for="admin-points-deduct-type">扣除類型</label><select id="admin-points-deduct-type" class="code-input"><option value="priority">先扣限時，再扣永久</option><option value="timed">只扣限時積分</option><option value="permanent">只扣永久積分</option></select>
+        <label for="admin-points-deduct-amount">扣除數量</label><input id="admin-points-deduct-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數">
+        <label for="admin-points-deduct-reason">扣除理由</label><input id="admin-points-deduct-reason" class="code-input" type="text" maxlength="160" placeholder="必填理由">
+        <button type="button" class="main-btn btn-danger" onclick="adminDeductPoints()">確認扣除</button>
+    </section>
+    <section class="points-admin-card"><h5>個人借款上限</h5>
+        <label for="admin-points-loan-target">用戶</label><select id="admin-points-loan-target" class="code-input"></select>
+        <label for="admin-points-loan-limit">可借本金上限（0 代表停用）</label><input id="admin-points-loan-limit" class="code-input" type="number" min="0" step="0.01" placeholder="點數上限">
+        <label for="admin-points-loan-reason">設定理由</label><input id="admin-points-loan-reason" class="code-input" type="text" maxlength="160" placeholder="選填">
+        <button type="button" class="main-btn btn-secondary" onclick="adminSetPointsLoanLimit()">儲存借款上限</button>
+    </section>
+</div>
+<div class="points-ledger-header"><h5>積分銀行交易紀錄</h5><button type="button" class="btn-sm btn-accent" onclick="renderPointsAdminLedger()">重新整理</button></div>
+<div id="admin-points-ledger" class="points-ledger-list"></div>
+</div>
 <div id="admin-modal-admin-section-board" class="admin-feature-modal hidden" data-admin-modal="admin-section-board">
 <button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-board')">關閉此功能</button>
 <h4 class="admin-section-title" id="admin-section-board">8. 留言板、敏感詞與資料管理</h4>
@@ -810,9 +867,25 @@
     <div class="modal-card">
         <h3 style="color:#ffffff; margin-bottom:15px;">即將進入題庫</h3>
         <div id="quiz-entry-summary" class="quiz-entry-summary"></div>
-        <button class="main-btn btn-success" onclick="confirmQuizEntry()">確認進入</button>
+        <button class="main-btn btn-success" onclick="confirmQuizEntry()">確認購買並進入</button>
         <button class="main-btn btn-danger" style="margin-top:8px;" onclick="cancelQuizEntry()">取消</button>
-        <div id="quiz-entry-countdown" class="countdown-note">未操作將自動進入（10）</div>
+        <div id="quiz-entry-countdown" class="countdown-note">尚未扣點；請確認價格後再繼續。</div>
+    </div>
+</div>
+<div id="points-loan-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="points-loan-modal-title">
+    <div class="modal-card points-loan-modal-card">
+        <h3 id="points-loan-modal-title" style="color:#ffffff; margin-bottom:12px;">積分銀行急難借款</h3>
+        <div id="points-loan-modal-summary" class="points-loan-modal-summary"></div>
+        <div class="points-loan-terms-box"><strong>借款條款</strong><ul>
+            <li>積分銀行旨在協助使用題庫／複習時積分不足的急難需求，並非高利貸或投資商品。</li>
+            <li>借款本金不得超過管理員為此帳號設定的上限；每筆借款自核准起 30 天到期。</li>
+            <li>到期應償還本金及固定額外 5%，不複利；不因提早還款減少固定費用。</li>
+            <li>收到的限時積分會優先自動還款；到期時自動先扣限時、再扣永久積分。</li>
+            <li>到期仍不足的部分會保留為欠款並鎖定新借款；離線期間無法即時扣款，於下次登入或交易補結算。</li>
+        </ul></div>
+        <label class="points-loan-consent"><input id="points-loan-consent" type="checkbox" onchange="togglePointsLoanConsent()"> 我已閱讀並同意上述條款及自動扣款安排。</label>
+        <button id="points-loan-confirm-btn" class="main-btn btn-success" disabled onclick="confirmPointsLoan()">同意條款並確認借款</button>
+        <button class="main-btn btn-secondary" style="margin-top:8px;" onclick="cancelPointsLoan()">取消</button>
     </div>
 </div>
 <div id="logout-modal" class="modal-overlay hidden">
@@ -859,7 +932,8 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="assets/js/app.js?v=20261123-choice-review-persistence"></script>
+<script src="assets/js/app.js?v=20261123-points-bank"></script>
+<script src="assets/js/points-bank-ui.js?v=20261123"></script>
 
 <script src="assets/js/extensions.js"></script>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>

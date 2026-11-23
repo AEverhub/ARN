@@ -1,0 +1,49 @@
+/* 積分銀行：延續 ARN 藍灰色管理介面，保持帳戶與管理面板在手機上的可讀性。 */
+.points-wallet-card { margin: 22px 0 4px; padding: 20px; border: 1px solid #cbd5e1; border-radius: 14px; background: linear-gradient(145deg, #f8fafc, #eef4fb); box-shadow: 0 10px 28px rgba(15, 23, 42, .06); }
+.points-wallet-heading, .points-ledger-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.points-kicker { color: #64748b; font-size: .68rem; font-weight: 850; letter-spacing: .14em; }
+.points-wallet-heading h4 { margin: 3px 0 0; color: #0f172a; font-size: 1.25rem; }
+.points-balance-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 17px; }
+.points-balance-grid > div { min-width: 0; padding: 13px; border: 1px solid #dbe4ef; border-radius: 11px; background: #fff; }
+.points-balance-grid span { display: block; color: #64748b; font-size: .8rem; font-weight: 700; }
+.points-balance-grid strong { display: block; margin-top: 5px; color: #0f766e; font-size: clamp(1.15rem, 4vw, 1.7rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.points-wallet-status { margin: 12px 0 4px; color: #475569; font-size: .87rem; line-height: 1.6; }
+.points-wallet-status.is-warning { color: #b45309; font-weight: 700; }
+.points-wallet-status.is-error { color: #b91c1c; font-weight: 700; }
+.points-timed-lots, .points-user-loans { display: grid; gap: 7px; margin: 8px 0; }
+.points-timed-lot, .points-user-loan { padding: 9px 11px; border-left: 3px solid #0f766e; border-radius: 7px; background: #fff; color: #475569; font-size: .82rem; line-height: 1.55; }
+.points-user-loan.is-overdue { border-left-color: #dc2626; color: #991b1b; background: #fff7f7; }
+.points-bank-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 15px; }
+.points-bank-action, .points-admin-card { min-width: 0; padding: 15px; border: 1px solid #dbe4ef; border-radius: 11px; background: #fff; }
+.points-bank-action h5, .points-admin-card h5 { margin: 0 0 10px; color: #0f172a; font-size: 1rem; }
+.points-bank-action label, .points-admin-card label { display: block; margin: 8px 0 4px; color: #475569; font-size: .8rem; font-weight: 700; }
+.points-bank-action .code-input, .points-admin-card .code-input { margin-bottom: 7px; }
+.points-loan-disclaimer { margin: 9px 0 0; color: #64748b; font-size: .76rem; line-height: 1.55; }
+.points-admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 14px 0 20px; }
+.points-admin-card .main-btn { margin-top: 6px; }
+.points-ledger-header { margin-top: 16px; }
+.points-ledger-header h5 { margin: 0; color: #0f172a; }
+.points-ledger-list { display: grid; gap: 8px; max-height: 430px; margin-top: 10px; overflow: auto; }
+.points-ledger-entry { display: grid; grid-template-columns: minmax(120px, .7fr) minmax(0, 1.5fr) auto; gap: 10px; align-items: start; padding: 11px 12px; border: 1px solid #dbe4ef; border-radius: 9px; background: #fff; color: #334155; font-size: .82rem; line-height: 1.5; }
+.points-ledger-entry strong { color: #0f172a; }
+.points-ledger-amount { color: #0f766e; font-weight: 850; font-variant-numeric: tabular-nums; text-align: right; }
+.points-loan-modal-card { max-width: 600px; }
+.points-loan-modal-summary { margin: 8px 0 14px; padding: 12px; border: 1px solid #334155; border-radius: 9px; background: #0f172a; color: #e2e8f0; line-height: 1.65; }
+.points-loan-terms-box { max-height: 250px; overflow: auto; padding: 13px; border: 1px solid #475569; border-radius: 9px; background: #111827; color: #cbd5e1; font-size: .86rem; line-height: 1.7; }
+.points-loan-terms-box strong { color: #fff; }
+.points-loan-terms-box ul { margin: 8px 0 0; padding-left: 20px; }
+.points-loan-terms-box li + li { margin-top: 5px; }
+.points-loan-consent { display: flex; align-items: flex-start; gap: 9px; margin: 14px 0; color: #e2e8f0; font-size: .88rem; line-height: 1.5; }
+.points-loan-consent input { flex: 0 0 auto; margin-top: 3px; }
+.quiz-price-note { display: block; margin-top: 4px; color: #64748b; font-size: .78rem; font-weight: 650; }
+@media (max-width: 720px) {
+    .points-admin-grid, .points-bank-actions { grid-template-columns: minmax(0, 1fr); }
+    .points-ledger-entry { grid-template-columns: 1fr auto; }
+    .points-ledger-entry > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 480px) {
+    .points-wallet-card { padding: 14px; }
+    .points-balance-grid { gap: 6px; }
+    .points-balance-grid > div { padding: 10px 8px; }
+    .points-wallet-heading { align-items: flex-start; }
+}

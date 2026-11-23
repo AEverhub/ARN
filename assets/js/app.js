@@ -44,6 +44,9 @@ function updateTaipeiClock() {
     let userQuizLimitsMap = {};
     let quizUsageMap = {};
     let quizAttemptCounted = false;
+    let pointsBankMap = { wallets: {}, purchaseCounts: { accounts: {}, devices: {} }, loanLimits: {}, loans: {}, ledger: {}, treasuryEmail: '' };
+    let pendingPointsLoan = null;
+    let pointsActionPending = false;
     let testHistoryRecords = [];
     let feedbackDB = [];
     let globalApiConfig = {};
@@ -154,6 +157,7 @@ function updateTaipeiClock() {
             quizCodesMap = data.quizCodes || {};
             userQuizLimitsMap = data.userQuizLimits || {};
             quizUsageMap = data.quizUsage || {};
+            pointsBankMap = data.pointsBank || pointsBankMap;
             quizReviewUsageMap = data.quizReviewUsage || {};
             quizReviewSessionsMap = data.quizReviewSessions || {};
             testHistoryRecords = data.testHistory || [];
@@ -165,7 +169,10 @@ function updateTaipeiClock() {
         try { localStorage.setItem('rms_public_quizzes_cache', JSON.stringify(publicQuizzesMap)); } catch (e) {}
         refreshQuizCodeOptions();
         checkAutoLogin();
-        if (currentUser && !currentUser.disabled) renderPublicQuizzesList();
+        if (currentUser) {
+            if (!currentUser.disabled) renderPublicQuizzesList();
+            syncPointsBankAfterLogin();
+        }
     };
 
     function refreshQuizCodeOptions() {
@@ -305,6 +312,7 @@ function updateTaipeiClock() {
         }
         localStorage.setItem('rms_device_registered', email);
         if (currentUser.disabled && currentUser.role !== 'admin') {
+            syncPointsBankAfterLogin();
             alert('注意：您的帳號目前處於遭到停用狀態！');
             switchView('chat');
         } else {
@@ -331,6 +339,7 @@ function updateTaipeiClock() {
 
         renderPublicQuizzesList();
         resumeQuizReviewSessionIfPresent();
+        syncPointsBankAfterLogin();
     }
 
     async function resumeQuizReviewSessionIfPresent() {
@@ -504,6 +513,7 @@ function updateTaipeiClock() {
             document.getElementById('acc-email-display').innerText = currentUser ? currentUser.email : '未登入';
             document.getElementById('acc-name-display').innerText = currentUser ? currentUser.name : '尚未設定';
             document.getElementById('acc-total-tests').innerText = localStorage.getItem('total_tests_run') || '0';
+            renderPointsWallet();
 
             const nameInput = document.getElementById('acc-name-input');
             const nameBtn = document.getElementById('update-name-btn');
@@ -877,10 +887,12 @@ function updateTaipeiClock() {
         globalUsersDB.filter(u => u.role !== 'admin').forEach(u => {
             const opt = document.createElement('option'); opt.value = u.email; opt.innerText = `${u.name} (${u.email})`; limitUser.appendChild(opt);
         });
+        populatePointsAdminUsers();
+        renderPointsAdminLedger();
     }
 
     function updateAdminStats() {
-        const attempts = Object.values(quizUsageMap || {}).reduce((sum, quizzes) => sum + Object.values(quizzes || {}).reduce((n, u) => n + Number(u.globalCount || 0), 0), 0);
+        const attempts = Object.values(pointsBankMap?.purchaseCounts?.accounts || {}).reduce((sum, purchases) => sum + Object.values(purchases || {}).reduce((n, item) => n + Number(item.globalCount || 0), 0), 0);
         const set = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
         set('admin-stat-users', globalUsersDB.length);
         set('admin-stat-active-users', globalUsersDB.filter(u => !u.disabled).length);
@@ -1038,6 +1050,7 @@ function updateTaipeiClock() {
         const savedLimit = quizLimitsMap[code] || { mode: 'time', count: 10 };
         document.getElementById('adminQuizLimitMode').value = savedLimit.mode || 'time';
         document.getElementById('adminQuizLimitCount').value = savedLimit.count || 10;
+        document.getElementById('adminQuizPrice').value = Number(savedLimit.price) > 0 ? savedLimit.price : 10;
         document.getElementById('adminQuizLimitCount').disabled = (savedLimit.mode === 'none');
 
         const oldScript = document.getElementById('temp-admin-check-script');
@@ -1082,12 +1095,13 @@ function updateTaipeiClock() {
         if (!code) return alert('請先輸入並檢查題庫代碼！');
         const mode = document.getElementById('adminQuizLimitMode').value;
         const count = Math.max(1, parseInt(document.getElementById('adminQuizLimitCount').value, 10) || 10);
-        quizLimitsMap[code] = { mode, count };
+        const price = Math.max(0.01, Number(document.getElementById('adminQuizPrice').value) || 10);
+        quizLimitsMap[code] = { ...(quizLimitsMap[code] || {}), mode, count, price };
         rememberQuizCode(code);
         saveToFirebase('quizLimits', quizLimitsMap);
         document.getElementById('adminQuizLimitCount').disabled = mode === 'none';
         renderPublicQuizzesList();
-        alert(`題庫 [${code}] 的答題限制已儲存。`);
+        alert(`題庫 [${code}] 的購買限制與價格已儲存（基本測驗價 ${formatPoints(price)} 點；檢視題庫為兩倍）。`);
     }
 
     function saveAdminUserQuizLimit() {
@@ -1124,17 +1138,10 @@ function updateTaipeiClock() {
 
     function getQuizLimitState(code, user = currentUser) {
         if (!user) return { allowed:true, locked:false, message:'' };
-        // 管理員可不受公開題庫的每日／全域答題次數限制影響。
         if (user.role === 'admin') return { allowed:true, locked:false, message:'' };
-        const limit = getQuizLimitForUser(code);
-        if (!limit || limit.mode === 'none') return { allowed:true, locked:false, message:'' };
-        const usage = getQuizUsage(user.email, code);
-        const used = limit.mode === 'global' ? (usage.globalCount || 0) : (usage.dailyCount || 0);
-        const max = Math.max(1, parseInt(limit.count, 10) || 10);
-        if (used >= max) {
-            return { allowed:false, locked:true, message: limit.mode === 'time' ? '本題庫您當日答題次數已用完，請等待至明日 00:00（台北時間）後再試。' : '該題庫您的答題次數已用盡。' };
-        }
-        return { allowed:true, locked:false, message:'' };
+        const quote = getPointsPurchaseQuote('quiz', code, user);
+        if (!quote.allowed) return { allowed:false, locked:true, message: quote.message, quote };
+        return { allowed:true, locked:false, message:'', quote };
     }
 
     function quizReviewUsageKey(email) {
@@ -1182,31 +1189,13 @@ function updateTaipeiClock() {
     }
 
     function consumeQuizAttempt(code) {
-        if (!currentUser) return true;
-        // 管理員進入題庫不消耗任何使用次數，也不寫入 quizUsage。
-        if (currentUser.role === 'admin') return true;
-        const state = getQuizLimitState(code);
-        if (!state.allowed) { alert(state.message); renderPublicQuizzesList(); return false; }
-        const limit = getQuizLimitForUser(code);
-        if (limit.mode !== 'none') {
-            const usage = getQuizUsage(currentUser.email, code);
-            usage.globalCount = (usage.globalCount || 0) + 1;
-            if (limit.mode === 'time') usage.dailyCount = (usage.dailyCount || 0) + 1;
-            saveToFirebase('quizUsage', quizUsageMap);
-        }
-        renderPublicQuizzesList();
+        // 舊呼叫點相容用：新制只在 Firebase 原子購買成功時記錄購買次數。
         return true;
     }
 
     function recordCompletedQuizAttempt(code) {
-        if (!currentUser || currentUser.role === 'admin') return;
-        const limit = getQuizLimitForUser(code);
-        if (!limit || limit.mode === 'none') return;
-        const usage = getQuizUsage(currentUser.email, code);
-        usage.globalCount = (usage.globalCount || 0) + 1;
-        if (limit.mode === 'time') usage.dailyCount = (usage.dailyCount || 0) + 1;
-        saveToFirebase('quizUsage', quizUsageMap);
-        renderPublicQuizzesList();
+        // 成績提交不再增加購買次數，避免同一購買被重複計數。
+        return;
     }
 
     function toggleAdminQuizPublic(checkbox) {
@@ -1215,7 +1204,7 @@ function updateTaipeiClock() {
 
         publicQuizzesMap[code] = checkbox.checked;
         if (checkbox.checked && !quizLimitsMap[code]) {
-            quizLimitsMap[code] = { mode:'time', count:10 };
+            quizLimitsMap[code] = { mode:'time', count:10, price:10 };
             saveToFirebase('quizLimits', quizLimitsMap);
         }
         saveToFirebase('publicQuizzes', publicQuizzesMap);
@@ -1307,9 +1296,11 @@ function updateTaipeiClock() {
             const item = document.createElement('div');
             item.className = 'public-quiz-item';
             const limitState = getQuizLimitState(code);
+            const quote = getPointsPurchaseQuote('quiz', code, currentUser);
             const lockMark = limitState.locked ? '🔒 ' : '';
-            const lockTitle = limitState.locked ? '（點擊查看限制提示）' : '';
-            item.innerHTML = `<span><b>${lockMark}${displayName}</b>${lockTitle}</span><div class="quiz-action-btns"></div>`;
+            const lockTitle = limitState.locked ? `（${escapeHtml(limitState.message)}）` : '';
+            const priceLabel = currentUser?.role === 'admin' ? '管理員免點數' : `${formatPoints(quote.cost)} 點／次`;
+            item.innerHTML = `<span><b>${lockMark}${displayName}</b>${lockTitle}<small class="quiz-price-note">測驗 ${priceLabel}</small></span><div class="quiz-action-btns"></div>`;
             const buttons = item.querySelector('.quiz-action-btns');
             const rankButton = document.createElement('button');
             rankButton.className = 'btn-sm btn-rank';
@@ -1321,11 +1312,10 @@ function updateTaipeiClock() {
             startButton.onclick = () => quickStartQuiz(code);
             const reviewButton = document.createElement('button');
             reviewButton.className = 'btn-sm btn-review-quiz';
-            const hasReviewedToday = currentUser && currentUser.role !== 'admin' &&
-                quizReviewUsageMap[quizReviewUsageKey(currentUser.email)]?.date === getTaipeiDateKey();
-            reviewButton.innerText = hasReviewedToday ? '今日已檢視' : '檢視題庫';
-            reviewButton.disabled = !!hasReviewedToday || reviewClaimPending;
-            reviewButton.title = hasReviewedToday ? '一般使用者每日可檢視一個公開題庫；明日（台北時間）重置' : '主動回想題目與答案，使用每日複習額度';
+            const reviewQuote = getPointsPurchaseQuote('review', code, currentUser);
+            reviewButton.innerText = currentUser?.role === 'admin' ? '檢視題庫（免費）' : `檢視題庫 · ${formatPoints(reviewQuote.cost)} 點`;
+            reviewButton.disabled = !!reviewClaimPending || !!activeQuizReview || !!pendingQuizReviewSession;
+            reviewButton.title = reviewQuote.overLimit ? `今日額度已用；本次複習價格 ${formatPoints(reviewQuote.cost)} 點，明日台北時間重置。` : '主動回想完整題庫；一般使用者首個每日複習會話額度為 1 次，後續可按逐級價格購買。';
             reviewButton.onclick = () => reviewPublicQuiz(code);
             buttons.append(rankButton, reviewButton, startButton);
             listContainer.appendChild(item);
@@ -1416,9 +1406,7 @@ function updateTaipeiClock() {
         quizCode = String(quizCode || '').trim();
         if (!quizCode || !publicQuizzesMap[quizCode]) return alert('只能檢視管理員公開的題庫。');
         if (!currentUser) return alert('請先登入後再檢視題庫。');
-        const limitState = getQuizReviewLimitState();
-        if (!limitState.allowed) return alert(limitState.message);
-        if (reviewClaimPending) return alert('正在確認今日複習額度，請稍候。');
+        if (reviewClaimPending || activeQuizReview || pendingQuizReviewSession) return alert('目前已有複習會話進行中或等待恢復，請先完成或主動退出。');
         pendingQuizCode = quizCode;
         pendingQuizFromPublic = true;
         pendingQuizReview = true;
@@ -1441,11 +1429,22 @@ function updateTaipeiClock() {
         const code = pendingQuizCode;
         const dataset = normalizeQuizDataset(window.currentQuiz);
         if (!dataset.length) return alert('此題庫沒有可用的題目。');
-        const allowance = await claimQuizReviewAllowance(code);
-        if (!allowance.allowed) {
-            pendingQuizReview = false;
-            return alert(allowance.message);
+        if (currentUser?.role !== 'admin') {
+            const quote = getPointsPurchaseQuote('review', code, currentUser);
+            if (!quote.allowed) { pendingQuizReview = false; return alert(quote.message); }
+            if (!confirm(`檢視題庫「${window.currentQuiz.name || code}」將購買一個完整複習會話，價格為 ${formatPoints(quote.cost)} 點。限時積分優先扣除；確認購買？`)) {
+                pendingQuizReview = false;
+                renderPublicQuizzesList();
+                return;
+            }
+            const purchased = await requestPointsPurchase('review', code, () => startQuizReviewSession(code, dataset));
+            if (!purchased) pendingQuizReview = false;
+            return;
         }
+        await startQuizReviewSession(code, dataset);
+    }
+
+    async function startQuizReviewSession(code, dataset) {
         const reviewOrder = shuffleArray(dataset);
         const order = reviewOrder.map(question => dataset.indexOf(question));
         activeQuizReview = {
@@ -1477,15 +1476,19 @@ function updateTaipeiClock() {
             await persistQuizReviewSession(activeQuizReview);
         } catch (error) {
             console.error('複習進度保存失敗：', error);
-            activeQuizReview = null;
-            return alert('無法保存複習進度，請確認網路連線後再開始。今日複習額度仍依原規則計算。');
+            alert('複習已購買並可繼續使用，但目前無法同步保存進度。請保持頁面開啟；網路恢復後的後續操作會再嘗試同步。');
         }
         document.getElementById('quiz-entry-area').classList.add('hidden');
         document.getElementById('quiz-ui').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('review-screen').classList.remove('hidden');
         document.getElementById('review-title').textContent = `${activeQuizReview.title}｜答案複習`;
-        await showNextQuizReviewCard();
+        try {
+            await showNextQuizReviewCard();
+        } catch (error) {
+            console.error('複習卡片進度同步失敗：', error);
+            alert('已購買的複習會話仍可繼續，但目前無法同步保存進度。請保持頁面開啟並確認網路連線。');
+        }
     }
 
     function updateQuizReviewProgress() {
@@ -1824,17 +1827,14 @@ function updateTaipeiClock() {
 
     function openQuizConfirmModal() {
         const quiz = window.currentQuiz || {};
-        document.getElementById('quiz-entry-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(quiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(pendingQuizCode)}`;
+        const quote = getPointsPurchaseQuote('quiz', pendingQuizCode, currentUser);
+        const priceText = currentUser?.role === 'admin' || window.__rmsContestContext
+            ? '本次免點數'
+            : quote.allowed ? `${formatPoints(quote.cost)} 點${quote.overLimit ? '（超出每日額度價格）' : ''}` : quote.message;
+        document.getElementById('quiz-entry-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(quiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(pendingQuizCode)}<br><strong>本次購買：</strong>${escapeHtml(priceText)}<br><small>確認後扣款並記錄一次購買；開始後離開不退款。</small>`;
         document.getElementById('quiz-entry-confirm-modal').classList.remove('hidden');
-        let remain = 10;
-        const note = document.getElementById('quiz-entry-countdown');
-        note.innerText = `未操作將自動進入（${remain}）`;
         clearInterval(quizEntryCountdownTimer);
-        quizEntryCountdownTimer = setInterval(() => {
-            remain -= 1;
-            note.innerText = `未操作將自動進入（${remain}）`;
-            if (remain <= 0) confirmQuizEntry();
-        }, 1000);
+        document.getElementById('quiz-entry-countdown').innerText = '尚未扣點；請確認價格後按「確認購買並進入」。';
     }
 
     function submitQuizPassword() {
@@ -1978,21 +1978,30 @@ function updateTaipeiClock() {
         return copy;
     }
 
-    function confirmQuizEntry() {
+    async function confirmQuizEntry() {
         clearInterval(quizEntryCountdownTimer);
+        if (pointsActionPending) return;
         document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
         const state = getQuizLimitState(pendingQuizCode);
         if (!state.allowed) return alert(state.message);
         const entryDataset = normalizeQuizDataset(window.currentQuiz);
         if (!ensureLocalApiForQuestions(entryDataset)) return;
-
-        requestFullScreen();
-        setMenuDisabledState(true);
-        isWrongQuestionsMode = false;
-        const dataset = entryDataset;
-        if (!dataset.length) return alert('題庫沒有可用的題目，請確認 data／questions 是否為題目陣列。');
-        const orderedDataset = applyQuizMode(dataset, window.currentQuiz);
-        beginQuiz(orderedDataset);
+        if (!entryDataset.length) return alert('題庫沒有可用的題目，請確認 data／questions 是否為題目陣列。');
+        const start = () => {
+            requestFullScreen();
+            setMenuDisabledState(true);
+            isWrongQuestionsMode = false;
+            const orderedDataset = applyQuizMode(entryDataset, window.currentQuiz);
+            beginQuiz(orderedDataset);
+        };
+        if (window.__rmsContestContext) return start();
+        if (!currentUser) return alert('請先登入後再購買題庫作答資格。');
+        if (currentUser.role === 'admin') return start();
+        const purchased = await requestPointsPurchase('quiz', pendingQuizCode, start);
+        if (!purchased && !pendingPointsLoan) {
+            const latest = getQuizLimitState(pendingQuizCode);
+            if (latest.allowed) openQuizConfirmModal();
+        }
     }
 
     function loadQuizScript(code, callback) {
@@ -2575,10 +2584,7 @@ function updateTaipeiClock() {
     }
 
     function evalQuiz() {
-        if (!isWrongQuestionsMode && !window.__rmsContestContext && !quizAttemptCounted) {
-            try { recordCompletedQuizAttempt(document.getElementById('quiz-code')?.value.trim() || 'test01'); } catch (counterError) { console.warn('答題次數寫入略過：', counterError); }
-            quizAttemptCounted = true;
-        }
+        quizAttemptCounted = true;
         quizActive = false;
         clearInterval(timerInterval);
         endTimeObj = new Date();
