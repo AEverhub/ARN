@@ -290,7 +290,8 @@ function pointsActionMessage(result) {
         admin_loan_not_needed: '管理員不受積分不足限制。',
         price_changed: '價格或兌換次數剛被其他裝置更新，請確認最新價格後再兌換。',
         loan_amount_changed: '餘額或價格已變動，所需借款超過您剛才同意的本金；請重新確認。',
-        treasury_not_configured: '積分銀行帳戶尚未綁定；請由管理員認領帳戶後再重試。'
+        treasury_not_configured: '積分銀行帳戶尚未綁定；請由管理員認領帳戶後再重試。',
+        invalid_treasury_adjustment: '銀行調整資料無效，請重新確認操作方向、點數類型與數量。'
     };
     return messages[result?.reason] || '操作未完成，請稍後再試。';
 }
@@ -493,6 +494,16 @@ function toggleAdminPointsExpiry() {
     expiry.required = type.value === 'timed';
 }
 
+function toggleAdminTreasuryAdjustmentExpiry() {
+    const direction = document.getElementById('admin-points-treasury-adjust-direction');
+    const type = document.getElementById('admin-points-treasury-adjust-type');
+    const expiry = document.getElementById('admin-points-treasury-adjust-expiry');
+    if (!direction || !type || !expiry) return;
+    const needsExpiry = direction.value === 'increase' && type.value === 'timed';
+    expiry.disabled = !needsExpiry;
+    expiry.required = needsExpiry;
+}
+
 async function adminGrantPoints() {
     if (!currentUser || currentUser.role !== 'admin') return alert('只有管理員可以發放積分。');
     const target = document.getElementById('admin-points-grant-target').value;
@@ -573,6 +584,42 @@ async function adminDisburseTreasuryPoints() {
     }
 }
 
+async function adminAdjustTreasuryPoints() {
+    if (!currentUser || currentUser.role !== 'admin') return alert('只有管理員可以直接調整銀行餘額。');
+    if (pointsActionPending) return;
+    const direction = document.getElementById('admin-points-treasury-adjust-direction').value;
+    const pointType = document.getElementById('admin-points-treasury-adjust-type').value;
+    const amount = Math.round((Number(document.getElementById('admin-points-treasury-adjust-amount').value) || 0) * 100) / 100;
+    const reason = document.getElementById('admin-points-treasury-adjust-reason').value.trim();
+    const expiryInput = document.getElementById('admin-points-treasury-adjust-expiry').value;
+    const expiresAt = direction === 'increase' && pointType === 'timed' ? new Date(expiryInput).getTime() : null;
+    if (!['increase', 'decrease'].includes(direction) || !['permanent', 'timed'].includes(pointType) || amount <= 0 || !reason) return alert('請選擇增減方向與積分類型，輸入有效數量並填寫理由。');
+    if (direction === 'increase' && pointType === 'timed' && (!expiryInput || !Number.isFinite(expiresAt) || expiresAt <= Date.now())) return alert('新增限時銀行積分須設定晚於現在的到期時間。');
+    const actionLabel = direction === 'increase' ? '增加' : '減少';
+    const typeLabel = pointType === 'timed' ? '限時積分' : '永久積分';
+    const expiryNote = expiresAt ? `\n到期時間：${formatPointsDate(expiresAt)}` : '';
+    if (!confirm(`將直接${actionLabel}銀行帳戶 ${formatPoints(amount)} 點${typeLabel}。\n理由：${reason}${expiryNote}\n此操作不會調整用戶餘額，會寫入管理流水。繼續嗎？`)) return;
+    pointsActionPending = true;
+    const button = document.getElementById('admin-points-treasury-adjust-submit');
+    if (button) button.disabled = true;
+    try {
+        const result = await window.fbPointsBankAction('adminTreasuryAdjust', { actorRole: 'admin', actorEmail: currentUser.email, direction, pointType, amount, expiresAt, reason });
+        applyPointsBankResult(result);
+        if (!result.ok) return alert(pointsActionMessage(result));
+        document.getElementById('admin-points-treasury-adjust-amount').value = '';
+        document.getElementById('admin-points-treasury-adjust-expiry').value = '';
+        document.getElementById('admin-points-treasury-adjust-reason').value = '';
+        const message = `已直接${actionLabel}銀行${typeLabel} ${formatPoints(amount)} 點；目前銀行餘額 ${formatPoints(result.balance)} 點。`;
+        applyPointsBankResult(result, { status: message });
+    } catch (error) {
+        console.error('直接調整銀行餘額失敗：', error);
+        alert(`調整銀行餘額失敗：${error.message || '網路連線失敗'}`);
+    } finally {
+        pointsActionPending = false;
+        if (button) button.disabled = false;
+    }
+}
+
 async function adminSetPointsLoanLimit() {
     if (!currentUser || currentUser.role !== 'admin') return alert('只有管理員可以設定借款上限。');
     const targetEmail = document.getElementById('admin-points-loan-target').value;
@@ -590,7 +637,7 @@ async function adminSetPointsLoanLimit() {
 }
 
 function pointsLedgerLabel(record) {
-    const labels = { grant: '管理員發放', admin_deduct: '管理員扣點', purchase: record.purchaseKind === 'review' ? '兌換題庫複習' : '兌換題庫作答', treasury_disbursement: '銀行餘額調度', transfer: '用戶轉帳', loan_issued: '急難借款', loan_repayment: '貸款還款', loan_limit: '設定借款上限' };
+    const labels = { grant: '管理員發放', admin_deduct: '管理員扣點', purchase: record.purchaseKind === 'review' ? '兌換題庫複習' : '兌換題庫作答', treasury_disbursement: '銀行餘額調度', treasury_adjustment: record.direction === 'decrease' ? '管理員直接減少銀行點數' : '管理員直接增加銀行點數', transfer: '用戶轉帳', loan_issued: '急難借款', loan_repayment: '貸款還款', loan_limit: '設定借款上限' };
     return labels[record.type] || record.type || '積分交易';
 }
 
@@ -607,7 +654,8 @@ function renderPointsAdminLedger() {
             ? `點數來源：${record.parts.map(part => `${formatPoints(part.amount)} 點${part.type === 'timed' ? '限時' : '永久'}${part.expiresAt ? `（到期 ${formatPointsDate(part.expiresAt)}）` : ''}`).join('、')}`
             : '';
         const detail = [record.quizCode ? `題庫：${record.quizCode}` : '', record.pointType ? `類型：${record.pointType === 'timed' ? '限時' : '永久'}` : '', record.expiresAt ? `到期：${formatPointsDate(record.expiresAt)}` : '', record.dueAt ? `還款期限：${formatPointsDate(record.dueAt)}` : '', parts, record.reason || ''].filter(Boolean).join(' · ');
-        const amount = ['admin_deduct', 'treasury_disbursement'].includes(record.type) ? `−${formatPoints(record.amount)} 點` : `${formatPoints(record.amount)} 點`;
+        const isDecrease = ['admin_deduct', 'treasury_disbursement'].includes(record.type) || (record.type === 'treasury_adjustment' && record.direction === 'decrease');
+        const amount = `${isDecrease ? '−' : '+'}${formatPoints(record.amount)} 點`;
         return `<div class="points-ledger-entry"><strong>${safe(pointsLedgerLabel(record))}</strong><span>${safe(who)}${detail ? `<br>${safe(detail)}` : ''}<br><small>${safe(formatPointsDate(record.at))}</small></span><span class="points-ledger-amount">${safe(amount)}</span></div>`;
     }).join('');
 }

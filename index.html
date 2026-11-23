@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="assets/css/styles.css?v=20261123-reading-passages">
     <link rel="stylesheet" href="assets/css/mbti.css">
-    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-treasury-control">
+    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-bank-balance-adjustment">
 </head>
 <body oncontextmenu="return false">
 
@@ -422,7 +422,7 @@
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
 <section id="admin-points-management" class="admin-panel-group admin-operation-group points-admin-panel">
 <h4 class="admin-section-title" id="admin-section-points">積分銀行管理中心</h4>
-<p class="muted-note">管理員可查看銀行餘額、發放或扣除積分、從銀行餘額調度點數及設定借款上限。群發發放對象限啟用中的一般用戶；銀行調度會從銀行餘額扣除，並保留限時積分原到期日。</p>
+<p class="muted-note">管理員可查看銀行餘額、直接增減銀行點數、發放或扣除用戶積分、從銀行調度點數及設定借款上限。直接調整只影響銀行帳戶，並會留下管理流水。</p>
 <div class="points-admin-treasury-summary">
     <div class="points-admin-treasury-heading">
         <div class="points-admin-treasury-title"><span class="points-kicker">ARN POINTS BANK</span><h5>銀行帳戶總覽</h5><span id="points-admin-treasury-account">尚未綁定銀行帳戶</span><p class="points-admin-claim-status" id="points-admin-treasury-status">等待銀行資料同步…</p></div>
@@ -433,7 +433,7 @@
         <div><span>永久積分</span><strong id="points-admin-treasury-permanent">—</strong></div>
         <div><span>限時積分</span><strong id="points-admin-treasury-timed">—</strong></div>
     </div>
-    <p class="points-admin-treasury-note">此處顯示綁定銀行帳戶的實際點數。銀行餘額來自題庫兌換及貸款還款收入；撥付會從此餘額扣除，限時積分保留原到期日。</p>
+    <p class="points-admin-treasury-note">此處顯示綁定銀行帳戶的實際點數。銀行餘額包含題庫兌換、貸款還款收入與管理員直接調整；撥付會從此餘額扣除，限時積分保留原到期日。</p>
 </div>
 <div class="points-admin-grid">
     <section class="points-admin-card points-admin-card--featured">
@@ -445,6 +445,16 @@
             <div><label for="admin-points-treasury-reason">調度理由（必填）</label><input id="admin-points-treasury-reason" class="code-input" type="text" maxlength="160" placeholder="說明這筆銀行點數的用途"></div>
         </div>
         <button type="button" id="admin-points-treasury-submit" class="main-btn btn-accent points-admin-primary-action" onclick="adminDisburseTreasuryPoints()">確認銀行撥付</button>
+    </section>
+    <section class="points-admin-card points-admin-card--treasury-adjustment"><div class="points-admin-card-heading"><div><span class="points-kicker">管理員帳務調整</span><h5>直接增減銀行餘額</h5><p>憑空新增或減少銀行點數，不影響任何用戶錢包；每次調整都會記入交易流水。</p></div><span class="points-admin-ledger-badge">完整留痕</span></div>
+        <div class="points-admin-form-grid points-admin-treasury-adjust-form">
+            <div><label for="admin-points-treasury-adjust-direction">操作</label><select id="admin-points-treasury-adjust-direction" class="code-input" onchange="toggleAdminTreasuryAdjustmentExpiry()"><option value="increase">增加（新增點數）</option><option value="decrease">減少（移除點數）</option></select></div>
+            <div><label for="admin-points-treasury-adjust-type">積分種類</label><select id="admin-points-treasury-adjust-type" class="code-input" onchange="toggleAdminTreasuryAdjustmentExpiry()"><option value="permanent">永久積分</option><option value="timed">限時積分</option></select></div>
+            <div><label for="admin-points-treasury-adjust-amount">數量</label><input id="admin-points-treasury-adjust-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="輸入點數"></div>
+            <div><label for="admin-points-treasury-adjust-expiry">新增限時積分到期時間</label><input id="admin-points-treasury-adjust-expiry" class="code-input" type="datetime-local" disabled></div>
+            <div class="points-admin-treasury-adjust-reason"><label for="admin-points-treasury-adjust-reason">調整理由（必填）</label><input id="admin-points-treasury-adjust-reason" class="code-input" type="text" maxlength="160" placeholder="說明直接增減銀行點數的原因"></div>
+        </div>
+        <button type="button" id="admin-points-treasury-adjust-submit" class="main-btn btn-secondary points-admin-primary-action" onclick="adminAdjustTreasuryPoints()">確認調整銀行餘額</button>
     </section>
     <section class="points-admin-card"><h5>新增發放</h5><p class="points-admin-card-desc">直接新增用戶點數，不會從銀行餘額扣除。限時積分須設定到期時間。</p>
         <label for="admin-points-grant-target">發放對象</label><select id="admin-points-grant-target" class="code-input"></select>
@@ -498,7 +508,7 @@
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-verify')">重複註冊驗證碼<small>更新註冊驗證設定</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-quizzes')">題庫公開管理<small>公開題庫與答題限制</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-limits')">兌換次數覆寫<small>設定個別帳號限制</small></button>
-                <button class="admin-launcher-btn" onclick="document.getElementById('admin-points-management').scrollIntoView({behavior:'smooth',block:'start'})">積分銀行管理<small>查看餘額、銀行撥付、發放、扣點與查流水</small></button>
+                <button class="admin-launcher-btn" onclick="document.getElementById('admin-points-management').scrollIntoView({behavior:'smooth',block:'start'})">積分銀行管理<small>查看餘額、增減、銀行撥付、發放扣點與查流水</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-board')">留言板與敏感詞<small>設定留言與審核內容</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-profiles')">帳號資料管理<small>編輯帳號與遺忘帳號</small></button>
                 <button class="admin-launcher-btn" onclick="openAdminFeature('admin-section-links')">外部分享連結<small>管理服務入口連結</small></button>
@@ -958,14 +968,14 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="assets/js/app.js?v=20261123-treasury-control"></script>
-<script src="assets/js/points-bank-ui.js?v=20261123-treasury-control"></script>
+<script src="assets/js/app.js?v=20261123-bank-balance-adjustment"></script>
+<script src="assets/js/points-bank-ui.js?v=20261123-bank-balance-adjustment"></script>
 
 <script src="assets/js/extensions.js"></script>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>
 
 <!-- Firebase SDK 模組初始化與資料同步 -->
-<script type="module" src="assets/js/firebase.js?v=20261123-treasury-control"></script>
+<script type="module" src="assets/js/firebase.js?v=20261123-bank-balance-adjustment"></script>
 
 <script src="assets/js/mbti.js"></script>
 

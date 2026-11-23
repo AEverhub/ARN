@@ -326,8 +326,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
             bank.treasuryEmail = String(payload.actorEmail).trim();
             bankWallet(bank, bank.treasuryEmail);
         }
+        if (!bank.treasuryEmail && action === 'buy' && payload.treasuryEmail) {
+            bank.treasuryEmail = String(payload.treasuryEmail).trim();
+            if (bank.treasuryEmail) bankWallet(bank, bank.treasuryEmail);
+        }
         if (!bank.treasuryEmail && action === 'refresh') return { ok: true, changed: false };
-        if (!bank.treasuryEmail && !['adminGrant', 'adminDeduct', 'setLoanLimit'].includes(action)) return { ok: false, reason: 'treasury_not_configured' };
+        if (!bank.treasuryEmail && !['adminGrant', 'adminDeduct', 'setLoanLimit', 'adminTreasuryAdjust'].includes(action)) return { ok: false, reason: 'treasury_not_configured' };
         if (email && bank.treasuryEmail) settleDueLoans(bank, email, now);
         if (action === 'refresh') return { ok: true, changed: true };
         if (action === 'buy') {
@@ -461,6 +465,39 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
             settleDueLoans(bank, targetEmail, now);
             addLedger(bank, { type: 'treasury_disbursement', actorEmail: String(payload.actorEmail || ''), fromEmail: bank.treasuryEmail, toEmail: targetEmail, amount, parts: debit.used, reason }, now);
             return { ok: true, changed: true, amount, balance: walletTotal(source, now), recipientBalance: walletTotal(receiver, now) };
+        }
+        if (action === 'adminTreasuryAdjust') {
+            if (payload.actorRole !== 'admin') return { ok: false, reason: 'not_admin' };
+            const actorEmail = String(payload.actorEmail || '').trim();
+            const direction = payload.direction === 'increase' || payload.direction === 'decrease' ? payload.direction : '';
+            const pointType = payload.pointType === 'timed' || payload.pointType === 'permanent' ? payload.pointType : '';
+            const amount = roundPoints(Number(payload.amount));
+            const reason = String(payload.reason || '').trim();
+            if (!actorEmail || !direction || !pointType) return { ok: false, reason: 'invalid_treasury_adjustment' };
+            if (!Number.isFinite(amount) || amount <= 0) return { ok: false, reason: 'invalid_amount' };
+            if (!reason) return { ok: false, reason: 'invalid_reason' };
+            const expiresAt = direction === 'increase' && pointType === 'timed' ? Number(payload.expiresAt) : null;
+            if (direction === 'increase' && pointType === 'timed' && (!Number.isFinite(expiresAt) || expiresAt <= now)) return { ok: false, reason: 'invalid_grant' };
+            const treasury = bankWallet(bank, bank.treasuryEmail);
+            let parts;
+            if (direction === 'increase') {
+                if (pointType === 'timed') {
+                    creditTimed(treasury, amount, expiresAt, `admin_treasury_adjustment:${actorEmail}`, now);
+                    parts = [{ type: 'timed', amount, expiresAt }];
+                } else {
+                    creditPermanent(treasury, amount);
+                    parts = [{ type: 'permanent', amount, expiresAt: null }];
+                }
+            } else {
+                const balances = walletBalances(treasury, now);
+                const policy = pointType === 'timed' ? 'timed-only' : 'permanent-only';
+                const available = pointType === 'timed' ? balances.timed : balances.permanent;
+                const debit = deductWallet(treasury, amount, now, policy);
+                if (!debit.ok) return { ok: false, reason: 'insufficient', balance: available, shortfall: roundPoints(amount - available) };
+                parts = debit.used;
+            }
+            addLedger(bank, { type: 'treasury_adjustment', direction, actorEmail, treasuryEmail: bank.treasuryEmail, pointType, amount, expiresAt, parts, reason }, now);
+            return { ok: true, changed: true, direction, amount, balance: walletTotal(treasury, now) };
         }
         if (action === 'setLoanLimit') {
             if (payload.actorRole !== 'admin') return { ok: false, reason: 'not_admin' };
