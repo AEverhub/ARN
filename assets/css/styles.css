@@ -524,11 +524,24 @@
         .review-card-counter { margin-bottom: 14px; color: #64748b; font-size: .88rem; font-weight: 700; }
         .review-card-question { color: #0f172a; font-size: clamp(1.05rem, 2.7vw, 1.32rem); font-weight: 700; line-height: 1.75; overflow-wrap: anywhere; }
         .review-card-answer { margin-top: 22px; padding: 16px; border: 1px solid #bbf7d0; border-left: 5px solid #16a34a; border-radius: 10px; background: #f0fdf4; color: #14532d; }
+        .review-card-answer.review-answer-wrong { border-color: #fecaca; border-left-color: #dc2626; background: #fef2f2; color: #7f1d1d; }
         .review-answer-heading { margin: 0 0 8px; color: #15803d; font-size: .82rem; font-weight: 800; letter-spacing: .04em; }
+        .review-answer-wrong .review-answer-heading { color: #b91c1c; }
         .review-answer-main { font-size: 1.13rem; font-weight: 800; line-height: 1.65; }
+        .review-answer-note { margin-top: 7px; font-size: .9rem; }
         .review-option-list { display: grid; gap: 7px; margin: 14px 0 0; padding: 0; list-style: none; }
         .review-option-item { padding: 9px 11px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #fff; line-height: 1.55; }
         .review-option-item.is-correct { border-color: #22c55e; color: #14532d; background: #dcfce7; font-weight: 700; }
+        .review-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+        .review-choice-btn { display: flex; align-items: flex-start; gap: 11px; min-height: 54px; padding: 13px; border: 2px solid #cbd5e1; border-radius: 11px; background: #fff; color: #1e293b; text-align: left; font-size: 1rem; font-weight: 650; line-height: 1.55; cursor: pointer; }
+        .review-choice-btn:hover:not(:disabled), .review-choice-btn.is-selected { border-color: #0f766e; background: #f0fdfa; }
+        .review-choice-btn:disabled { cursor: default; }
+        .review-choice-label { display: inline-grid; flex: 0 0 30px; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: #e2e8f0; color: #0f172a; font-weight: 850; }
+        .review-choice-content { min-width: 0; overflow-wrap: anywhere; }
+        .review-choice-btn.is-correct { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
+        .review-choice-btn.is-correct .review-choice-label { background: #16a34a; color: #fff; }
+        .review-choice-btn.is-wrong { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+        .review-choice-btn.is-wrong .review-choice-label { background: #dc2626; color: #fff; }
         .review-reveal-btn { display: block; width: 100%; margin-top: 22px; padding: 14px 18px; border: 0; border-radius: 10px; background: #0f766e; color: #fff; font-size: 1rem; font-weight: 800; cursor: pointer; }
         .review-reveal-btn:hover { background: #115e59; }
         .review-rating-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 16px; }
@@ -547,6 +560,8 @@
             .quiz-review-header { flex-direction: column; }
             .review-exit-btn { align-self: stretch; }
             .review-progress-copy { flex-direction: column; }
+            .review-choice-grid { grid-template-columns: minmax(0, 1fr); }
+            .review-choice-btn { min-height: 52px; }
         }
 
         .feedback-system-container {

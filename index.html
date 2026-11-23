@@ -9,7 +9,7 @@
     <script src="assets/js/mathjax-config.js"></script>
     <!-- 正式 PDF 先由瀏覽器排版成圖片，再嵌入 PDF，確保 Android PDF 閱讀器中文字不亂碼。 -->
 
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20261123-choice-review">
     <link rel="stylesheet" href="assets/css/mbti.css">
 </head>
 <body oncontextmenu="return false">
@@ -106,7 +106,7 @@
             </div>
 
             <p style="font-size:0.9em; color:#64748b; margin-bottom:5px;">管理員已公開的題庫列表：</p>
-            <p style="font-size:0.82em; color:#64748b; margin:4px 0;">「檢視題庫」採先回想、再揭曉答案的複習卡方式；一般使用者每日可檢視一個公開題庫，管理員不受限制。</p>
+            <p style="font-size:0.82em; color:#64748b; margin:4px 0;">「檢視題庫」依題庫原有選項數提供選擇作答（例如 A、B、C、D）；答錯會稍後重答，只有答對後才能標記「已記住」。一般使用者每日可檢視一個公開題庫，管理員不受限制。</p>
             <div class="public-quizzes-box" id="public-quizzes-list">
                 <div style="text-align:center; color:#94a3b8; padding:10px;">目前尚無公開題庫</div>
             </div>
@@ -142,9 +142,9 @@
             <div>
                 <div class="review-eyebrow">主動回想 · 間隔複習</div>
                 <h2 id="review-title">題庫複習</h2>
-                <p>先試著回想答案，再揭曉正解；選「再複習」的題目會稍後再次出現。</p>
+                <p>請依題目原有選項作答；答錯的題目會稍後重出。每題答對並選擇「已記住」後才會完成；全題完成會自動返回。也可隨時兩步驟確認主動退出。</p>
             </div>
-            <button type="button" class="review-exit-btn" onclick="closeQuizReview()">返回題庫列表</button>
+            <button type="button" class="review-exit-btn" onclick="requestExitQuizReview()">主動退出（兩步確認）</button>
         </div>
         <div class="review-progress-panel">
             <div class="review-progress-copy"><span id="review-progress-text">準備複習…</span><span id="review-queue-text"></span></div>
@@ -155,10 +155,12 @@
             <div id="review-card-image"></div>
             <div id="review-card-question" class="review-card-question"></div>
             <div id="review-card-svg"></div>
+            <div id="review-card-options" class="review-choice-grid"></div>
             <div id="review-card-answer" class="review-card-answer hidden"></div>
-            <button type="button" id="review-reveal-btn" class="review-reveal-btn" onclick="revealQuizReviewAnswer()">先回想，再顯示答案</button>
+            <button type="button" id="review-confirm-btn" class="review-reveal-btn hidden" onclick="submitQuizReviewChoices()">確認選擇</button>
+            <button type="button" id="review-next-btn" class="review-reveal-btn hidden" onclick="continueQuizReviewAfterMiss()">下一題（本題稍後再答）</button>
             <div id="review-rating-buttons" class="review-rating-buttons hidden">
-                <p>回想結果如何？</p>
+                <p>答對後，熟悉程度如何？</p>
                 <button type="button" class="review-rating-again" onclick="rateQuizReviewCard('again')">還不熟 · 稍後重複</button>
                 <button type="button" class="review-rating-hard" onclick="rateQuizReviewCard('hard')">有點印象 · 延後重複</button>
                 <button type="button" class="review-rating-good" onclick="rateQuizReviewCard('good')">已記住 · 移出本輪</button>
@@ -168,7 +170,7 @@
             <div class="review-finished-mark">本輪完成</div>
             <h3>做得很好，已完成這次主動回想。</h3>
             <p id="review-finished-summary"></p>
-            <button type="button" class="review-exit-btn" onclick="closeQuizReview()">返回題庫列表</button>
+            <button type="button" class="review-exit-btn" onclick="requestExitQuizReview()">主動退出（兩步確認）</button>
         </div>
     </div>
 
@@ -857,7 +859,7 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="assets/js/app.js?v=20261123-public-quiz-review"></script>
+<script src="assets/js/app.js?v=20261123-choice-review-persistence"></script>
 
 <script src="assets/js/extensions.js"></script>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>

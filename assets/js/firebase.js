@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-    import { getDatabase, ref, set, get, child, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { getDatabase, ref, set, get, child, remove, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
         authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
@@ -105,6 +105,19 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     function toFirebaseChildKey(value) {
         return encodeURIComponent(String(value || '').trim().toLowerCase()).replace(/\./g, '%2E');
     }
+    window.fbSaveQuizReviewSession = async function(email, session) {
+        const userKey = toFirebaseChildKey(email);
+        if (!userKey || !session || !session.code) throw new Error('複習進度資料不完整。');
+        await set(ref(db, `system_data/quizReviewSessions/${userKey}`), session);
+        return true;
+    };
+    window.fbClearQuizReviewSession = async function(email) {
+        const userKey = toFirebaseChildKey(email);
+        if (!userKey) throw new Error('缺少使用者帳號，無法清除複習進度。');
+        await remove(ref(db, `system_data/quizReviewSessions/${userKey}`));
+        return true;
+    };
+
     window.fbClaimQuizReview = async function(email, quizCode, date) {
         const userKey = toFirebaseChildKey(email);
         const normalizedQuizCode = String(quizCode || '').trim();
@@ -135,6 +148,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
                 userQuizLimits: {},
                 quizUsage: {},
                 quizReviewUsage: {},
+                quizReviewSessions: {},
                 handwritingGrades: {},
                 globalApiConfig: { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-flash-latest', endpoint: '' },
                 testHistory: [],
