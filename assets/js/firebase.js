@@ -467,7 +467,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
                 try {
                     const treasuryResult = await window.fbPointsBankAction('setTreasury', { actorRole: 'admin', actorEmail: adminAccount.email });
                     if (treasuryResult?.state) data.pointsBank = treasuryResult.state;
-                } catch (error) { console.warn('積分銀行管理員帳戶初始化略過：', error); }
+                } catch (error) { console.warn('積分銀行管理員帳戶自動同步略過：', error); }
             }
             window.initFirebaseData(data);
             if (window.__rmsFeatureData) window.__rmsFeatureData(data || {});

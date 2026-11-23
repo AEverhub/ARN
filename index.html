@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="assets/css/styles.css?v=20261123-choice-review">
     <link rel="stylesheet" href="assets/css/mbti.css">
-    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-direct-ui">
+    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-home-admin">
 </head>
 <body oncontextmenu="return false">
 
@@ -99,6 +99,10 @@
 
     <div id="quiz-entry-area" class="hidden" style="margin-top:0;">
         <h2 class="text-center">測驗首頁 - 題庫選擇中心</h2>
+        <div class="points-home-points-shortcut" id="points-home-points-shortcut" aria-label="積分銀行快捷入口">
+            <div><span>剩餘積分</span><strong id="points-home-total-balance">0</strong></div>
+            <button type="button" class="points-home-add" onclick="goToPointsBank()" aria-label="前往積分銀行">＋</button>
+        </div>
         <div style="margin-top:20px;">
             <h3>選擇或輸入測驗題庫</h3>
             <input type="text" id="quiz-code" class="code-input" list="quiz-code-options" placeholder="請輸入或選擇測驗代碼 (例如: test01)">
@@ -269,10 +273,6 @@
     <div id="account-screen" class="hidden sub-view" style="color:#333;">
         <h3>帳號管理中心</h3>
         <p style="color:#64748b; font-size:0.95em;">在此管理您的考生身分、測驗歷史紀錄與安全偏好設定。</p>
-        <div class="points-account-shortcut" aria-label="積分銀行快捷入口">
-            <div><span>剩餘積分</span><strong id="points-account-total-balance">0</strong></div>
-            <button type="button" class="points-account-add" onclick="goToPointsBank()" aria-label="前往積分銀行">＋</button>
-        </div>
         <div style="background:#f8fafc; padding:20px; border-radius:6px; border:1px solid #e2e8f0; margin-top:15px;">
             <p><strong>當前登入信箱：</strong> <span id="acc-email-display">尚未登入</span></p>
             <p><strong>當前登入姓名：</strong> <span id="acc-name-display">尚未設定</span></p>
@@ -419,6 +419,35 @@
     <div id="admin-screen" class="hidden sub-view" style="color:#333;">
         <h3>系統管理面板 (Admin Console)</h3>
         <p style="color:#64748b; font-size:0.95em;">系統參數監控、用戶帳戶管理、題庫公開設定與問題反饋審核。</p>
+<section id="admin-points-management" class="admin-panel-group admin-operation-group points-admin-panel">
+<h4 class="admin-section-title" id="admin-section-points">積分銀行管理中心</h4>
+<p class="muted-note">登入管理員帳號即可直接發放、扣點與設定借款上限，不需手動初始化。群發對象限啟用中的一般用戶；限時積分必須設定到期時間。</p>
+<div class="points-admin-grid">
+    <section class="points-admin-card"><h5>發放積分</h5>
+        <label for="admin-points-grant-target">發放對象</label><select id="admin-points-grant-target" class="code-input"></select>
+        <label for="admin-points-grant-type">積分類型</label><select id="admin-points-grant-type" class="code-input" onchange="toggleAdminPointsExpiry()"><option value="permanent">永久積分</option><option value="timed">限時積分</option></select>
+        <label for="admin-points-grant-amount">發放數量</label><input id="admin-points-grant-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數">
+        <label for="admin-points-grant-expiry">限時積分到期時間</label><input id="admin-points-grant-expiry" class="code-input" type="datetime-local" disabled>
+        <label for="admin-points-grant-reason">發放理由</label><input id="admin-points-grant-reason" class="code-input" type="text" maxlength="160" placeholder="例如：活動獎勵">
+        <button type="button" class="main-btn btn-accent" onclick="adminGrantPoints()">確認發放</button>
+    </section>
+    <section class="points-admin-card"><h5>扣除用戶積分</h5>
+        <label for="admin-points-deduct-target">扣除對象</label><select id="admin-points-deduct-target" class="code-input"></select>
+        <label for="admin-points-deduct-type">扣除類型</label><select id="admin-points-deduct-type" class="code-input"><option value="priority">先扣限時，再扣永久</option><option value="timed">只扣限時積分</option><option value="permanent">只扣永久積分</option></select>
+        <label for="admin-points-deduct-amount">扣除數量</label><input id="admin-points-deduct-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數">
+        <label for="admin-points-deduct-reason">扣除理由</label><input id="admin-points-deduct-reason" class="code-input" type="text" maxlength="160" placeholder="必填理由">
+        <button type="button" class="main-btn btn-danger" onclick="adminDeductPoints()">確認扣除</button>
+    </section>
+    <section class="points-admin-card"><h5>個人借款上限</h5>
+        <label for="admin-points-loan-target">用戶</label><select id="admin-points-loan-target" class="code-input"></select>
+        <label for="admin-points-loan-limit">可借本金上限（0 代表停用）</label><input id="admin-points-loan-limit" class="code-input" type="number" min="0" step="0.01" placeholder="點數上限">
+        <label for="admin-points-loan-reason">設定理由</label><input id="admin-points-loan-reason" class="code-input" type="text" maxlength="160" placeholder="選填">
+        <button type="button" class="main-btn btn-secondary" onclick="adminSetPointsLoanLimit()">儲存借款上限</button>
+    </section>
+</div>
+<div class="points-ledger-header"><h5>積分銀行交易紀錄</h5><button type="button" class="btn-sm btn-accent" onclick="renderPointsAdminLedger()">重新整理</button></div>
+<div id="admin-points-ledger" class="points-ledger-list"></div>
+</section>
         <div class="admin-panel-group admin-info-group">
             <div class="admin-group-kicker">資訊項</div>
             <p class="admin-group-description">查看系統總覽與即時數據；此區只提供資訊，不會直接修改資料。</p>
@@ -598,35 +627,6 @@
             </div>
 
             </div>
-<section id="admin-points-management" class="admin-panel-group admin-operation-group points-admin-panel">
-<h4 class="admin-section-title" id="admin-section-points">積分銀行管理中心</h4>
-<p class="muted-note">管理操作均記錄於積分銀行流水。群發對象限啟用中的一般用戶；限時積分必須設定到期時間。</p>
-<div class="points-admin-grid">
-    <section class="points-admin-card"><h5>發放積分</h5>
-        <label for="admin-points-grant-target">發放對象</label><select id="admin-points-grant-target" class="code-input"></select>
-        <label for="admin-points-grant-type">積分類型</label><select id="admin-points-grant-type" class="code-input" onchange="toggleAdminPointsExpiry()"><option value="permanent">永久積分</option><option value="timed">限時積分</option></select>
-        <label for="admin-points-grant-amount">發放數量</label><input id="admin-points-grant-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數">
-        <label for="admin-points-grant-expiry">限時積分到期時間</label><input id="admin-points-grant-expiry" class="code-input" type="datetime-local" disabled>
-        <label for="admin-points-grant-reason">發放理由</label><input id="admin-points-grant-reason" class="code-input" type="text" maxlength="160" placeholder="例如：活動獎勵">
-        <button type="button" class="main-btn btn-accent" onclick="adminGrantPoints()">確認發放</button>
-    </section>
-    <section class="points-admin-card"><h5>扣除用戶積分</h5>
-        <label for="admin-points-deduct-target">扣除對象</label><select id="admin-points-deduct-target" class="code-input"></select>
-        <label for="admin-points-deduct-type">扣除類型</label><select id="admin-points-deduct-type" class="code-input"><option value="priority">先扣限時，再扣永久</option><option value="timed">只扣限時積分</option><option value="permanent">只扣永久積分</option></select>
-        <label for="admin-points-deduct-amount">扣除數量</label><input id="admin-points-deduct-amount" class="code-input" type="number" min="0.01" step="0.01" placeholder="點數">
-        <label for="admin-points-deduct-reason">扣除理由</label><input id="admin-points-deduct-reason" class="code-input" type="text" maxlength="160" placeholder="必填理由">
-        <button type="button" class="main-btn btn-danger" onclick="adminDeductPoints()">確認扣除</button>
-    </section>
-    <section class="points-admin-card"><h5>個人借款上限</h5>
-        <label for="admin-points-loan-target">用戶</label><select id="admin-points-loan-target" class="code-input"></select>
-        <label for="admin-points-loan-limit">可借本金上限（0 代表停用）</label><input id="admin-points-loan-limit" class="code-input" type="number" min="0" step="0.01" placeholder="點數上限">
-        <label for="admin-points-loan-reason">設定理由</label><input id="admin-points-loan-reason" class="code-input" type="text" maxlength="160" placeholder="選填">
-        <button type="button" class="main-btn btn-secondary" onclick="adminSetPointsLoanLimit()">儲存借款上限</button>
-    </section>
-</div>
-<div class="points-ledger-header"><h5>積分銀行交易紀錄</h5><button type="button" class="btn-sm btn-accent" onclick="renderPointsAdminLedger()">重新整理</button></div>
-<div id="admin-points-ledger" class="points-ledger-list"></div>
-</section>
 <div id="admin-modal-admin-section-board" class="admin-feature-modal hidden" data-admin-modal="admin-section-board">
 <button type="button" class="admin-modal-close" onclick="closeAdminFeature('admin-section-board')">關閉此功能</button>
 <h4 class="admin-section-title" id="admin-section-board">8. 留言板、敏感詞與資料管理</h4>
@@ -935,8 +935,8 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="assets/js/app.js?v=20261123-points-bank"></script>
-<script src="assets/js/points-bank-ui.js?v=20261123-direct-ui"></script>
+<script src="assets/js/app.js?v=20261123-home-admin"></script>
+<script src="assets/js/points-bank-ui.js?v=20261123-home-admin"></script>
 
 <script src="assets/js/extensions.js"></script>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>

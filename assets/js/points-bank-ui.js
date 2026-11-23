@@ -89,7 +89,7 @@ async function syncPointsBankAfterLogin() {
             applyPointsBankResult(result, { status: result.ok ? '積分銀行餘額已同步。' : pointsActionMessage(result), isError: !result.ok });
             if (currentUser?.role === 'admin' && !pointsBankMap?.treasuryEmail) {
                 result = await window.fbPointsBankAction('setTreasury', { actorRole: 'admin', actorEmail: loginEmail });
-                applyPointsBankResult(result, { status: '已將唯一管理員設定為積分銀行帳戶。' });
+                applyPointsBankResult(result, { status: '積分銀行管理員帳戶已就緒。' });
             }
         } catch (error) {
             console.error('積分銀行同步失敗：', error);
@@ -137,7 +137,7 @@ function goToPointsBank() {
 }
 
 function renderPointsWallet() {
-    const shortcut = document.querySelector('.points-account-shortcut');
+    const shortcut = document.getElementById('points-home-points-shortcut');
     if (!currentUser) { shortcut?.classList.add('hidden'); return; }
     shortcut?.classList.remove('hidden');
     const key = pointsUserKey(currentUser.email);
@@ -147,7 +147,7 @@ function renderPointsWallet() {
     const timed = lots.reduce((sum, lot) => sum + Number(lot.amount || 0), 0);
     const totalBalance = Math.round((Number(wallet.permanent || 0) + timed) * 100) / 100;
     const loan = getPointsLoanSummary(currentUser.email);
-    const summaryBalance = document.getElementById('points-account-total-balance');
+    const summaryBalance = document.getElementById('points-home-total-balance');
     if (summaryBalance) summaryBalance.textContent = formatPoints(totalBalance);
     document.getElementById('points-permanent-balance').textContent = formatPoints(wallet.permanent || 0);
     document.getElementById('points-timed-balance').textContent = formatPoints(timed);
@@ -191,7 +191,7 @@ function pointsActionMessage(result) {
         admin_loan_not_needed: '管理員不受積分不足限制。',
         price_changed: '價格或購買次數剛被其他裝置更新，請確認最新價格後再購買。',
         loan_amount_changed: '餘額或價格已變動，所需借款超過您剛才同意的本金；請重新確認。',
-        treasury_not_configured: '積分銀行管理員帳戶尚未初始化，請聯絡唯一管理員完成設定後再操作。'
+        treasury_not_configured: '積分銀行管理員帳戶正在自動同步，請稍候片刻後重試。'
     };
     return messages[result?.reason] || '操作未完成，請稍後再試。';
 }

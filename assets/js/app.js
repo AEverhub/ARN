@@ -338,6 +338,7 @@ function updateTaipeiClock() {
         }
 
         renderPublicQuizzesList();
+        renderPointsWallet();
         resumeQuizReviewSessionIfPresent();
         syncPointsBankAfterLogin();
     }
