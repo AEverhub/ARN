@@ -478,6 +478,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
             padding: 8px 10px;
             border-bottom: 1px solid #e2e8f0;
             font-size: 0.95em;
@@ -488,6 +490,7 @@
         }
         .quiz-action-btns {
             display: flex;
+            flex-wrap: wrap;
             gap: 6px;
         }
         .btn-sm {
@@ -503,6 +506,48 @@
         .btn-rank:hover { background: #c0392b; }
         .btn-start-quiz { background: #27ae60; }
         .btn-start-quiz:hover { background: #219653; }
+        .btn-review-quiz { background: #0f766e; }
+        .btn-review-quiz:hover { background: #115e59; }
+        .btn-review-quiz:disabled { background: #94a3b8; cursor: not-allowed; opacity: .9; }
+
+        .quiz-review-screen { max-width: 900px; margin: 0 auto; padding: 8px 0 24px; }
+        .quiz-review-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+        .quiz-review-header h2 { margin: 4px 0 8px; color: var(--primary); }
+        .quiz-review-header p { margin: 0; color: #64748b; line-height: 1.6; }
+        .review-eyebrow { color: #0f766e; font-size: .82rem; font-weight: 800; letter-spacing: .08em; }
+        .review-exit-btn { border: 0; border-radius: 8px; padding: 10px 14px; background: #334155; color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .review-progress-panel { margin: 16px 0; padding: 14px 16px; border: 1px solid #dbeafe; border-radius: 12px; background: #eff6ff; }
+        .review-progress-copy { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 9px; color: #334155; font-size: .9rem; }
+        .review-progress-track { height: 9px; overflow: hidden; border-radius: 999px; background: #dbeafe; }
+        .review-progress-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #0f766e, #22c55e); transition: width .25s ease; }
+        .review-flashcard { min-height: 270px; padding: clamp(18px, 4vw, 34px); border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 14px 36px rgba(15, 23, 42, .08); }
+        .review-card-counter { margin-bottom: 14px; color: #64748b; font-size: .88rem; font-weight: 700; }
+        .review-card-question { color: #0f172a; font-size: clamp(1.05rem, 2.7vw, 1.32rem); font-weight: 700; line-height: 1.75; overflow-wrap: anywhere; }
+        .review-card-answer { margin-top: 22px; padding: 16px; border: 1px solid #bbf7d0; border-left: 5px solid #16a34a; border-radius: 10px; background: #f0fdf4; color: #14532d; }
+        .review-answer-heading { margin: 0 0 8px; color: #15803d; font-size: .82rem; font-weight: 800; letter-spacing: .04em; }
+        .review-answer-main { font-size: 1.13rem; font-weight: 800; line-height: 1.65; }
+        .review-option-list { display: grid; gap: 7px; margin: 14px 0 0; padding: 0; list-style: none; }
+        .review-option-item { padding: 9px 11px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #fff; line-height: 1.55; }
+        .review-option-item.is-correct { border-color: #22c55e; color: #14532d; background: #dcfce7; font-weight: 700; }
+        .review-reveal-btn { display: block; width: 100%; margin-top: 22px; padding: 14px 18px; border: 0; border-radius: 10px; background: #0f766e; color: #fff; font-size: 1rem; font-weight: 800; cursor: pointer; }
+        .review-reveal-btn:hover { background: #115e59; }
+        .review-rating-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 16px; }
+        .review-rating-buttons p { flex-basis: 100%; margin: 0 0 2px; color: #475569; font-size: .9rem; font-weight: 700; }
+        .review-rating-buttons button { flex: 1 1 170px; min-height: 44px; border: 0; border-radius: 9px; color: #fff; font-weight: 800; cursor: pointer; }
+        .review-rating-again { background: #dc2626; }
+        .review-rating-hard { background: #d97706; }
+        .review-rating-good { background: #16a34a; }
+        .review-finished { margin-top: 16px; padding: 24px; border: 1px solid #bbf7d0; border-radius: 14px; background: #f0fdf4; text-align: center; }
+        .review-finished-mark { display: inline-block; padding: 5px 11px; border-radius: 999px; background: #dcfce7; color: #15803d; font-size: .8rem; font-weight: 800; }
+        .review-finished h3 { margin: 12px 0 6px; color: #14532d; }
+        .review-finished p { color: #475569; line-height: 1.6; }
+        @media (max-width: 600px) {
+            .public-quiz-item { align-items: flex-start; }
+            .quiz-action-btns { width: 100%; }
+            .quiz-review-header { flex-direction: column; }
+            .review-exit-btn { align-self: stretch; }
+            .review-progress-copy { flex-direction: column; }
+        }
 
         .feedback-system-container {
             background: #1e293b;

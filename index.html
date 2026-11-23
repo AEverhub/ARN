@@ -106,6 +106,7 @@
             </div>
 
             <p style="font-size:0.9em; color:#64748b; margin-bottom:5px;">管理員已公開的題庫列表：</p>
+            <p style="font-size:0.82em; color:#64748b; margin:4px 0;">「檢視題庫」採先回想、再揭曉答案的複習卡方式；一般使用者每日可檢視一個公開題庫，管理員不受限制。</p>
             <div class="public-quizzes-box" id="public-quizzes-list">
                 <div style="text-align:center; color:#94a3b8; padding:10px;">目前尚無公開題庫</div>
             </div>
@@ -134,6 +135,41 @@
         </div>
 
         <button class="main-btn" style="background:var(--primary); margin-top: 25px;" onclick="confirmSubmit()">提交作答</button>
+    </div>
+
+    <div id="review-screen" class="hidden quiz-review-screen">
+        <div class="quiz-review-header">
+            <div>
+                <div class="review-eyebrow">主動回想 · 間隔複習</div>
+                <h2 id="review-title">題庫複習</h2>
+                <p>先試著回想答案，再揭曉正解；選「再複習」的題目會稍後再次出現。</p>
+            </div>
+            <button type="button" class="review-exit-btn" onclick="closeQuizReview()">返回題庫列表</button>
+        </div>
+        <div class="review-progress-panel">
+            <div class="review-progress-copy"><span id="review-progress-text">準備複習…</span><span id="review-queue-text"></span></div>
+            <div class="review-progress-track"><div id="review-progress-bar" class="review-progress-bar"></div></div>
+        </div>
+        <article id="review-flashcard" class="review-flashcard">
+            <div id="review-card-counter" class="review-card-counter"></div>
+            <div id="review-card-image"></div>
+            <div id="review-card-question" class="review-card-question"></div>
+            <div id="review-card-svg"></div>
+            <div id="review-card-answer" class="review-card-answer hidden"></div>
+            <button type="button" id="review-reveal-btn" class="review-reveal-btn" onclick="revealQuizReviewAnswer()">先回想，再顯示答案</button>
+            <div id="review-rating-buttons" class="review-rating-buttons hidden">
+                <p>回想結果如何？</p>
+                <button type="button" class="review-rating-again" onclick="rateQuizReviewCard('again')">還不熟 · 稍後重複</button>
+                <button type="button" class="review-rating-hard" onclick="rateQuizReviewCard('hard')">有點印象 · 延後重複</button>
+                <button type="button" class="review-rating-good" onclick="rateQuizReviewCard('good')">已記住 · 移出本輪</button>
+            </div>
+        </article>
+        <div id="review-finished" class="review-finished hidden">
+            <div class="review-finished-mark">本輪完成</div>
+            <h3>做得很好，已完成這次主動回想。</h3>
+            <p id="review-finished-summary"></p>
+            <button type="button" class="review-exit-btn" onclick="closeQuizReview()">返回題庫列表</button>
+        </div>
     </div>
 
     <div id="result-screen" class="hidden">

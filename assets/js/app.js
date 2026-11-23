@@ -29,6 +29,10 @@ function updateTaipeiClock() {
     let authMode = 'login';
     let pendingQuizCode = '';
     let pendingQuizFromPublic = false;
+    let pendingQuizReview = false;
+    let quizReviewUsageMap = {};
+    let reviewClaimPending = false;
+    let activeQuizReview = null;
     // 目前載入中的題庫腳本完整網址；題目 image 路徑以此腳本所在資料夾為基準。
     let currentQuizScriptUrl = '';
     let quizEntryCountdownTimer = null;
@@ -148,6 +152,7 @@ function updateTaipeiClock() {
             quizCodesMap = data.quizCodes || {};
             userQuizLimitsMap = data.userQuizLimits || {};
             quizUsageMap = data.quizUsage || {};
+            quizReviewUsageMap = data.quizReviewUsage || {};
             testHistoryRecords = data.testHistory || [];
             feedbackDB = data.feedback || [];
             globalApiConfig = { ...defaultApiConfig(), ...(data.globalApiConfig || {}) };
@@ -347,6 +352,7 @@ function updateTaipeiClock() {
 
         document.getElementById('quiz-entry-area').classList.add('hidden');
         document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('review-screen')?.classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('chat-screen').classList.add('hidden');
@@ -381,6 +387,7 @@ function updateTaipeiClock() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('quiz-entry-area').classList.add('hidden');
         document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('review-screen')?.classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('chat-screen').classList.add('hidden');
@@ -1034,6 +1041,50 @@ function updateTaipeiClock() {
         return { allowed:true, locked:false, message:'' };
     }
 
+    function quizReviewUsageKey(email) {
+        return encodeURIComponent(String(email || '').trim().toLowerCase()).replace(/\./g, '%2E');
+    }
+
+    function getQuizReviewLimitState(user = currentUser) {
+        if (!user || user.role === 'admin') return { allowed:true, used:false };
+        const usage = quizReviewUsageMap[quizReviewUsageKey(user.email)];
+        const used = !!(usage && usage.date === getTaipeiDateKey());
+        return {
+            allowed: !used,
+            used,
+            message: used ? '一般使用者每日可檢視一個公開題庫。您的今日額度已使用，請於明日 00:00（台北時間）後再來複習。' : ''
+        };
+    }
+
+    async function claimQuizReviewAllowance(code) {
+        if (!currentUser) return { allowed:false, message:'請先登入後再檢視題庫。' };
+        if (currentUser.role === 'admin') return { allowed:true };
+        const localState = getQuizReviewLimitState();
+        if (!localState.allowed) return { allowed:false, message:localState.message };
+        if (typeof window.fbClaimQuizReview !== 'function') {
+            return { allowed:false, message:'目前無法確認每日複習額度（資料庫未連線），請確認連線後再試。' };
+        }
+        reviewClaimPending = true;
+        renderPublicQuizzesList();
+        try {
+            const date = getTaipeiDateKey();
+            const result = await window.fbClaimQuizReview(currentUser.email, code, date);
+            if (!result || !result.allowed) {
+                const usage = result && result.usage;
+                if (usage) quizReviewUsageMap[quizReviewUsageKey(currentUser.email)] = usage;
+                return { allowed:false, message:'一般使用者每日可檢視一個公開題庫。您的今日額度已在其他裝置使用，請於明日 00:00（台北時間）後再來複習。' };
+            }
+            quizReviewUsageMap[quizReviewUsageKey(currentUser.email)] = result.usage || { date, quizCode:code, viewedAt:new Date().toISOString() };
+            return { allowed:true };
+        } catch (error) {
+            console.error('複習額度確認失敗：', error);
+            return { allowed:false, message:'目前無法確認每日複習額度，請稍後再試。' };
+        } finally {
+            reviewClaimPending = false;
+            renderPublicQuizzesList();
+        }
+    }
+
     function consumeQuizAttempt(code) {
         if (!currentUser) return true;
         // 管理員進入題庫不消耗任何使用次數，也不寫入 quizUsage。
@@ -1172,7 +1223,15 @@ function updateTaipeiClock() {
             startButton.className = 'btn-sm btn-start-quiz';
             startButton.innerText = '進入考試';
             startButton.onclick = () => quickStartQuiz(code);
-            buttons.append(rankButton, startButton);
+            const reviewButton = document.createElement('button');
+            reviewButton.className = 'btn-sm btn-review-quiz';
+            const hasReviewedToday = currentUser && currentUser.role !== 'admin' &&
+                quizReviewUsageMap[quizReviewUsageKey(currentUser.email)]?.date === getTaipeiDateKey();
+            reviewButton.innerText = hasReviewedToday ? '今日已檢視' : '檢視題庫';
+            reviewButton.disabled = !!hasReviewedToday || reviewClaimPending;
+            reviewButton.title = hasReviewedToday ? '一般使用者每日可檢視一個公開題庫；明日（台北時間）重置' : '主動回想題目與答案，使用每日複習額度';
+            reviewButton.onclick = () => reviewPublicQuiz(code);
+            buttons.append(rankButton, reviewButton, startButton);
             listContainer.appendChild(item);
         });
         const missingMetadataCodes = publicCodes.filter(code => !quizMetadataCache[code]);
@@ -1257,6 +1316,153 @@ function updateTaipeiClock() {
     }
     window.quickStartQuiz = quickStartQuiz;
 
+    function reviewPublicQuiz(quizCode) {
+        quizCode = String(quizCode || '').trim();
+        if (!quizCode || !publicQuizzesMap[quizCode]) return alert('只能檢視管理員公開的題庫。');
+        if (!currentUser) return alert('請先登入後再檢視題庫。');
+        const limitState = getQuizReviewLimitState();
+        if (!limitState.allowed) return alert(limitState.message);
+        if (reviewClaimPending) return alert('正在確認今日複習額度，請稍候。');
+        pendingQuizCode = quizCode;
+        pendingQuizFromPublic = true;
+        pendingQuizReview = true;
+        document.getElementById('quiz-code').value = quizCode;
+        loadQuizScript(quizCode, () => {
+            if (!window.currentQuiz) return alert('題庫讀取失敗，請稍後再試。');
+            if (window.currentQuiz.password) {
+                document.getElementById('quiz-password-summary').innerHTML = `<strong>題庫名稱：</strong>${escapeHtml(window.currentQuiz.name || '')}<br><strong>題庫代碼：</strong>${escapeHtml(quizCode)}`;
+                document.getElementById('quiz-password-modal-input').value = '';
+                document.getElementById('quiz-password-modal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('quiz-password-modal-input').focus(), 50);
+            } else {
+                beginQuizReview();
+            }
+        });
+    }
+    window.reviewPublicQuiz = reviewPublicQuiz;
+
+    async function beginQuizReview() {
+        const code = pendingQuizCode;
+        const dataset = normalizeQuizDataset(window.currentQuiz);
+        if (!dataset.length) return alert('此題庫沒有可用的題目。');
+        const allowance = await claimQuizReviewAllowance(code);
+        if (!allowance.allowed) {
+            pendingQuizReview = false;
+            return alert(allowance.message);
+        }
+        const reviewOrder = shuffleArray(dataset);
+        activeQuizReview = {
+            code,
+            title: window.currentQuiz.name || code,
+            cards: reviewOrder,
+            queue: reviewOrder.map((_, index) => index),
+            remembered: 0,
+            again: 0,
+            hard: 0,
+            reviewedCount: 0,
+            seen: new Set(),
+            currentIndex: null,
+            revealed: false
+        };
+        pendingQuizReview = false;
+        document.getElementById('quiz-entry-area').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('review-screen').classList.remove('hidden');
+        document.getElementById('review-title').textContent = `${activeQuizReview.title}｜答案複習`;
+        showNextQuizReviewCard();
+    }
+
+    function updateQuizReviewProgress() {
+        if (!activeQuizReview) return;
+        const state = activeQuizReview;
+        const total = state.cards.length;
+        const percent = total ? Math.round(state.remembered * 100 / total) : 100;
+        document.getElementById('review-progress-text').textContent = `已記住 ${state.remembered} / ${total} 題`;
+        document.getElementById('review-queue-text').textContent = `本輪待回想 ${state.queue.length} 題`;
+        document.getElementById('review-progress-bar').style.width = `${percent}%`;
+    }
+
+    function showNextQuizReviewCard() {
+        const state = activeQuizReview;
+        if (!state) return;
+        if (!state.queue.length) {
+            document.getElementById('review-flashcard').classList.add('hidden');
+            document.getElementById('review-finished').classList.remove('hidden');
+            document.getElementById('review-finished-summary').textContent = `本次共 ${state.cards.length} 題；已記住 ${state.remembered} 題，曾標記「還不熟」${state.again} 次、「有點印象」${state.hard} 次。標記較不熟的卡片已在本輪再次出現。`;
+            updateQuizReviewProgress();
+            return;
+        }
+        document.getElementById('review-finished').classList.add('hidden');
+        document.getElementById('review-flashcard').classList.remove('hidden');
+        const index = state.queue.shift();
+        state.currentIndex = index;
+        state.revealed = false;
+        state.reviewedCount++;
+        const q = state.cards[index];
+        q.__rmsIndex = index;
+        document.getElementById('review-card-counter').textContent = `第 ${state.reviewedCount} 次回想 · 主動回想卡`;
+        document.getElementById('review-card-question').innerHTML = q.q || '';
+        document.getElementById('review-card-image').innerHTML = reviewQuestionImage(q, index);
+        document.getElementById('review-card-svg').innerHTML = reviewQuestionSvg(q, index);
+        document.getElementById('review-card-answer').innerHTML = '';
+        document.getElementById('review-card-answer').classList.add('hidden');
+        document.getElementById('review-reveal-btn').classList.remove('hidden');
+        document.getElementById('review-rating-buttons').classList.add('hidden');
+        updateQuizReviewProgress();
+        window.typesetRmsMath(document.getElementById('review-flashcard'));
+    }
+
+    function revealQuizReviewAnswer() {
+        const state = activeQuizReview;
+        if (!state || state.currentIndex == null || state.revealed) return;
+        const q = state.cards[state.currentIndex];
+        const parts = answerParts(q, null, true);
+        const fallback = q.correctAnswer ?? q.acceptedAnswers ?? q.answers ?? q.answer;
+        const answerContent = parts.content && parts.content !== '未設定'
+            ? parts.content
+            : (fallback !== undefined ? formatAnswerText(q, Array.isArray(fallback) ? fallback.join('、') : fallback) : '未設定');
+        let html = `<div class="review-answer-heading">正確答案</div><div class="review-answer-main">${escapeHtml(String(parts.answer || '答案'))} ${answerContent}</div>`;
+        const entries = optionEntries(q);
+        if (entries.length) {
+            const correct = getQuestionType(q) === 'multiple' ? answerArray(q) : [optionLetter(q.a ?? fallback).toLowerCase()];
+            html += `<ul class="review-option-list">${entries.map(entry => `<li class="review-option-item ${correct.includes(entry.label) ? 'is-correct' : ''}"><b>（${escapeHtml(entry.label.toUpperCase())}）</b>${formatAnswerText(q, entry.content)}${correct.includes(entry.label) ? '　✓ 正解' : ''}</li>`).join('')}</ul>`;
+        }
+        const answerBox = document.getElementById('review-card-answer');
+        answerBox.innerHTML = html;
+        answerBox.classList.remove('hidden');
+        document.getElementById('review-reveal-btn').classList.add('hidden');
+        document.getElementById('review-rating-buttons').classList.remove('hidden');
+        state.revealed = true;
+        state.seen.add(state.currentIndex);
+        window.typesetRmsMath(answerBox);
+    }
+    window.revealQuizReviewAnswer = revealQuizReviewAnswer;
+
+    function rateQuizReviewCard(rating) {
+        const state = activeQuizReview;
+        if (!state || !state.revealed || state.currentIndex == null) return;
+        if (rating === 'good') {
+            state.remembered++;
+        } else {
+            const delay = rating === 'hard' ? 4 : 2;
+            if (rating === 'hard') state.hard++;
+            else state.again++;
+            state.queue.splice(Math.min(delay, state.queue.length), 0, state.currentIndex);
+        }
+        showNextQuizReviewCard();
+    }
+    window.rateQuizReviewCard = rateQuizReviewCard;
+
+    function closeQuizReview() {
+        activeQuizReview = null;
+        pendingQuizReview = false;
+        document.getElementById('review-screen').classList.add('hidden');
+        document.getElementById('quiz-entry-area').classList.remove('hidden');
+        renderPublicQuizzesList();
+    }
+    window.closeQuizReview = closeQuizReview;
+
     function openQuizEntryFlow(quizCode, fromPublic) {
         quizCode = String(quizCode || '').trim();
         if (!quizCode) return alert('缺少題庫代碼！');
@@ -1296,6 +1502,7 @@ function updateTaipeiClock() {
         const value = document.getElementById('quiz-password-modal-input').value;
         if (!window.currentQuiz || value !== window.currentQuiz.password) return alert('題庫密碼錯誤！');
         document.getElementById('quiz-password-modal').classList.add('hidden');
+        if (pendingQuizReview) return beginQuizReview();
         openQuizConfirmModal();
     }
 
@@ -1339,6 +1546,7 @@ function updateTaipeiClock() {
         document.getElementById('quiz-entry-confirm-modal').classList.add('hidden');
         document.getElementById('quiz-password-modal').classList.add('hidden');
         pendingQuizCode = '';
+        pendingQuizReview = false;
     }
 
     // 依題庫 currentQuiz.mode 整理題目與選項順序。

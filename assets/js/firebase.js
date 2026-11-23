@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { getDatabase, ref, set, get, child, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
         authDomain: "rms-quiz-system-dbserver.firebaseapp.com",
@@ -102,6 +102,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
         });
     };
 
+    function toFirebaseChildKey(value) {
+        return encodeURIComponent(String(value || '').trim().toLowerCase()).replace(/\./g, '%2E');
+    }
+    window.fbClaimQuizReview = async function(email, quizCode, date) {
+        const userKey = toFirebaseChildKey(email);
+        const normalizedQuizCode = String(quizCode || '').trim();
+        if (!userKey || !normalizedQuizCode || !date) throw new Error('缺少帳號、題庫或日期資料。');
+        // 每位使用者每日只有一筆交易，確保跨裝置檢視不同題庫也共用同一額度。
+        const reviewRef = ref(db, `system_data/quizReviewUsage/${userKey}`);
+        const result = await runTransaction(reviewRef, current => {
+            if (current && current.date === date) return;
+            return { date, quizCode: normalizedQuizCode, viewedAt: new Date().toISOString() };
+        }, { applyLocally: false });
+        return { allowed: result.committed, usage: result.snapshot.val() || null };
+    };
+
     const dbRef = ref(db);
     get(child(dbRef, 'system_data')).then((snapshot) => {
         if (snapshot.exists()) {
@@ -118,6 +134,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
                 quizCodes: {},
                 userQuizLimits: {},
                 quizUsage: {},
+                quizReviewUsage: {},
                 handwritingGrades: {},
                 globalApiConfig: { enabled: false, provider: 'gemini', apiKey: '', model: 'gemini-flash-latest', endpoint: '' },
                 testHistory: [],
