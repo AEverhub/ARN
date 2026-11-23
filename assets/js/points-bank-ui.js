@@ -64,6 +64,11 @@ function getPointsPurchaseQuote(kind, code, user = currentUser) {
 
 function applyPointsBankResult(result, options = {}) {
     if (result?.state) pointsBankMap = result.state;
+    const treasuryStatus = document.getElementById('points-admin-treasury-status');
+    if (treasuryStatus) {
+        treasuryStatus.textContent = options.claimStatus || (pointsBankMap?.treasuryEmail ? `目前綁定帳戶：${pointsBankMap.treasuryEmail}` : '目前尚未綁定積分銀行帳戶。');
+        treasuryStatus.classList.toggle('is-error', !!options.claimIsError);
+    }
     if (document.getElementById('points-permanent-balance')) renderPointsWallet();
     if (currentUser) renderPublicQuizzesList();
     if (currentUser?.role === 'admin') {
@@ -99,6 +104,39 @@ async function syncPointsBankAfterLogin() {
         }
     })();
     return pointsBankSyncPromise;
+}
+
+async function claimPointsBankAdmin() {
+    const status = document.getElementById('points-admin-treasury-status');
+    const button = document.getElementById('admin-claim-points-treasury');
+    if (!currentUser || currentUser.role !== 'admin') {
+        if (status) { status.textContent = '只有管理員可以認領積分銀行帳戶。'; status.classList.add('is-error'); }
+        return;
+    }
+    if (typeof window.fbPointsBankAction !== 'function') {
+        if (status) { status.textContent = '積分銀行尚未連線，請稍後重試。'; status.classList.add('is-error'); }
+        return;
+    }
+    const actorEmail = String(currentUser.email || '').trim();
+    if (!actorEmail) {
+        if (status) { status.textContent = '目前管理員帳號沒有可綁定的信箱。'; status.classList.add('is-error'); }
+        return;
+    }
+    if (button) button.disabled = true;
+    if (status) { status.textContent = '正在綁定目前管理員帳號…'; status.classList.remove('is-error'); }
+    try {
+        const result = await window.fbPointsBankAction('setTreasury', { actorRole: 'admin', actorEmail });
+        if (currentUser?.email !== actorEmail) return;
+        const success = !!result?.ok;
+        const message = success ? `已將 ${actorEmail} 綁定為積分銀行帳戶。` : pointsActionMessage(result);
+        applyPointsBankResult(result, { status: message, isError: !success, claimStatus: message, claimIsError: !success });
+    } catch (error) {
+        console.error('認領積分銀行帳戶失敗：', error);
+        const message = '認領失敗，請確認網路連線後重試。';
+        if (status) { status.textContent = message; status.classList.add('is-error'); }
+    } finally {
+        if (button) button.disabled = false;
+    }
 }
 
 async function refreshPointsWallet() {

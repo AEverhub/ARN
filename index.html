@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="assets/css/styles.css?v=20261123-choice-review">
     <link rel="stylesheet" href="assets/css/mbti.css">
-    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-home-admin">
+    <link rel="stylesheet" href="assets/css/points-bank.css?v=20261123-claim-admin">
 </head>
 <body oncontextmenu="return false">
 
@@ -422,6 +422,10 @@
 <section id="admin-points-management" class="admin-panel-group admin-operation-group points-admin-panel">
 <h4 class="admin-section-title" id="admin-section-points">積分銀行管理中心</h4>
 <p class="muted-note">登入管理員帳號即可直接發放、扣點與設定借款上限，不需手動初始化。群發對象限啟用中的一般用戶；限時積分必須設定到期時間。</p>
+<div class="points-admin-claim">
+    <div><strong>積分銀行帳戶認領</strong><p class="points-admin-claim-status" id="points-admin-treasury-status">等待銀行帳戶資料同步…</p><small>按下後會將目前登入的管理員帳號綁定為積分銀行帳戶。</small></div>
+    <button type="button" id="admin-claim-points-treasury" class="main-btn btn-accent" onclick="claimPointsBankAdmin()">認領積分管理員</button>
+</div>
 <div class="points-admin-grid">
     <section class="points-admin-card"><h5>發放積分</h5>
         <label for="admin-points-grant-target">發放對象</label><select id="admin-points-grant-target" class="code-input"></select>
@@ -936,7 +940,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="assets/js/app.js?v=20261123-home-admin"></script>
-<script src="assets/js/points-bank-ui.js?v=20261123-home-admin"></script>
+<script src="assets/js/points-bank-ui.js?v=20261123-claim-admin"></script>
 
 <script src="assets/js/extensions.js"></script>
 <div id="ui-message-modal" class="modal-overlay hidden"><div class="modal-card"><h3 id="ui-message-title" style="color:#fff">系統訊息</h3><div id="ui-message-content" class="notice-modal-content"></div><button class="main-btn btn-accent" onclick="closeUiMessage()">知道了</button></div></div>

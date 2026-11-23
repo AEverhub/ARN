@@ -9,6 +9,13 @@
 .points-admin-panel { margin-top: 20px; padding: 18px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; scroll-margin-top: 20px; }
 .points-admin-panel > .admin-section-title { margin: 0 0 8px; color: #1a252f; }
 .points-admin-panel > .muted-note { margin: 0 0 12px; }
+.points-admin-claim { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 12px 0 16px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; }
+.points-admin-claim > div { min-width: 0; }
+.points-admin-claim > div > strong { color: #0f172a; }
+.points-admin-claim small { color: #64748b; line-height: 1.5; }
+.points-admin-claim-status { margin: 4px 0; color: #0f766e; font-size: .88rem; font-weight: 750; overflow-wrap: anywhere; }
+.points-admin-claim-status.is-error { color: #b91c1c; }
+.points-admin-claim button { flex: 0 0 auto; white-space: nowrap; }
 .points-wallet-heading, .points-ledger-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .points-kicker { color: #64748b; font-size: .68rem; font-weight: 850; letter-spacing: .14em; }
 .points-wallet-heading h4 { margin: 3px 0 0; color: #0f172a; font-size: 1.25rem; }
@@ -53,6 +60,7 @@
 @media (max-width: 480px) {
     .points-wallet-card { padding: 14px; }
     .points-home-points-shortcut { padding: 12px; }
+    .points-admin-claim { align-items: stretch; flex-direction: column; }
     .points-balance-grid { gap: 6px; }
     .points-balance-grid > div { padding: 10px 8px; }
     .points-wallet-heading { align-items: flex-start; }
