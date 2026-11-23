@@ -179,46 +179,63 @@ Currently, the great demand for AI products offers new business opportunities. M
   /* ---------- 組題 ---------- */
   const H1 = "▲下篇短文共有 4 個空格，為第 21–24 題，請依短文文意，選出一個最適合該空格的答案。";
   const H2 = "▲下篇短文共有 4 個空格，為第 25–28 題，請依短文文意，選出一個最適合該空格的答案。";
-  const mk = (head, passage, stem) => `${head}\n\n${passage}\n\n${stem}`;
 
   return {
     name: "英文1150102",
     time: 30,
     mode: 1,
+    readingPassages: {
+      maritime: { title: H1, text: P_MARITIME },
+      bridge: { title: H2, text: P_BRIDGE },
+      blog: {
+        title: "閱讀文章及對話｜第 29–30 題",
+        text: P_BLOG,
+        svg: blogSvg,
+        svgAlt: "Elsa’s Blog 網頁：Recent Posts 有 4 月 2 日看 Barbie 電影、4 月 6 日 Nancy 阿姨來訪、4 月 8 日與媽媽去 Pa Pasta 吃飯三篇貼文"
+      },
+      solar: {
+        title: "閱讀文章｜第 31–32 題",
+        text: P_SOLAR,
+        svg: lineChartSvg,
+        svgAlt: "折線圖：2004 到 2024 年臺灣能源供給百分比，石油約 45–55%、煤約 30–34%、天然氣由約 7% 上升到約 22%、核能由約 9% 降到約 3%、再生能源約 1.5–3.5%"
+      },
+      dtf: {
+        title: "閱讀文章｜第 33–35 題",
+        text: P_DTF,
+        svg: barChartSvg,
+        svgAlt: "橫條圖：美國連鎖餐廳每店營收（百萬美元），Nobu 10.1、Cheesecake Factory 12.4、Smith and Wollensky 13.4、Del Frisco’s 13.8、Mastro’s 14.5、鼎泰豐 27.4"
+      },
+      teen: { title: "閱讀文章｜第 36–38 題", text: P_TEEN },
+      tech: { title: "閱讀文章｜第 39–42 題", text: P_TECH }
+    },
     data: [
       /* ===== III. 綜合測驗 21–24 ===== */
-      { q: mk(H1, P_MARITIME, "第 21 題：請選出空格 21 的最適合答案。"), o: ["(A) Among", "(B) During", "(C) Near", "(D) Opposite"], a: "A" },
-      { q: mk(H1, P_MARITIME, "第 22 題：請選出空格 22 的最適合答案。"), o: ["(A) domestic", "(B) remote", "(C) simple", "(D) tough"], a: "D" },
-      { q: mk(H1, P_MARITIME, "第 23 題：請選出空格 23 的最適合答案。"), o: ["(A) even when", "(B) just where", "(C) or else", "(D) so that"], a: "A" },
-      { q: mk(H1, P_MARITIME, "第 24 題：請選出空格 24 的最適合答案。"), o: ["(A) to pose a career obstacle", "(B) to increase ocean-going ships", "(C) to improve women’s employment", "(D) to raise women’s work challenges"], a: "C" },
+      { q: "第 21 題：請選出空格 21 的最適合答案。", passageId: "maritime", o: ["(A) Among", "(B) During", "(C) Near", "(D) Opposite"], a: "A" },
+      { q: "第 22 題：請選出空格 22 的最適合答案。", passageId: "maritime", o: ["(A) domestic", "(B) remote", "(C) simple", "(D) tough"], a: "D" },
+      { q: "第 23 題：請選出空格 23 的最適合答案。", passageId: "maritime", o: ["(A) even when", "(B) just where", "(C) or else", "(D) so that"], a: "A" },
+      { q: "第 24 題：請選出空格 24 的最適合答案。", passageId: "maritime", o: ["(A) to pose a career obstacle", "(B) to increase ocean-going ships", "(C) to improve women’s employment", "(D) to raise women’s work challenges"], a: "C" },
 
       /* ===== 綜合測驗 25–28 ===== */
-      { q: mk(H2, P_BRIDGE, "第 25 題：請選出空格 25 的最適合答案。"), o: ["(A) air quality", "(B) traffic flow", "(C) water safety", "(D) local culture"], a: "B" },
-      { q: mk(H2, P_BRIDGE, "第 26 題：請選出空格 26 的最適合答案。"), o: ["(A) selected", "(B) selecting", "(C) is selected", "(D) to select"], a: "A" },
-      { q: mk(H2, P_BRIDGE, "第 27 題：請選出空格 27 的最適合答案。"), o: ["(A) as if", "(B) in case", "(C) in order that", "(D) as long as"], a: "A" },
-      { q: mk(H2, P_BRIDGE, "第 28 題：請選出空格 28 的最適合答案。"), o: ["(A) dance and design", "(B) art and competition", "(C) construction and religion", "(D) transportation and tourism"], a: "D" },
+      { q: "第 25 題：請選出空格 25 的最適合答案。", passageId: "bridge", o: ["(A) air quality", "(B) traffic flow", "(C) water safety", "(D) local culture"], a: "B" },
+      { q: "第 26 題：請選出空格 26 的最適合答案。", passageId: "bridge", o: ["(A) selected", "(B) selecting", "(C) is selected", "(D) to select"], a: "A" },
+      { q: "第 27 題：請選出空格 27 的最適合答案。", passageId: "bridge", o: ["(A) as if", "(B) in case", "(C) in order that", "(D) as long as"], a: "A" },
+      { q: "第 28 題：請選出空格 28 的最適合答案。", passageId: "bridge", o: ["(A) dance and design", "(B) art and competition", "(C) construction and religion", "(D) transportation and tourism"], a: "D" },
 
       /* ===== IV. 閱讀測驗 29–30（Elsa's Blog） ===== */
       {
-        q: mk("▲閱讀下文，回答第 29–30 題", P_BLOG, "第 29 題：What did Elsa post on her blog?"),
-        svg: blogSvg,
-        svgAlt: "Elsa’s Blog 網頁：Recent Posts 有 4 月 2 日看 Barbie 電影、4 月 6 日 Nancy 阿姨來訪、4 月 8 日與媽媽去 Pa Pasta 吃飯三篇貼文",
+        q: "第 29 題：What did Elsa post on her blog?", passageId: "blog",
         o: ["(A) Family life.", "(B) Pasta menu.", "(C) Movie reviews.", "(D) School activities."],
         a: "A"
       },
       {
-        q: mk("▲閱讀下文，回答第 29–30 題", P_BLOG, "第 30 題：According to the passage, what would Elsa probably do with her blog next?"),
-        svg: blogSvg,
-        svgAlt: "Elsa’s Blog 網頁：Recent Posts 有 4 月 2 日看 Barbie 電影、4 月 6 日 Nancy 阿姨來訪、4 月 8 日與媽媽去 Pa Pasta 吃飯三篇貼文",
+        q: "第 30 題：According to the passage, what would Elsa probably do with her blog next?", passageId: "blog",
         o: ["(A) Post her school activities.", "(B) Link to Aunt Nancy’s blog.", "(C) Link to movie review blogs.", "(D) Post her address and date of birth."],
         a: "C"
       },
 
       /* ===== 31–32（折線圖 + 太陽能段落） ===== */
       {
-        q: mk("▲閱讀下文，回答第 31–32 題", P_SOLAR, "第 31 題：According to the line chart, what is one trend in Taiwan’s energy supply from 2004 to 2024?"),
-        svg: lineChartSvg,
-        svgAlt: "折線圖：2004 到 2024 年臺灣能源供給百分比，石油約 45–55%、煤約 30–34%、天然氣由約 7% 上升到約 22%、核能由約 9% 降到約 3%、再生能源約 1.5–3.5%",
+        q: "第 31 題：According to the line chart, what is one trend in Taiwan’s energy supply from 2004 to 2024?", passageId: "solar",
         o: [
           "(A) Energy generated by natural gas has gradually decreased for the last 20 years.",
           "(B) Nuclear energy has accounted for more than 10% of the energy supply since 2004.",
@@ -228,9 +245,7 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "C"
       },
       {
-        q: mk("▲閱讀下文，回答第 31–32 題", P_SOLAR, "第 32 題：According to the paragraph, which of the following are the challenges of solar energy?"),
-        svg: lineChartSvg,
-        svgAlt: "折線圖：2004 到 2024 年臺灣能源供給百分比，石油約 45–55%、煤約 30–34%、天然氣由約 7% 上升到約 22%、核能由約 9% 降到約 3%、再生能源約 1.5–3.5%",
+        q: "第 32 題：According to the paragraph, which of the following are the challenges of solar energy?", passageId: "solar",
         o: [
           "(A) House value and pollution concerns.",
           "(B) Energy source and greenhouse gases.",
@@ -242,9 +257,7 @@ Currently, the great demand for AI products offers new business opportunities. M
 
       /* ===== 33–35（長條圖 + 鼎泰豐） ===== */
       {
-        q: mk("▲閱讀下文，回答第 33–35 題", P_DTF, "第 33 題：According to the chart, which of the following is correct?"),
-        svg: barChartSvg,
-        svgAlt: "橫條圖：美國連鎖餐廳每店營收（百萬美元），Nobu 10.1、Cheesecake Factory 12.4、Smith and Wollensky 13.4、Del Frisco’s 13.8、Mastro’s 14.5、鼎泰豐 27.4",
+        q: "第 33 題：According to the chart, which of the following is correct?", passageId: "dtf",
         o: [
           "(A) The revenue per store of the Cheesecake Factory is half of that of Din Tai Fung.",
           "(B) The revenue per store of Mastro’s Restaurants is higher than that of Nobu Restaurant.",
@@ -254,9 +267,7 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "B"
       },
       {
-        q: mk("▲閱讀下文，回答第 33–35 題", P_DTF, "第 34 題：Which of the following is NOT mentioned as a reason that makes Din Tai Fung successful?"),
-        svg: barChartSvg,
-        svgAlt: "橫條圖：美國連鎖餐廳每店營收（百萬美元），Nobu 10.1、Cheesecake Factory 12.4、Smith and Wollensky 13.4、Del Frisco’s 13.8、Mastro’s 14.5、鼎泰豐 27.4",
+        q: "第 34 題：Which of the following is NOT mentioned as a reason that makes Din Tai Fung successful?", passageId: "dtf",
         o: [
           "(A) Every xiao long bao is folded 18 times and weighs 21 grams.",
           "(B) Din Tai Fung has 180 stores in 13 countries all over the world.",
@@ -266,16 +277,14 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "B"
       },
       {
-        q: mk("▲閱讀下文，回答第 33–35 題", P_DTF, "第 35 題：Which is the correct order about Din Tai Fung’s business history?\na. Starting to sell xiao long bao in 1972.\nb. Opening its first American branch store.\nc. Setting up a cooking oil business in Taiwan.\nd. Achieving the most revenue per store in the US."),
-        svg: barChartSvg,
-        svgAlt: "橫條圖：美國連鎖餐廳每店營收（百萬美元），Nobu 10.1、Cheesecake Factory 12.4、Smith and Wollensky 13.4、Del Frisco’s 13.8、Mastro’s 14.5、鼎泰豐 27.4",
+        q: "第 35 題：Which is the correct order about Din Tai Fung’s business history?\na. Starting to sell xiao long bao in 1972.\nb. Opening its first American branch store.\nc. Setting up a cooking oil business in Taiwan.\nd. Achieving the most revenue per store in the US.", passageId: "dtf",
         o: ["(A) a → b → c → d", "(B) a → d → c → b", "(C) c → a → b → d", "(D) c → d → b → a"],
         a: "C"
       },
 
       /* ===== 36–38（青少年焦慮） ===== */
       {
-        q: mk("▲閱讀下文，回答第 36–38 題", P_TEEN, "第 36 題：Which of the following is the best conclusion for the above passage?"),
+        q: "第 36 題：Which of the following is the best conclusion for the above passage?", passageId: "teen",
         o: [
           "(A) In a phone-based world, teenagers will spend more time on digital technologies like virtual reality and online shopping. These technologies will help them solve problems effectively, so companies should develop new features to meet their needs.",
           "(B) To address these concerns, teenagers should be allowed to use social media for two reasons: to make new friends and to talk to people face to face. In this way, they will become more confident about their future.",
@@ -285,7 +294,7 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "D"
       },
       {
-        q: mk("▲閱讀下文，回答第 36–38 題", P_TEEN, "第 37 題：According to the passage, which of the following is true?"),
+        q: "第 37 題：According to the passage, which of the following is true?", passageId: "teen",
         o: [
           "(A) Too many free, unsupervised activities make it hard for teenagers to focus and sleep.",
           "(B) A lack of guidance from parents is a main reason causing teenagers’ mental health issues.",
@@ -295,7 +304,7 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "D"
       },
       {
-        q: mk("▲閱讀下文，回答第 36–38 題", P_TEEN, "第 38 題：According to the passage, what would happen to children when their parents overprotected them?"),
+        q: "第 38 題：According to the passage, what would happen to children when their parents overprotected them?", passageId: "teen",
         o: [
           "(A) It would be easier for them to deal with problems on their own.",
           "(B) They would develop a strong sense of teamwork and risk-taking.",
@@ -307,7 +316,7 @@ Currently, the great demand for AI products offers new business opportunities. M
 
       /* ===== 39–42（臺灣電子業） ===== */
       {
-        q: mk("▲閱讀下文，回答第 39–42 題", P_TECH, "第 39 題：What is the passage mainly about?"),
+        q: "第 39 題：What is the passage mainly about?", passageId: "tech",
         o: [
           "(A) Markets for Taiwan’s AI-related products.",
           "(B) Progress of Taiwan’s electronics industry.",
@@ -317,12 +326,12 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "B"
       },
       {
-        q: mk("▲閱讀下文，回答第 39–42 題", P_TECH, "第 40 題：According to the passage, which is NOT an important reason for the strength of Taiwan’s electronics industry?"),
+        q: "第 40 題：According to the passage, which is NOT an important reason for the strength of Taiwan’s electronics industry?", passageId: "tech",
         o: ["(A) Labor pool.", "(B) Government support.", "(C) Business network.", "(D) Product price."],
         a: "D"
       },
       {
-        q: mk("▲閱讀下文，回答第 39–42 題", P_TECH, "第 41 題：Which is closest in meaning to “ride the wave of change” in paragraph 4?"),
+        q: "第 41 題：Which is closest in meaning to “ride the wave of change” in paragraph 4?", passageId: "tech",
         o: [
           "(A) let go of these new opportunities",
           "(B) have trouble with making the change",
@@ -332,7 +341,7 @@ Currently, the great demand for AI products offers new business opportunities. M
         a: "D"
       },
       {
-        q: mk("▲閱讀下文，回答第 39–42 題", P_TECH, "第 42 題：According to the passage, which of the following is true?"),
+        q: "第 42 題：According to the passage, which of the following is true?", passageId: "tech",
         o: [
           "(A) Ten Taiwanese companies are providing electronic manufacturing services.",
           "(B) Taiwan was the world’s largest market for AI-related products in the 1990s.",

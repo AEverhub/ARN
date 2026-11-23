@@ -131,6 +131,31 @@ window.currentQuiz = {
 
 也可以直接提供字串，例如 `svg: "<svg ...>...</svg>"`。SVG 會經過基本清理：移除腳本、事件處理屬性、嵌入式 HTML 與外部資源引用。請使用自包含的 SVG，避免依賴外部圖片或字型。
 
+## 閱讀文章與題目分開
+
+閱讀文章可集中放在 `readingPassages` 物件中，每篇文章用唯一 ID 作為鍵；題目只需填 `passageId` 引用文章，題幹 `q` 保留該題本身的問題。測驗及「檢視題庫」複習畫面會將文章／圖表和題目分開呈現。`text` 以純文字及換行保存，`svg`、`svgAlt` 可選，用於附屬於文章的共用圖表；不要再將同一篇文章或共用 SVG 重複放入各題。
+
+```js
+window.currentQuiz = {
+  name: "閱讀測驗",
+  time: 15,
+  readingPassages: {
+    energy: {
+      title: "閱讀文章：能源供給",
+      text: "文章第一段。\n\n文章第二段。",
+      svgAlt: "能源供給折線圖",
+      svg: () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160"><text x="12" y="24">共用圖表</text></svg>`
+    }
+  },
+  data: [
+    { passageId: "energy", q: "根據文章，哪一項敘述正確？", o: ["(A) 選項一", "(B) 選項二"], a: "A" },
+    { passageId: "energy", q: "文章提到的另一項資訊是什麼？", o: ["(A) 選項一", "(B) 選項二"], a: "B" }
+  ]
+};
+```
+
+沒有 `passageId` 的舊題庫維持原有呈現方式；一般題目及題目本身的 `image`／`svg` 欄位亦保持相容。
+
 ## 圖片路徑
 
 目前儲存庫不附帶 JPG 圖片。若之後新增題目圖片，可放在 `QuestionBank/images/`；圖片路徑以題庫腳本所在資料夾為基準，例如 `images/figure.png`：

@@ -357,6 +357,7 @@ function updateTaipeiClock() {
         document.getElementById('review-title').textContent = `${saved.title || saved.code}｜恢復未完成複習`;
         document.getElementById('review-card-counter').textContent = '正在恢復複習進度…';
         document.getElementById('review-card-question').textContent = '正在載入題目與上次的作答進度，請稍候。';
+        document.getElementById('review-card-passage').innerHTML = '';
         document.getElementById('review-card-image').innerHTML = '';
         document.getElementById('review-card-svg').innerHTML = '';
         document.getElementById('review-card-options').innerHTML = '';
@@ -1600,6 +1601,7 @@ function updateTaipeiClock() {
         const q = state.cards[index];
         q.__rmsIndex = index;
         document.getElementById('review-card-counter').textContent = `第 ${state.reviewedCount} 次作答 · 選擇正確答案`;
+        document.getElementById('review-card-passage').innerHTML = renderReadingPassage(q, index);
         document.getElementById('review-card-question').innerHTML = q.q || '';
         document.getElementById('review-card-image').innerHTML = reviewQuestionImage(q, index);
         document.getElementById('review-card-svg').innerHTML = reviewQuestionSvg(q, index);
@@ -2351,6 +2353,29 @@ function updateTaipeiClock() {
         }
     }
 
+    function renderReadingPassage(question, index) {
+        const passageId = question && question.passageId;
+        const passages = window.currentQuiz && window.currentQuiz.readingPassages;
+        const passage = passageId && passages && passages[passageId];
+        if (!passage || typeof passage !== 'object') return '';
+
+        const title = passage.title ? `<h3 class="reading-passage-title">${escapeHtml(passage.title)}</h3>` : '';
+        const text = typeof passage.text === 'string'
+            ? `<div class="reading-passage-text">${escapeHtml(passage.text)}</div>`
+            : '';
+        let figure = '';
+        if (passage.svg != null) {
+            try {
+                const alt = passage.svgAlt || passage.title || '閱讀文章圖表';
+                figure = `<div class="reading-passage-figure" role="img" aria-label="${escapeHtml(alt)}">${sanitizeSvgMarkup(passage, index)}</div>`;
+            } catch (error) {
+                console.warn(`閱讀文章 ${passageId} 的 SVG 無法顯示：`, error);
+                figure = '<div class="question-image-error">此閱讀文章的 SVG 圖形無法顯示，請檢查題庫腳本。</div>';
+            }
+        }
+        return `<section class="reading-passage" aria-label="${escapeHtml(passage.title || '閱讀文章')}"><div class="reading-passage-label">閱讀文章</div>${title}${text}${figure}</section>`;
+    }
+
     function saveHandwritingCanvas(index, canvas) {
         const existing = userAnswers[index] && typeof userAnswers[index] === 'object' ? userAnswers[index] : {};
         userAnswers[index] = {
@@ -2501,6 +2526,7 @@ function updateTaipeiClock() {
                 : '';
             card.innerHTML = `${imageHtml}
                 <div class="question-title">第 ${i+1} 題 / 共 ${currentQuestions.length} 題 ${typeLabel}</div>
+                ${renderReadingPassage(q, i)}
                 <div class="question-text">${q.q || ''}</div>
                 <div id="question-svg-slot-${i}"></div>
                 <div id="opts-${i}"></div>`;
